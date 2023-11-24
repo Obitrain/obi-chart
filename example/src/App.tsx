@@ -1,31 +1,23 @@
+import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { StyleSheet, View, Text } from 'react-native';
-import { multiply } from 'obi-chart';
+import useCachedResources from './hooks/useCacheRessources';
+import Navigation from './navigation';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const isLoadingComplete = useCachedResources();
 
-  React.useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
-
-  return (
-    <View style={styles.container}>
-      <Text>Result: {result}</Text>
-    </View>
-  );
+  if (!isLoadingComplete) {
+    return null;
+  } else {
+    return (
+      //   <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <Navigation colorScheme="light" />
+        <StatusBar />
+      </SafeAreaProvider>
+      //   </GestureHandlerRootView>
+    );
+  }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  box: {
-    width: 60,
-    height: 60,
-    marginVertical: 20,
-  },
-});
