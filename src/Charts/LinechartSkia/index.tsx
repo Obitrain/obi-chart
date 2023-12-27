@@ -1,9 +1,9 @@
 import {
   Canvas,
   Path,
-  type PathCommand,
   Skia,
   clamp,
+  type PathCommand,
 } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
@@ -13,13 +13,9 @@ import Animated from 'react-native-reanimated';
 
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSharedValue } from 'react-native-reanimated';
+import type { DataPoint } from '../types';
 import { buildGraph, type Config } from '../utils';
 import { Cursor } from './Cursor';
-
-export type DataPoint = {
-  x: number;
-  y: number;
-};
 
 export type LineItem = {
   data: DataPoint[];

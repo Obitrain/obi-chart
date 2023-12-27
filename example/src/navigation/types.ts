@@ -13,21 +13,10 @@ declare global {
 }
 
 export type RootStackParamList = {
-  //   Root: NavigatorScreenParams<RootTabParamList> | undefined;
   Home: undefined;
-  FontsScreen: undefined;
-  TextInputScreen: undefined;
-  ButtonsScreen: undefined;
-  LoadersScreen: undefined;
-  EmptyViewScreen: undefined;
-  IconsScreen: undefined;
-  ColorsScreen: undefined;
-  GradientsScreen: undefined;
-  TopbarScreen: undefined;
-  ViewPagerScreen: undefined;
-  AvatarScreen: undefined;
-  ChartsScreen: undefined;
-  ChartUtilsScreen: undefined;
+  BottomAxisScreen: undefined;
+  LineChartScreen: undefined;
+  ZoomableLineChartScreen: undefined;
 };
 
 export type RNFC<Screen extends keyof RootStackParamList> =

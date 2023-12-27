@@ -7,7 +7,7 @@ import type { DRNFC } from '../navigation/types';
 function HomeScreen({ navigation }: DRNFC<'Home'>) {
   return (
     <View style={styles.container}>
-      <Button label="Open menu" onPress={() => navigation.openDrawer()} />
+      <Button label="Open menu" small onPress={() => navigation.openDrawer()} />
     </View>
   );
 }

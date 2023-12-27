@@ -21,9 +21,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  smallContainer: {
+    width: 100,
+    height: 50,
+  },
   labelText: {
     fontSize: 20,
     color: Colors.white,
+    textAlign: 'center',
+  },
+  smallLabelText: {
+    fontSize: 15,
   },
 });
 
@@ -31,13 +39,29 @@ export type Props = RectButtonProperties & {
   label: string;
   style?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;
+  small?: boolean;
 };
 
 const Button: FC<Props> = function (props) {
-  const { label, style, labelStyle, ...rest } = props;
+  const { label, style, labelStyle, small = true, ...rest } = props;
   return (
-    <RectButton style={[styles.container, style]} {...rest}>
-      <Text style={[styles.labelText, labelStyle]}>{label}</Text>
+    <RectButton
+      style={[
+        styles.container,
+        small ? styles.smallContainer : undefined,
+        style,
+      ]}
+      {...rest}
+    >
+      <Text
+        style={[
+          styles.labelText,
+          small ? styles.smallLabelText : undefined,
+          labelStyle,
+        ]}
+      >
+        {label}
+      </Text>
     </RectButton>
   );
 };

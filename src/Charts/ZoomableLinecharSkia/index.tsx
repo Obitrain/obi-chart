@@ -15,15 +15,9 @@ import Animated, { useDerivedValue } from 'react-native-reanimated';
 
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSharedValue } from 'react-native-reanimated';
-import { buildGraph, type Config, type GraphData } from '../utils';
+import type { DataPoint } from '../types';
+import { buildGraph, type Config } from '../utils';
 import { serializeScale, useZoomableChart } from './utils';
-
-export type DataPoint = {
-  x: number;
-  y: number;
-};
-
-export type LineGraphType = GraphData; // Omit<GraphData, 'path'> & { path: RPath };
 
 export type LineItem = {
   data: DataPoint[];
@@ -95,7 +89,7 @@ const ZoomableLineChart: FC<ZoomableLineChartProps> = function ({
 
   const animatedPath = useDerivedValue(() => {
     const _path = Skia.Path.MakeFromCmds(serializeScale(commands.value, scale));
-    console.log(JSON.stringify({ path: _path?.toSVGString() }, null, 2));
+    // console.log(JSON.stringify({ path: _path?.toSVGString() }, null, 2));
     return _path?.toSVGString();
   }, [scale]);
 

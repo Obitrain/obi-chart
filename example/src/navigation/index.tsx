@@ -43,15 +43,29 @@ const SCREENS: ScreenType[] = [
     name: 'Home',
     component: Screens.HomeScreen,
     options: {
-      title: 'Obitrain design system',
+      title: 'Obi Chart Utils',
       drawerLabel: 'Home',
     },
   },
   {
-    name: 'ChartUtilsScreen',
-    component: Screens.ChartUtilsScreen,
+    name: 'BottomAxisScreen',
+    component: Screens.BottomAxisScreen,
     options: {
-      title: 'Chart utils',
+      title: 'Bottom Axis',
+    },
+  },
+  {
+    name: 'LineChartScreen',
+    component: Screens.LineChartScreen,
+    options: {
+      title: 'Line chart',
+    },
+  },
+  {
+    name: 'ZoomableLineChartScreen',
+    component: Screens.ZoomableLineChartScreen,
+    options: {
+      title: 'Zoomable Line chart',
     },
   },
 ];
@@ -70,7 +84,7 @@ const TOPBAR_DEFAULT_OPTIONS = Platform.select<DrawerNavigationOptions>({
 });
 
 function RootNavigator() {
-  const initRoute: ScreenName = __DEV__ ? 'ChartUtilsScreen' : 'Home';
+  const initRoute: ScreenName = __DEV__ ? 'BottomAxisScreen' : 'Home';
   return (
     <Drawer.Navigator
       screenOptions={{ ...TOPBAR_DEFAULT_OPTIONS }}
