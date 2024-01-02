@@ -1,9 +1,10 @@
 // ChartUtilsScreen.tsx
-import { Canvas } from '@shopify/react-native-skia';
+import { Canvas, Line, vec } from '@shopify/react-native-skia';
 import React, { type FC } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import type Animated from 'react-native-reanimated';
-import { Tick } from './Tick';
+import { useDerivedValue } from 'react-native-reanimated';
+import { Tick, getPositionWl } from './Tick';
 
 export type AxisProps = {
   data: number[];
@@ -18,10 +19,38 @@ export type AxisProps = {
 const BottomAxis: FC<AxisProps> = function (props) {
   const { data, scale, focalX, offsetX, style, tickInterval } = props;
   const yPosition = props.yPosition ?? 0;
+
+  const p1 = useDerivedValue(() => {
+    const p1X = getPositionWl(
+      0,
+      tickInterval,
+      focalX.value,
+      scale.value,
+      offsetX.value
+    );
+    return vec(p1X, yPosition);
+  }, [tickInterval]);
+
+  const p2 = useDerivedValue(() => {
+    const p1X = getPositionWl(
+      data.length - 1,
+      tickInterval,
+      focalX.value,
+      scale.value,
+      offsetX.value
+    );
+    return vec(p1X, yPosition);
+  }, [tickInterval, data.length]);
+
   return (
     <Canvas style={style}>
       {/* Render ticks */}
-      {/* <Line color="black" p1={vec(0, 0)} p2={vec(380, 0)} strokeWidth={2} /> */}
+      <Line
+        color="black"
+        p1={p1}
+        p2={p2}
+        strokeWidth={StyleSheet.hairlineWidth}
+      />
       {data.map((v, i) => (
         <Tick
           key={i}

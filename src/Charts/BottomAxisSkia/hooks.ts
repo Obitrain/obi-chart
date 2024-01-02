@@ -1,7 +1,12 @@
 import { clamp } from '@shopify/react-native-skia';
 import { useCallback } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
-import { useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, {
+  runOnJS,
+  useAnimatedReaction,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { getPositionWl } from './Tick';
 
 export type AxisGestureProps = {
@@ -52,18 +57,18 @@ export const useAxisGesture = (props: AxisGestureProps) => {
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
       const newOffsetX = lastOffsetX.value + event.translationX;
-      console.log({
-        offsetX: event.translationX,
-        scale: scale.value,
-        newOffsetX,
-      });
+      //   console.log({
+      //     offsetX: event.translationX,
+      //     scale: scale.value,
+      //     newOffsetX,
+      //   });
       //   if (scale.value > 1) {
       offsetX.value = newOffsetX;
       //   offsetX.value = clamp(newOffsetX, -100, 100); // Clamp the offsetX value
       //   }
     })
     .onEnd(() => {
-      console.log('==== End Pan ====');
+      //   console.log('==== End Pan ====');
 
       lastScale.value = scale.value;
       lastFocalX.value = focalX.value;
@@ -84,14 +89,14 @@ export const useAxisGesture = (props: AxisGestureProps) => {
       if (scale.value === 1) {
         newOffset = startOffset;
       } else if (offsetX.value - leftBoundary > 0) {
-        console.log(
-          `Left Boundary reached ${offsetX.value - leftBoundary} > 0`
-        );
+        // console.log(
+        //   `Left Boundary reached ${offsetX.value - leftBoundary} > 0`
+        // );
         newOffset = leftBoundary;
       } else if (rightBoundary + offsetX.value < axisWidth) {
-        console.log(
-          `Right Boundary reached ${offsetX.value - leftBoundary} > 0`
-        );
+        // console.log(
+        //   `Right Boundary reached ${offsetX.value - leftBoundary} > 0`
+        // );
         newOffset = axisWidth - rightBoundary - startOffset;
       } else {
         newOffset = offsetX.value;
@@ -129,4 +134,41 @@ export const useAxisGesture = (props: AxisGestureProps) => {
     reset,
     tickInterval,
   };
+};
+
+export type UpdateAxisProps = {
+  scale: Animated.SharedValue<number>;
+  scales: number[];
+  onScaleChange?: (index: number) => void;
+};
+
+export const useUpdateAxis = function (props: UpdateAxisProps) {
+  const { scale, scales, onScaleChange } = props;
+  const currentIndex = useSharedValue(0);
+
+  useAnimatedReaction(
+    () => scale.value,
+    (currentScale, _) => {
+      console.log({ currentScale });
+      for (let i = 0; i < scales.length; i++) {
+        const _prevScale = scales[i - 1] ?? 0;
+        const _curScale = scales[i];
+        if (_curScale === undefined || _prevScale === undefined)
+          throw new Error('Got undefined scale');
+
+        if (
+          currentScale >= _prevScale &&
+          currentScale < _curScale &&
+          currentIndex.value !== i
+        ) {
+          currentIndex.value = i;
+          if (onScaleChange !== undefined) runOnJS(onScaleChange)(i);
+          break;
+        }
+      }
+    },
+    []
+  );
+
+  return { currentIndex };
 };

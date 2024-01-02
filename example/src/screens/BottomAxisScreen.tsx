@@ -2,12 +2,20 @@ import { BottomAxis, useAxisGesture } from 'obi-chart';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useUpdateAxis } from '../../../src/Charts/BottomAxisSkia';
 import { Button } from '../components';
 
 const DATA_RANGES = [
   Array.from({ length: 5 }, (_, i) => i),
-  Array.from({ length: 5 }, (_, i) => 100 + i * 90),
-  Array.from({ length: 5 }, (_, i) => (100 + i * 90) / 100),
+  Array.from({ length: 10 }, (_, i) => i),
+  Array.from({ length: 20 }, (_, i) => i),
+];
+
+const RANGE_SCALES: number[] = [
+  // Will show data range 0 for scale < 1.6,
+  //                range 1 for 1.6 >= scale < 2.5,
+  //                range 2 for 2.5 >= scale < 99
+  1.6, 2.5, 99,
 ];
 
 const AXIS_LENGTH = 400;
@@ -29,44 +37,28 @@ export function BottomAxisScreen() {
     nbTicks: DATA_RANGES[currentRange]!.length,
   });
 
-  const resetChart = () => {
-    reset();
-    setCurrentRange(0);
-  };
-
-  //@ts-expect-error
-  const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
-
-  //   console.log(DATA_RANGES[currentRange]);
-
   const _updateRange = useCallback((newValue?: number) => {
     setCurrentRange((old) => {
       const _newValue =
         newValue ?? (old + 1 > DATA_RANGES.length - 1 ? 0 : old + 1);
-      console.log('new value: ', _newValue);
       return _newValue;
     });
   }, []);
 
-  //   useAnimatedReaction(
-  //     () => scale.value,
-  //     (currentVal, prevVal) => {
-  //       const _prevVal = prevVal ?? 0;
-  //       console.log(currentVal, _prevVal, scale.value);
-  //       if (
-  //         currentVal > 1.5 &&
-  //         _prevVal < 1.5 &&
-  //         scale.value === currentVal &&
-  //         currentVal > _prevVal
-  //       ) {
-  //         console.log('\n ENTER ====== \n');
-  //         // runOnJS(_updateRange)(1);
-  //         lastScale.value = 1;
-  //         scale.value = 1;
-  //       }
-  //     },
-  //     []
-  //   );
+  const { currentIndex: currentRangeShared } = useUpdateAxis({
+    scale,
+    scales: RANGE_SCALES,
+    onScaleChange: (_newIndex) => _updateRange(_newIndex),
+  });
+
+  const resetChart = () => {
+    reset();
+    setCurrentRange(0);
+    currentRangeShared.value = 0;
+  };
+
+  //@ts-expect-error
+  const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
 
   return (
     <View style={styles.container}>
@@ -89,7 +81,7 @@ export function BottomAxisScreen() {
         />
       </View>
       <GestureDetector gesture={gesture}>
-        <View style={{ flex: 1 }}>
+        <View style={styles.container}>
           <BottomAxis
             {...{
               data: DATA_RANGES[currentRange]!,
@@ -98,7 +90,7 @@ export function BottomAxisScreen() {
               offsetX,
               tickInterval,
             }}
-            style={{ height: 500 }}
+            style={styles.axis}
             yPosition={250}
           />
         </View>
@@ -111,12 +103,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  axis: {
+    height: 500,
+  },
   btnsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
     marginVertical: 20,
-    backgroundColor: 'red',
     flexWrap: 'wrap',
   },
 });

@@ -1,3 +1,3 @@
 export { BottomAxis } from './BottomAxis';
 export { Tick } from './Tick';
-export { useAxisGesture } from './hooks';
+export { useAxisGesture, useUpdateAxis } from './hooks';
