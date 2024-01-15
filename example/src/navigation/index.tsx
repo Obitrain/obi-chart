@@ -68,6 +68,20 @@ const SCREENS: ScreenType[] = [
       title: 'Zoomable Line chart',
     },
   },
+  {
+    name: 'TestScreen',
+    component: Screens.TestScreen,
+    options: {
+      title: 'Dev screen',
+    },
+  },
+  {
+    name: 'DotsScreen',
+    component: Screens.DotsScreen,
+    options: {
+      title: 'Dots',
+    },
+  },
 ];
 
 const TOPBAR_DEFAULT_OPTIONS = Platform.select<DrawerNavigationOptions>({
@@ -84,7 +98,7 @@ const TOPBAR_DEFAULT_OPTIONS = Platform.select<DrawerNavigationOptions>({
 });
 
 function RootNavigator() {
-  const initRoute: ScreenName = __DEV__ ? 'BottomAxisScreen' : 'Home';
+  const initRoute: ScreenName = __DEV__ ? 'LineChartScreen' : 'Home';
   return (
     <Drawer.Navigator
       screenOptions={{ ...TOPBAR_DEFAULT_OPTIONS }}

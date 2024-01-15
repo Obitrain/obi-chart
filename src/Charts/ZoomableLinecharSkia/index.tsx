@@ -3,9 +3,8 @@ import {
   Group,
   Path,
   Skia,
-  type AnimatedProp,
   type PathCommand,
-  type Transforms2d,
+  type Transforms3d,
 } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
@@ -81,16 +80,14 @@ const ZoomableLineChart: FC<ZoomableLineChartProps> = function ({
     // reset,
   } = useZoomableChart({ width });
 
-  const transform = useDerivedValue<
-    AnimatedProp<Transforms2d | undefined, any>
-  >(() => {
+  const transform = useDerivedValue<Transforms3d>(() => {
     return [{ translateX: translateX.value }];
   }, [translateX]);
 
   const animatedPath = useDerivedValue(() => {
     const _path = Skia.Path.MakeFromCmds(serializeScale(commands.value, scale));
     // console.log(JSON.stringify({ path: _path?.toSVGString() }, null, 2));
-    return _path?.toSVGString();
+    return _path?.toSVGString()!;
   }, [scale]);
 
   const composedGesture = Gesture.Race(pinchGesture, panGesture);

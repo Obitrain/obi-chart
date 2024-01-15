@@ -22,10 +22,10 @@ const styles = StyleSheet.create({
 export type Props = {
   cmds: Animated.SharedValue<PathCommand[]>;
   positionX: Animated.SharedValue<number>;
-
   maxWidth: number;
   size?: number;
   color?: string;
+  currentValue?: Animated.SharedValue<number>;
 };
 
 const Cursor: FC<Props> = function ({
@@ -33,14 +33,18 @@ const Cursor: FC<Props> = function ({
   positionX,
   maxWidth,
   color,
+  currentValue,
   size = CURSOR_SIZE,
 }) {
   const translationX = useDerivedValue(() => {
     return clamp(positionX.value, 0, maxWidth);
   });
   const translationY = useDerivedValue(() => {
-    const _value = getYForX(cmds.value, translationX.value);
-    return _value ?? 0;
+    const _value = getYForX(cmds.value, translationX.value) ?? 0;
+    if (currentValue !== undefined) {
+      currentValue.value = _value;
+    }
+    return _value;
   });
 
   const animatedStyle = useAnimatedStyle(() => {

@@ -1,8 +1,7 @@
-import { BottomAxis, useAxisGesture } from 'obi-chart';
+import { BottomAxis, useAxisGesture, useUpdateAxis } from 'obi-chart';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { useUpdateAxis } from '../../../src/Charts/BottomAxisSkia';
 import { Button } from '../components';
 
 const DATA_RANGES = [

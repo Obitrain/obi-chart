@@ -25,3 +25,13 @@ export const MONTHLY_DATA = [
   { value: 0.6, label: 'Jun' },
   { value: 0.3, label: 'Jul' },
 ];
+
+export const MONTHLY_DATA_2 = [
+  { value: 10, label: 'Jan' },
+  { value: 1, label: 'Feb' },
+  { value: 5, label: 'Mar' },
+  { value: 0, label: 'Apr' },
+  { value: 7, label: 'May' },
+  { value: 6, label: 'Jun' },
+  { value: 3, label: 'Jul' },
+];

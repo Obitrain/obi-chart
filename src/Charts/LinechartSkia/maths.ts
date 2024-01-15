@@ -80,21 +80,37 @@ const solveCubic = (a: number, b: number, c: number, d: number): number[] => {
   return roots;
 };
 
-const cubicBezier = (
-  t: number,
-  from: number,
-  c1: number,
-  c2: number,
-  to: number
-): number => {
-  'worklet';
+// const cubicBezier = (
+//   t: number,
+//   from: number,
+//   c1: number,
+//   c2: number,
+//   to: number
+// ): number => {
+//   'worklet';
 
-  const term = 1 - t;
-  const a = 1 * term ** 3 * t ** 0 * from;
-  const b = 3 * term ** 2 * t ** 1 * c1;
-  const c = 3 * term ** 1 * t ** 2 * c2;
-  const d = 1 * term ** 0 * t ** 3 * to;
-  return a + b + c + d;
+//   const term = 1 - t;
+//   const a = 1 * term ** 3 * t ** 0 * from;
+//   const b = 3 * term ** 2 * t ** 1 * c1;
+//   const c = 3 * term ** 1 * t ** 2 * c2;
+//   const d = 1 * term ** 0 * t ** 3 * to;
+//   return a + b + c + d;
+// };
+
+const cubicSolve = function (
+  t: number,
+  p0: number,
+  p1: number,
+  p2: number,
+  p3: number
+) {
+  'worklet';
+  return (
+    (1 - t) * (1 - t) * (1 - t) * p0 +
+    3 * (1 - t) * (1 - t) * t * p1 +
+    3 * (1 - t) * t * t * p2 +
+    t * t * t * p3
+  );
 };
 
 export const cubicBezierYForX = (
@@ -116,7 +132,8 @@ export const cubicBezierYForX = (
     .filter((root) => root >= 0 && root <= 1);
   const t = ts[0];
   if (t == null) return 0;
-  return cubicBezier(t, a.y, b.y, c.y, d.y);
+  //   return cubicBezier(t, a.y, b.y, c.y, d.y);
+  return cubicSolve(t, a.y, b.y, c.y, d.y);
 };
 
 interface Cubic {
@@ -160,6 +177,9 @@ export const selectCurve = (
   return undefined;
 };
 
+/**
+ * Convert commands to cubic bezier
+ */
 export const norm = (cmds: PathCommand[]): PathCommand[] => {
   'worklet';
   const normCmds: PathCommand[] = [];

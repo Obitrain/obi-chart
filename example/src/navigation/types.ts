@@ -17,6 +17,8 @@ export type RootStackParamList = {
   BottomAxisScreen: undefined;
   LineChartScreen: undefined;
   ZoomableLineChartScreen: undefined;
+  TestScreen: undefined;
+  DotsScreen: undefined;
 };
 
 export type RNFC<Screen extends keyof RootStackParamList> =

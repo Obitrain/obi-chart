@@ -1,4 +1,4 @@
-# obi-chart
+# Obi-chart
 
 React Native charts using react-native-skia
 
@@ -8,15 +8,21 @@ React Native charts using react-native-skia
 npm install obi-chart
 ```
 
+## Animations
+
+
+
+### 1. Bottom Axis
+
+![Bottom Axis](./static/bottom-axis.gif)
+
+
 ## Usage
 
-```js
-import { multiply } from 'obi-chart';
 
-// ...
+See [example](example)
 
-const result = await multiply(3, 7);
-```
+
 
 ## Contributing
 
