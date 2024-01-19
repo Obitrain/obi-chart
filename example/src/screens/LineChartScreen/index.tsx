@@ -5,7 +5,7 @@ import {
   usePathInterpolation,
 } from '@shopify/react-native-skia';
 import * as shape from 'd3-shape';
-import { LineChart } from 'obi-chart';
+import { LineChart, buildGraph } from 'obi-chart';
 import React, { useMemo, useState, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -16,7 +16,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { getYForX } from '../../../../src/Charts/LinechartSkia/maths';
-import { buildGraph } from '../../../../src/Charts/utils';
 import { Button, Colors, ReText } from '../../components';
 import { MONTHLY_DATA, MONTHLY_DATA_2 } from '../../data';
 import { useDimensions } from '../../hooks';

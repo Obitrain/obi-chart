@@ -1,6 +1,13 @@
-import { Skia, type SkPath } from '@shopify/react-native-skia';
+import {
+  PathVerb,
+  Skia,
+  type PathCommand,
+  type SkPath,
+} from '@shopify/react-native-skia';
 import { scaleLinear } from 'd3-scale';
 import * as shape from 'd3-shape';
+import Animated from 'react-native-reanimated';
+import { getPositionWl } from './gesture';
 
 export type Config = {
   minX?: number;
@@ -86,4 +93,47 @@ export const getClosestPoint = function (x: number, dots: Dot[]): Dot {
     }
   }
   return closestDot;
+};
+
+/**
+ * For now, only support commands of type:
+ * - PathVerb.Move
+ * - PathVerb.Cubic
+ */
+export const scaleCommands = function (
+  commands: PathCommand[],
+  scaleX: Animated.SharedValue<number>,
+  focalX: Animated.SharedValue<number>,
+  offsetX: Animated.SharedValue<number>,
+  scaleY?: Animated.SharedValue<number>
+): PathCommand[] {
+  'worklet';
+  const _scaleY = scaleY ? scaleY.value : 1;
+  return commands.map((command) => {
+    const commandType = command[0];
+    if (commandType === undefined)
+      throw new Error('Got undefined command type');
+    if (commandType === PathVerb.Move) {
+      return [
+        commandType,
+        getPositionWl(command[1]!, focalX.value, scaleX.value, offsetX.value),
+        command[2]! * _scaleY,
+      ];
+    }
+    if (commandType === PathVerb.Cubic) {
+      return [
+        commandType,
+        // c1
+        getPositionWl(command[1]!, focalX.value, scaleX.value, offsetX.value),
+        command[2]! * _scaleY,
+        // c2
+        getPositionWl(command[3]!, focalX.value, scaleX.value, offsetX.value),
+        command[4]! * _scaleY,
+        // to
+        getPositionWl(command[5]!, focalX.value, scaleX.value, offsetX.value),
+        command[6]! * _scaleY,
+      ];
+    }
+    return command;
+  });
 };

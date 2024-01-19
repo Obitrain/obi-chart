@@ -3,11 +3,12 @@ import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Button } from '../components';
+import { useDimensions } from '../hooks';
 
 const DATA_RANGES = [
-  Array.from({ length: 5 }, (_, i) => i),
-  Array.from({ length: 10 }, (_, i) => i),
-  Array.from({ length: 20 }, (_, i) => i),
+  Array.from({ length: 5 }, (_, i) => i.toString()),
+  Array.from({ length: 10 }, (_, i) => i.toString()),
+  Array.from({ length: 20 }, (_, i) => i.toString()),
 ];
 
 const RANGE_SCALES: number[] = [
@@ -17,24 +18,20 @@ const RANGE_SCALES: number[] = [
   1.6, 2.5, 99,
 ];
 
-const AXIS_LENGTH = 400;
+const PADDING_HORIZONTAL = 20;
+const TEST_ZOOM = 2;
+const TEST_FOCAL = 200;
 
 export function BottomAxisScreen() {
   const [currentRange, setCurrentRange] = useState(0);
+  const { width } = useDimensions();
+  const _width = width - PADDING_HORIZONTAL * 2;
 
-  const {
-    scale,
-    focalX,
-    pinchGesture,
-    panGesture,
-    offsetX,
-    reset,
-    tickInterval,
-  } = useAxisGesture({
-    startOffset: 20,
-    axisWidth: AXIS_LENGTH,
-    nbTicks: DATA_RANGES[currentRange]!.length,
-  });
+  const { scale, focalX, pinchGesture, panGesture, offsetX, reset } =
+    useAxisGesture({
+      width: _width,
+      startOffset: PADDING_HORIZONTAL,
+    });
 
   const _updateRange = useCallback((newValue?: number) => {
     setCurrentRange((old) => {
@@ -69,28 +66,28 @@ export function BottomAxisScreen() {
           onPress={() => _updateRange()}
         />
         <Button
-          label={`Set zoom (${2})`}
+          label={`Set zoom (${TEST_ZOOM})`}
           small
-          onPress={() => (scale.value = scale.value === 1 ? 2 : 1)}
+          onPress={() => (scale.value = scale.value === 1 ? TEST_ZOOM : 1)}
         />
         <Button
-          label={`Set focal (200)`}
+          label={`Set focal (${TEST_FOCAL})`}
           small
-          onPress={() => (focalX.value = focalX.value === 0 ? 200 : 0)}
+          onPress={() => (focalX.value = focalX.value === 0 ? TEST_FOCAL : 0)}
         />
       </View>
       <GestureDetector gesture={gesture}>
         <View style={styles.container}>
           <BottomAxis
             {...{
-              data: DATA_RANGES[currentRange]!,
               scale,
               focalX,
               offsetX,
-              tickInterval,
+              width: _width,
             }}
+            labels={DATA_RANGES[currentRange]!}
             style={styles.axis}
-            yPosition={250}
+            offsetY={250}
           />
         </View>
       </GestureDetector>

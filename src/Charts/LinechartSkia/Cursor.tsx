@@ -1,4 +1,4 @@
-import type { PathCommand } from '@shopify/react-native-skia';
+import { clamp, type PathCommand } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
 import { StyleSheet } from 'react-native';
@@ -6,7 +6,6 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
 } from 'react-native-reanimated';
-import { clamp } from '../animUtils';
 import { getYForX } from './maths';
 
 const CURSOR_SIZE = 15;

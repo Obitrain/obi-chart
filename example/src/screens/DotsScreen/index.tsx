@@ -40,8 +40,6 @@ const DOTS = Array.from({
   opacity: makeMutable(0),
 }));
 
-console.log(DOTS.length);
-
 function DotsScreen() {
   const currentDots = useSharedValue(0);
 

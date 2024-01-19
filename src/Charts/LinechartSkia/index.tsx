@@ -14,13 +14,13 @@ import Animated, { useDerivedValue } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import type { SharedValue } from 'react-native-reanimated';
 import { useSharedValue } from 'react-native-reanimated';
-import type { DataPoint } from '../types';
 import {
   getClosestPoint,
   type Config,
   type Dot,
   type GraphData,
-} from '../utils';
+} from '../graphUtils';
+import type { DataPoint } from '../types';
 import { Cursor } from './Cursor';
 
 export type LineItem = {

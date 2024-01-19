@@ -1,66 +1,36 @@
 // ChartUtilsScreen.tsx
-import { Canvas, Line, vec } from '@shopify/react-native-skia';
+import { Canvas } from '@shopify/react-native-skia';
 import React, { type FC } from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { type StyleProp, type ViewStyle } from 'react-native';
 import type Animated from 'react-native-reanimated';
-import { useDerivedValue } from 'react-native-reanimated';
-import { Tick, getPositionWl } from './Tick';
+import { AxisLine } from './AxisLine';
+import { Tick } from './Tick';
 
 export type AxisProps = {
-  data: number[];
-  tickInterval: number;
+  labels: string[];
+  width: number;
+  //   tickInterval: number;
   scale: Animated.SharedValue<number>;
   focalX: Animated.SharedValue<number>;
   offsetX: Animated.SharedValue<number>;
-  yPosition?: number;
+  offsetY?: number;
   style?: StyleProp<ViewStyle>;
 };
 
 const BottomAxis: FC<AxisProps> = function (props) {
-  const { data, scale, focalX, offsetX, style, tickInterval } = props;
-  const yPosition = props.yPosition ?? 0;
-
-  const p1 = useDerivedValue(() => {
-    const p1X = getPositionWl(
-      0,
-      tickInterval,
-      focalX.value,
-      scale.value,
-      offsetX.value
-    );
-    return vec(p1X, yPosition);
-  }, [tickInterval]);
-
-  const p2 = useDerivedValue(() => {
-    const p1X = getPositionWl(
-      data.length - 1,
-      tickInterval,
-      focalX.value,
-      scale.value,
-      offsetX.value
-    );
-    return vec(p1X, yPosition);
-  }, [tickInterval, data.length]);
+  const { labels, scale, focalX, offsetX, style, width } = props;
+  const offsetY = props.offsetY ?? 0;
+  const tickInterval = width / (labels.length - 1);
 
   return (
     <Canvas style={style}>
-      {/* Render ticks */}
-      <Line
-        color="black"
-        p1={p1}
-        p2={p2}
-        strokeWidth={StyleSheet.hairlineWidth}
-      />
-      {data.map((v, i) => (
+      <AxisLine {...{ width, offsetY, focalX, scale, offsetX }} />
+      {labels.map((_label, i) => (
         <Tick
           key={i}
-          index={i}
-          value={v.toString()}
-          scale={scale}
-          focalX={focalX}
-          tickInterval={tickInterval}
-          offsetX={offsetX}
-          yPosition={yPosition}
+          label={_label}
+          initPosition={tickInterval * i}
+          {...{ offsetX, offsetY, focalX, scale }}
         />
       ))}
     </Canvas>

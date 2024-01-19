@@ -1,7 +1,8 @@
-export { BottomAxis, Tick, useAxisGesture, useUpdateAxis } from './BottomAxis';
+export { AxisLine, BottomAxis, Tick } from './BottomAxis';
 export { LineChart } from './LinechartSkia';
 export type { LineChartProps, LineItem } from './LinechartSkia';
-export { ZoomableLineChart } from './ZoomableLinecharSkia';
+export { Line, ZoomableLineChart } from './ZoomableLinecharSkia';
 export type { ZoomableLineChartProps } from './ZoomableLinecharSkia';
+export { getPositionWl, useAxisGesture, useUpdateAxis } from './gesture';
+export { buildGraph, scaleCommands } from './graphUtils';
 export type { DataPoint, LineGraphType } from './types';
-export { buildGraph } from './utils';

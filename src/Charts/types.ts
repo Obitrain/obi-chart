@@ -1,4 +1,4 @@
-import type { GraphData } from './utils';
+import type { GraphData } from './graphUtils';
 
 export type DataPoint = {
   x: number;

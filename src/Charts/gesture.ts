@@ -7,17 +7,32 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { getPositionWl } from './Tick';
+
+/**
+ * Get the position of a point on the axis,
+ * given the current focal, scale and offset
+ */
+export const getPositionWl = function (
+  position: number,
+  focalX: number,
+  scale: number,
+  offsetX: number
+) {
+  'worklet';
+  return (position - focalX) * scale + focalX + offsetX;
+};
 
 export type AxisGestureProps = {
-  axisWidth: number;
-  nbTicks: number;
+  width: number;
   startOffset?: number;
   startScale?: number;
 };
 
+/**
+ * Return utilities for zooming and panning the axis
+ */
 export const useAxisGesture = (props: AxisGestureProps) => {
-  const { axisWidth, nbTicks } = props;
+  const { width } = props;
   const startOffset = props.startOffset ?? 0;
   const startScale = props.startScale ?? 1;
   // For zooming
@@ -52,72 +67,50 @@ export const useAxisGesture = (props: AxisGestureProps) => {
     'worklet';
     focalX.value = withTiming(newFocalX, { duration: 300 }); // Smooth transition with duration
   };
-  const tickInterval = axisWidth / nbTicks;
 
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
       const newOffsetX = lastOffsetX.value + event.translationX;
-      //   console.log({
-      //     offsetX: event.translationX,
-      //     scale: scale.value,
-      //     newOffsetX,
-      //   });
-      //   if (scale.value > 1) {
       offsetX.value = newOffsetX;
-      //   offsetX.value = clamp(newOffsetX, -100, 100); // Clamp the offsetX value
-      //   }
     })
     .onEnd(() => {
-      //   console.log('==== End Pan ====');
-
       lastScale.value = scale.value;
       lastFocalX.value = focalX.value;
 
-      const leftBoundary =
-        -getPositionWl(0, tickInterval, focalX.value, scale.value, 0) +
-        startOffset;
-      const rightBoundary =
-        getPositionWl(nbTicks - 1, tickInterval, focalX.value, scale.value, 0) +
-        startOffset;
-      /**
-       * Sliding from left to right, the offset will be negative
-       * ====>, -
-       * Sliding from right to left, the offset will be positive
-       * <====, +
-       */
+      const leftBound = getPositionWl(
+        0,
+        focalX.value,
+        scale.value,
+        offsetX.value
+      );
+      const rightBound = getPositionWl(
+        width,
+        focalX.value,
+        scale.value,
+        offsetX.value
+      );
+
       let newOffset;
-      if (scale.value === 1) {
-        newOffset = startOffset;
-      } else if (offsetX.value - leftBoundary > 0) {
-        // console.log(
-        //   `Left Boundary reached ${offsetX.value - leftBoundary} > 0`
-        // );
-        newOffset = leftBoundary;
-      } else if (rightBoundary + offsetX.value < axisWidth) {
-        // console.log(
-        //   `Right Boundary reached ${offsetX.value - leftBoundary} > 0`
-        // );
-        newOffset = axisWidth - rightBoundary - startOffset;
+
+      if (leftBound > startOffset) {
+        // console.log(`Left Boundary reached`);
+        newOffset = offsetX.value - leftBound + startOffset;
+      } else if (rightBound < width) {
+        // console.log(`Right Boundary reached`);
+        newOffset = offsetX.value + width - rightBound + startOffset;
       } else {
         newOffset = offsetX.value;
       }
       if (newOffset === undefined) throw new Error('newOffset is undefined');
+
       offsetX.value = withTiming(newOffset, { duration: 300 });
       lastOffsetX.value = newOffset;
     });
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate((event) => {
-      //   console.log({
-      //     focalX: event.focalX,
-      //     scale: event.scale,
-      //     lastScale: lastScale.value,
-      //   });
       const newScale = lastScale.value * event.scale;
       scale.value = clamp(newScale, 1, Infinity); // Clamp the scale value
-
-      //   scale.value = lastScale.value * event.scale;
-      //   focalX.value = event.focalX;
       animateFocalPoint(event.focalX);
     })
     .onEnd(() => {
@@ -132,7 +125,6 @@ export const useAxisGesture = (props: AxisGestureProps) => {
     panGesture,
     offsetX,
     reset,
-    tickInterval,
   };
 };
 
@@ -149,7 +141,6 @@ export const useUpdateAxis = function (props: UpdateAxisProps) {
   useAnimatedReaction(
     () => scale.value,
     (currentScale, _) => {
-      console.log({ currentScale });
       for (let i = 0; i < scales.length; i++) {
         const _prevScale = scales[i - 1] ?? 0;
         const _curScale = scales[i];
