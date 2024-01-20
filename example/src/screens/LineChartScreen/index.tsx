@@ -15,7 +15,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { getYForX } from '../../../../src/Charts/LinechartSkia/maths';
+import { getYForX } from '../../../../src/Charts/maths';
 import { Button, Colors, ReText } from '../../components';
 import { MONTHLY_DATA, MONTHLY_DATA_2 } from '../../data';
 import { useDimensions } from '../../hooks';
@@ -107,7 +107,7 @@ const LineChartScreen: FC<Props> = function ({}) {
     }
   );
 
-  const _onChangeStyle = function () {
+  const _onChangeGraph = function () {
     const newGraph = (currentGraph.value + 1) % 3;
     currentGraph.value = newGraph;
     progress.value = withTiming(newGraph, { duration: 1000 });
@@ -116,7 +116,7 @@ const LineChartScreen: FC<Props> = function ({}) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.btnsContainer}>
-        <Button label="Change Graph" onPress={_onChangeStyle} />
+        <Button label="Change Graph" onPress={_onChangeGraph} />
         <Button
           label={isContinuous ? 'Continous' : 'Discrete'}
           onPress={() => setContinous((old) => !old)}

@@ -6,8 +6,12 @@ import {
 } from '@shopify/react-native-skia';
 import { scaleLinear } from 'd3-scale';
 import * as shape from 'd3-shape';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useAnimatedReaction,
+  withTiming,
+} from 'react-native-reanimated';
 import { getPositionWl } from './gesture';
+import { getYForX } from './maths';
 
 export type Config = {
   minX?: number;
@@ -136,4 +140,63 @@ export const scaleCommands = function (
     }
     return command;
   });
+};
+
+export type UseDotAnimationProps = {
+  currentGraph: Animated.SharedValue<number>;
+  path: Animated.SharedValue<SkPath>;
+  graphs: GraphData[];
+  points: {
+    x: Animated.SharedValue<number>;
+    y: Animated.SharedValue<number>;
+    opacity: Animated.SharedValue<number>;
+  }[];
+  opacityFn?: (opacity: number) => number;
+  translateFn?: (position: number) => number;
+};
+
+const defaultOpacityTransitionFn = function (opacity: number) {
+  'worklet';
+  return withTiming(opacity, { duration: 200 });
+};
+const defaultTranslateTransitionFn = function (position: number) {
+  'worklet';
+  return withTiming(position, { duration: 1000 });
+};
+
+export const useDotAnimation = function (props: UseDotAnimationProps) {
+  const {
+    currentGraph,
+    path,
+    graphs,
+    points,
+    opacityFn = defaultOpacityTransitionFn,
+    translateFn = defaultTranslateTransitionFn,
+  } = props;
+
+  useAnimatedReaction(
+    () => ({
+      _currentGraph: currentGraph.value,
+      _currentCommands: path.value.toCmds(),
+    }),
+    ({ _currentGraph, _currentCommands }) => {
+      const newDots = [...graphs.map((x) => x.dots)][_currentGraph]!;
+
+      points.map((_dot, i) => {
+        const _newDot = newDots[i];
+        if (!_newDot) {
+          _dot.opacity.value = opacityFn(0);
+          return;
+        } else {
+          _dot.x.value = translateFn(_newDot.x);
+          const newY = getYForX(_currentCommands, _dot.x.value);
+          if (newY !== undefined) {
+            _dot.y.value = newY;
+          }
+          //   _dot.y.value = withTiming(newDots[i]!.y, { duration: 1000 });
+          _dot.opacity.value = defaultOpacityTransitionFn(1);
+        }
+      });
+    }
+  );
 };

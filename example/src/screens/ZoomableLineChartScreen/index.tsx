@@ -1,9 +1,9 @@
-import { Group } from '@shopify/react-native-skia';
-import { ZoomableLineChart, useAxisGesture } from 'obi-chart';
+import { Group, usePathInterpolation } from '@shopify/react-native-skia';
+import { ZoomableLineChart, useAxisGesture, useDotAnimation } from 'obi-chart';
 import React, { type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue } from 'react-native-reanimated';
+import Animated, { useSharedValue, withTiming } from 'react-native-reanimated';
 import { Button, Colors } from '../../components';
 import { useDimensions } from '../../hooks';
 import { Dot } from './Dot';
@@ -23,7 +23,22 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
   const _width = width - PADDING_HORIZONTAL * 2;
   const { data: graphs, points } = useData(_width, GRAPH_HEIGHT);
 
-  const path = useSharedValue(graphs[0]!.skiaPath);
+  const currentGraph = useSharedValue(0);
+  const progress = useSharedValue(0);
+
+  const path = usePathInterpolation(
+    progress,
+    [0, 1, 2],
+    [graphs[0]!.skiaPath, graphs[1]!.skiaPath, graphs[2]!.skiaPath]
+  );
+
+  useDotAnimation({
+    points,
+    graphs,
+    path,
+    currentGraph,
+  });
+  //   const path = useSharedValue(graph.skiaPath);
 
   const { scale, focalX, pinchGesture, panGesture, offsetX, reset } =
     useAxisGesture({ width: _width, startOffset: PADDING_HORIZONTAL });
@@ -32,14 +47,20 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
     reset();
   };
 
+  const _onChangeGraph = function () {
+    const newGraph = (currentGraph.value + 1) % 3;
+    currentGraph.value = newGraph;
+    progress.value = withTiming(newGraph, { duration: 1000 });
+  };
+
   //@ts-expect-error
   const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
 
   return (
     <View style={styles.container}>
       <View style={styles.btnsContainer}>
+        <Button label="Change Graph" onPress={_onChangeGraph} />
         <Button label="Reset Chart" small onPress={resetChart} />
-
         <Button
           label={`Set zoom (${TEST_ZOOM})`}
           small
@@ -54,13 +75,21 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
       <GestureDetector gesture={gesture}>
         <View style={styles.graphContainer}>
           <ZoomableLineChart
-            height={GRAPH_HEIGHT}
+            height={GRAPH_HEIGHT * 2}
             width={width}
+            offsetY={GRAPH_HEIGHT / 2}
             {...{ path, offsetX, scale, focalX }}
             style={styles.canvas}
             color={Colors.primary}
           >
             {renderDots(points, scale, focalX, offsetX)}
+            {/* <CursorSkia
+              cmds={commands}
+              {...{ offsetX, scale, focalX }}
+              positionX={xPosition}
+              color={'blue'}
+              //   currentValue={currentValue}
+            /> */}
           </ZoomableLineChart>
         </View>
       </GestureDetector>

@@ -1,4 +1,4 @@
-import { Canvas, type SkPath } from '@shopify/react-native-skia';
+import { Canvas, Group, type SkPath } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
@@ -15,6 +15,7 @@ export type ZoomableLineChartProps = {
   offsetX: Animated.SharedValue<number>;
   scale: Animated.SharedValue<number>;
   focalX: Animated.SharedValue<number>;
+  offsetY?: number;
 
   style?: StyleProp<ViewStyle>;
   path: SharedValue<SkPath>;
@@ -23,7 +24,7 @@ export type ZoomableLineChartProps = {
 };
 
 const ZoomableLineChart: FC<ZoomableLineChartProps> = function (props) {
-  const { width, height, style, children, ...rest } = props;
+  const { width, height, style, children, offsetY = 0, ...rest } = props;
 
   return (
     <Canvas
@@ -35,8 +36,10 @@ const ZoomableLineChart: FC<ZoomableLineChartProps> = function (props) {
         style,
       ]}
     >
-      <Line {...rest} />
-      {children}
+      <Group transform={[{ translateY: offsetY }]}>
+        <Line {...rest} />
+        {children}
+      </Group>
     </Canvas>
   );
 };

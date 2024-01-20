@@ -1,4 +1,4 @@
-import { clamp, type PathCommand } from '@shopify/react-native-skia';
+import { Circle, clamp, type PathCommand } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
 import { StyleSheet } from 'react-native';
@@ -6,7 +6,8 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
 } from 'react-native-reanimated';
-import { getYForX } from './maths';
+import { getPositionWl } from '../gesture';
+import { getYForX } from '../maths';
 
 const CURSOR_SIZE = 15;
 
@@ -70,7 +71,65 @@ const Cursor: FC<Props> = function ({
   );
 };
 
-export { Cursor };
+export type CursorSkiaProps = {
+  cmds: Animated.SharedValue<PathCommand[]>;
+  positionX: Animated.SharedValue<number>;
+  focalX: Animated.SharedValue<number>;
+  scale: Animated.SharedValue<number>;
+  offsetX: Animated.SharedValue<number>;
+  // maxWidth: number;
+  size?: number;
+  color?: string;
+  currentValue?: Animated.SharedValue<number>;
+};
+
+const CursorSkia: FC<CursorSkiaProps> = function ({
+  cmds,
+  positionX,
+  focalX,
+  scale,
+  offsetX,
+  //   maxWidth,
+  color,
+  currentValue,
+  size = 10,
+}) {
+  //   const translationX = useDerivedValue(() => {
+  //     return clamp(positionX.value, 0, maxWidth);
+  //   });
+  const x = useDerivedValue(() => {
+    return getPositionWl(
+      positionX.value,
+      focalX.value,
+      scale.value,
+      offsetX.value
+    );
+  }, []);
+  const translationY = useDerivedValue(() => {
+    const _value = getYForX(cmds.value, x.value) ?? 0;
+    if (currentValue !== undefined) {
+      currentValue.value = _value;
+    }
+    return _value;
+  });
+
+  const transform = useDerivedValue(() => [
+    { translateX: x.value },
+    { translateY: translationY.value },
+  ]);
+  return (
+    <Circle
+      transform={transform}
+      cx={0}
+      cy={0}
+      r={size}
+      color={color}
+      //   opacity={0.15}
+    />
+  );
+};
+
+export { Cursor, CursorSkia };
 
 // import { Circle, Group } from '@shopify/react-native-skia';
 // import type { FC } from 'react';

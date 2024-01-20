@@ -4,5 +4,6 @@ export type { LineChartProps, LineItem } from './LinechartSkia';
 export { Line, ZoomableLineChart } from './ZoomableLinecharSkia';
 export type { ZoomableLineChartProps } from './ZoomableLinecharSkia';
 export { getPositionWl, useAxisGesture, useUpdateAxis } from './gesture';
-export { buildGraph, scaleCommands } from './graphUtils';
+export { buildGraph, scaleCommands, useDotAnimation } from './graphUtils';
+export { getYForX } from './maths';
 export type { DataPoint, LineGraphType } from './types';
