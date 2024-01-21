@@ -3,9 +3,8 @@ import {
   ZoomableLineChart,
   useAxisGesture,
   useDotsTransition,
-  useUpdateAxis,
 } from 'obi-chart';
-import React, { useCallback, type FC } from 'react';
+import React, { type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, withTiming } from 'react-native-reanimated';
@@ -19,12 +18,12 @@ const PADDING_HORIZONTAL = 20;
 const TEST_ZOOM = 2;
 const TEST_FOCAL = 200;
 
-const RANGE_SCALES: number[] = [
-  // Will show data range 0 for scale < 1.6,
-  //                range 1 for 1.6 >= scale < 2.5,
-  //                range 2 for 2.5 >= scale < 99
-  1.6, 2.5, 99,
-];
+// const RANGE_SCALES: number[] = [
+//   // Will show data range 0 for scale < 1.6,
+//   //                range 1 for 1.6 >= scale < 2.5,
+//   //                range 2 for 2.5 >= scale < 99
+//   1.6, 2.5, 99,
+// ];
 
 export type Props = {};
 
@@ -65,20 +64,20 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
     progress.value = withTiming(newGraph, { duration: 1000 });
   };
 
-  const _updateRange = useCallback(
-    (newValue?: number) => {
-      const _newValue = newValue ?? 0;
-      currentGraph.value = _newValue;
-      progress.value = withTiming(_newValue, { duration: 1000 });
-    },
-    [currentGraph, progress]
-  );
+  //   const _updateRange = useCallback(
+  //     (newValue?: number) => {
+  //       const _newValue = newValue ?? 0;
+  //       currentGraph.value = _newValue;
+  //       progress.value = withTiming(_newValue, { duration: 1000 });
+  //     },
+  //     [currentGraph, progress]
+  //   );
 
-  const {} = useUpdateAxis({
-    scale,
-    scales: RANGE_SCALES,
-    onScaleChange: (_newIndex) => _updateRange(_newIndex),
-  });
+  //   const {} = useUpdateAxis({
+  //     scale,
+  //     scales: RANGE_SCALES,
+  //     onScaleChange: (_newIndex) => _updateRange(_newIndex),
+  //   });
 
   //@ts-expect-error
   const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
