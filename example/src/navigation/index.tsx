@@ -98,7 +98,7 @@ const TOPBAR_DEFAULT_OPTIONS = Platform.select<DrawerNavigationOptions>({
 });
 
 function RootNavigator() {
-  const initRoute: ScreenName = __DEV__ ? 'ZoomableLineChartScreen' : 'Home';
+  const initRoute: ScreenName = __DEV__ ? 'LineChartScreen' : 'Home';
   return (
     <Drawer.Navigator
       screenOptions={{ ...TOPBAR_DEFAULT_OPTIONS }}

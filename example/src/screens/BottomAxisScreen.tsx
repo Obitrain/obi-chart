@@ -77,19 +77,19 @@ export function BottomAxisScreen() {
         />
       </View>
       <GestureDetector gesture={gesture}>
-        <View style={styles.container}>
-          <BottomAxis
-            {...{
-              scale,
-              focalX,
-              offsetX,
-              width: _width,
-            }}
-            labels={DATA_RANGES[currentRange]!}
-            style={styles.axis}
-            offsetY={250}
-          />
-        </View>
+        {/* <View style={styles.container}> */}
+        <BottomAxis
+          {...{
+            scale,
+            focalX,
+            offsetX,
+            width: _width,
+          }}
+          labels={DATA_RANGES[currentRange]!}
+          style={styles.axis}
+          offsetY={250}
+        />
+        {/* </View> */}
       </GestureDetector>
     </View>
   );

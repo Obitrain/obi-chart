@@ -1,7 +1,7 @@
 import * as shape from 'd3-shape';
+import { buildGraph } from 'obi-chart';
 import { useMemo } from 'react';
 import { makeMutable } from 'react-native-reanimated';
-import { buildGraph } from '../../../../src/Charts';
 import { MONTHLY_DATA, MONTHLY_DATA_2 } from '../../data';
 
 export const DATASET_1 = MONTHLY_DATA.map(
@@ -33,14 +33,14 @@ export const useData = function (width: number, height: number) {
   const firstGraph = data[0];
   if (!firstGraph) throw new Error('No graph found');
 
-  const maxNbPoints = Math.max(...data.map((x) => x.dots.length));
-  const points = useMemo(() => {
+  const maxNbPoints = Math.max(...data.map((x) => x.dataPoints.length));
+  const dots = useMemo(() => {
     return Array.from({ length: maxNbPoints }).map((_x, i) => ({
-      x: makeMutable(firstGraph.dots[i]?.x ?? 0),
-      y: makeMutable(firstGraph.dots[i]?.y ?? 0),
-      opacity: makeMutable(firstGraph.dots[i] !== undefined ? 1 : 0),
+      x: makeMutable(firstGraph.dataPoints[i]?.x ?? 0),
+      y: makeMutable(firstGraph.dataPoints[i]?.y ?? 0),
+      opacity: makeMutable(firstGraph.dataPoints[i] !== undefined ? 1 : 0),
     }));
   }, [firstGraph, maxNbPoints]);
 
-  return { data, points };
+  return { data, dots };
 };

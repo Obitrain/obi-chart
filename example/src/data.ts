@@ -35,3 +35,5 @@ export const MONTHLY_DATA_2 = [
   { value: 6, label: 'Jun' },
   { value: 3, label: 'Jul' },
 ];
+
+// console.log(WEIGHT);

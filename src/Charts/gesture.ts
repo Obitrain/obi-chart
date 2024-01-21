@@ -4,9 +4,11 @@ import { Gesture } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
   useAnimatedReaction,
+  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import type { DataPoint } from './types';
 
 /**
  * Get the position of a point on the axis,
@@ -162,4 +164,77 @@ export const useUpdateAxis = function (props: UpdateAxisProps) {
   );
 
   return { currentIndex };
+};
+
+export type UseCursorGestureProps = {
+  width: number;
+  height: number;
+  points: Animated.SharedValue<DataPoint[]>;
+  closestDataPoint?: Animated.SharedValue<DataPoint>;
+  isContinuous?: boolean;
+};
+
+/**
+ * Get the closest point for a given x value
+ */
+export const getClosestPoint = function (
+  x: number,
+  dataPoints: DataPoint[]
+): DataPoint {
+  'worklet';
+  let closestPoint = dataPoints[0];
+  if (closestPoint === undefined)
+    throw new Error('dataPoints array cannot be empty');
+
+  let minDistance = Math.abs(x - closestPoint.x);
+  for (let i = 1; i < dataPoints.length; i++) {
+    const point = dataPoints[i];
+    if (point === undefined) throw new Error('Point cannot be undefined');
+    const distance = Math.abs(x - point.x);
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestPoint = point;
+    }
+  }
+  return closestPoint;
+};
+
+/**
+ * Get gesture utilities for the cursor
+ */
+export const useCursorGesture = function (props: UseCursorGestureProps) {
+  const {
+    width,
+    height,
+    points,
+    closestDataPoint,
+    isContinuous = true,
+  } = props;
+
+  const xPosition = useSharedValue(0);
+  const yPosition = useSharedValue(height); // GRAPH_HEIGHT
+
+  const panGesture = Gesture.Pan()
+    .onBegin((event) => {
+      xPosition.value = clamp(event.x, 0, width);
+      yPosition.value = clamp(event.y, 0, height);
+    })
+    .onUpdate((event) => {
+      xPosition.value = clamp(event.x, 0, width);
+      yPosition.value = clamp(event.y, 0, height);
+    });
+
+  const tapGesture = Gesture.Tap().onBegin((event) => {
+    xPosition.value = clamp(event.x, 0, width);
+    yPosition.value = clamp(event.y, 0, height);
+  });
+
+  useDerivedValue(() => {
+    if (isContinuous) return;
+    const _closestDot = getClosestPoint(xPosition.value, points.value);
+    if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
+    xPosition.value = _closestDot.x;
+  }, [xPosition, isContinuous]);
+
+  return { panGesture, tapGesture, xPosition, yPosition };
 };

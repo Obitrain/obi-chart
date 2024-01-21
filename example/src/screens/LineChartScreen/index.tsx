@@ -4,72 +4,41 @@ import {
   Paint,
   usePathInterpolation,
 } from '@shopify/react-native-skia';
-import * as shape from 'd3-shape';
-import { LineChart, buildGraph } from 'obi-chart';
-import React, { useMemo, useState, type FC } from 'react';
+import {
+  Cursor,
+  LineChart,
+  useCursorGesture,
+  useDotsTransition,
+  type AnimatedDot,
+} from 'obi-chart';
+import React, { useState, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-import Animated, {
-  makeMutable,
-  useAnimatedReaction,
+import {
+  GestureDetector,
+  type GestureType,
+} from 'react-native-gesture-handler';
+import {
+  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { getYForX } from '../../../../src/Charts/maths';
 import { Button, Colors, ReText } from '../../components';
-import { MONTHLY_DATA, MONTHLY_DATA_2 } from '../../data';
 import { useDimensions } from '../../hooks';
-import { useShareNumberToStr } from './utils';
+import { useData, useShareNumberToStr } from './utils';
 
 export type Props = {};
 
 const GRAPH_HEIGHT = 140;
-const DATASET_1 = MONTHLY_DATA.map((x, i) => [i, x.value] as [number, number]);
-const DATASET_2 = MONTHLY_DATA_2.map(
-  (x, i) => [i, x.value] as [number, number]
-);
-
-export const useData = function (width: number, height: number) {
-  // shape.curveBasis,
-  const data = useMemo(
-    () => [
-      // DATASET_1
-      ...[shape.curveBumpX, shape.curveNatural].map((_curve) =>
-        buildGraph(DATASET_1, width, height, {
-          curve: _curve,
-        })
-      ),
-      // DATASET_2
-      ...[shape.curveNatural].map((_curve) =>
-        buildGraph(DATASET_2, width, height, {
-          curve: _curve,
-        })
-      ),
-    ],
-    [height, width]
-  );
-  const firstGraph = data[0];
-  if (!firstGraph) throw new Error('No graph found');
-
-  const maxNbPoints = Math.max(...data.map((x) => x.dots.length));
-  const points = useMemo(() => {
-    return Array.from({ length: maxNbPoints }).map((_x, i) => ({
-      x: makeMutable(firstGraph.dots[i]?.x ?? 0),
-      y: makeMutable(firstGraph.dots[i]?.y ?? 0),
-      opacity: makeMutable(firstGraph.dots[i] !== undefined ? 1 : 0),
-    }));
-  }, [firstGraph, maxNbPoints]);
-
-  return { data, points };
-};
+const PADDING_HORIZONTAL = 20;
 
 const LineChartScreen: FC<Props> = function ({}) {
   const { width } = useDimensions();
-  const _width = width - 40;
+  const _width = width - PADDING_HORIZONTAL * 2;
+  const _height = GRAPH_HEIGHT;
 
-  const { data: graphs, points } = useData(_width, GRAPH_HEIGHT);
+  const { data: graphs, dots } = useData(_width, _height);
 
-  const [value1, value1Str] = useShareNumberToStr(0);
+  const [cursorY, cursorYStr] = useShareNumberToStr(0);
 
   const currentGraph = useSharedValue(0);
   const progress = useSharedValue(0);
@@ -81,31 +50,20 @@ const LineChartScreen: FC<Props> = function ({}) {
     [graphs[0]!.skiaPath, graphs[1]!.skiaPath, graphs[2]!.skiaPath]
   );
 
-  useAnimatedReaction(
-    () => ({
-      _currentGraph: currentGraph.value,
-      _currentCommands: path.value.toCmds(),
-    }),
-    ({ _currentGraph, _currentCommands }) => {
-      const newDots = [...graphs.map((x) => x.dots)][_currentGraph]!;
+  const commands = useDerivedValue(() => {
+    return path.value.toCmds();
+  });
 
-      points.map((_dot, i) => {
-        const _newDot = newDots[i];
-        if (!_newDot) {
-          _dot.opacity.value = withTiming(0, { duration: 200 });
-          return;
-        } else {
-          _dot.x.value = withTiming(_newDot.x, { duration: 1000 });
-          const newY = getYForX(_currentCommands, _dot.x.value);
-          if (newY !== undefined) {
-            _dot.y.value = newY;
-          }
-          //   _dot.y.value = withTiming(newDots[i]!.y, { duration: 1000 });
-          _dot.opacity.value = withTiming(1, { duration: 200 });
-        }
-      });
-    }
-  );
+  useDotsTransition({
+    currentGraph,
+    dataPoints: graphs.map((x) => x.dataPoints),
+    path,
+    dots,
+  });
+
+  const dataPoints = useDerivedValue(() => {
+    return graphs[currentGraph.value]!.dataPoints;
+  }, []);
 
   const _onChangeGraph = function () {
     const newGraph = (currentGraph.value + 1) % 3;
@@ -113,8 +71,18 @@ const LineChartScreen: FC<Props> = function ({}) {
     progress.value = withTiming(newGraph, { duration: 1000 });
   };
 
+  const { panGesture, tapGesture, xPosition } = useCursorGesture({
+    width: _width,
+    height: _height,
+    isContinuous,
+    points: dataPoints,
+  });
+
+  //@ts-expect-error
+  const gesture: GestureType = isContinuous ? panGesture : tapGesture;
+
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.btnsContainer}>
         <Button label="Change Graph" onPress={_onChangeGraph} />
         <Button
@@ -123,31 +91,32 @@ const LineChartScreen: FC<Props> = function ({}) {
         />
       </View>
       <View style={styles.textContainer}>
-        <ReText style={styles.value} text={value1Str} />
+        <ReText style={styles.value} text={cursorYStr} />
       </View>
-      <LineChart
-        containerStyle={styles.chartContainer}
-        height={GRAPH_HEIGHT}
-        width={_width}
-        path={path}
-        color={Colors.primary}
-        currentValue={value1}
-        points={graphs[0]?.dots ?? []}
-        continuous={isContinuous}
-      >
-        {renderDots(points)}
-      </LineChart>
-    </ScrollView>
+      <GestureDetector gesture={gesture}>
+        <LineChart
+          style={styles.chartContainer}
+          height={GRAPH_HEIGHT * 2}
+          offsetY={GRAPH_HEIGHT / 2}
+          offsetX={PADDING_HORIZONTAL}
+          width={width}
+          path={path}
+          color={Colors.primary}
+        >
+          {renderDots(dots)}
+          <Cursor
+            commands={commands}
+            positionX={xPosition}
+            currentValue={cursorY}
+            color="blue"
+          />
+        </LineChart>
+      </GestureDetector>
+    </View>
   );
 };
 
-export const renderDots = function (
-  dots: {
-    x: Animated.SharedValue<number>;
-    y: Animated.SharedValue<number>;
-    opacity: Animated.SharedValue<number>;
-  }[]
-) {
+export const renderDots = function (dots: AnimatedDot[]) {
   return (
     <Group style="stroke" strokeWidth={4} color={Colors.primary}>
       {dots.map((dot, i) => (
@@ -171,14 +140,11 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     backgroundColor: Colors.white,
-    marginHorizontal: 20,
+    // marginHorizontal: 20,
   },
   textContainer: {
     marginLeft: 20,
     marginBottom: 20,
-  },
-  spacing: {
-    marginTop: 20,
   },
   value: {
     color: Colors.secondary,

@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { getPositionWl } from './gesture';
 import { getYForX } from './maths';
+import type { AnimatedDot, DataPoint } from './types';
 
 export type Config = {
   minX?: number;
@@ -22,19 +23,13 @@ export type Config = {
   curve?: shape.CurveFactory | shape.CurveFactoryLineOnly;
 };
 
-export type Dot = {
-  x: number;
-  y: number;
-  value: number;
-};
-
 export type GraphData = {
   data: [number, number][];
   minY: number;
   maxY: number;
   path: string;
   skiaPath: SkPath;
-  dots: Dot[];
+  dataPoints: DataPoint[];
 };
 
 export const buildGraph = function (
@@ -59,7 +54,7 @@ export const buildGraph = function (
     .y(([y]) => scaleY(y))
     .curve(config?.curve ?? shape.curveBasis)(fmtValues) as string;
 
-  const dots = fmtValues.map(([y, x]) => ({
+  const dataPoints = fmtValues.map(([y, x]) => ({
     x: scaleX(x),
     y: scaleY(y),
     value: y,
@@ -73,30 +68,9 @@ export const buildGraph = function (
     minY,
     maxY,
     path,
-    dots,
+    dataPoints,
     skiaPath,
   };
-};
-
-/**
- * Get the closest point to a given x value
- */
-export const getClosestPoint = function (x: number, dots: Dot[]): Dot {
-  'worklet';
-  let closestDot = dots[0];
-  if (closestDot === undefined) throw new Error('Dots array cannot be empty');
-
-  let minDistance = Math.abs(x - closestDot.x);
-  for (let i = 1; i < dots.length; i++) {
-    const dot = dots[i];
-    if (dot === undefined) throw new Error('Dot cannot be undefined');
-    const distance = Math.abs(x - dot.x);
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestDot = dot;
-    }
-  }
-  return closestDot;
 };
 
 /**
@@ -145,33 +119,29 @@ export const scaleCommands = function (
 export type UseDotAnimationProps = {
   currentGraph: Animated.SharedValue<number>;
   path: Animated.SharedValue<SkPath>;
-  graphs: GraphData[];
-  points: {
-    x: Animated.SharedValue<number>;
-    y: Animated.SharedValue<number>;
-    opacity: Animated.SharedValue<number>;
-  }[];
-  opacityFn?: (opacity: number) => number;
-  translateFn?: (position: number) => number;
+  dataPoints: DataPoint[][];
+  dots: AnimatedDot[];
+  opacityWl?: (opacity: number) => number;
+  translateWl?: (position: number) => number;
 };
 
-const defaultOpacityTransitionFn = function (opacity: number) {
+const defaultOpacityTransitionWl = function (opacity: number) {
   'worklet';
   return withTiming(opacity, { duration: 200 });
 };
-const defaultTranslateTransitionFn = function (position: number) {
+const defaultTranslateTransitionWl = function (position: number) {
   'worklet';
   return withTiming(position, { duration: 1000 });
 };
 
-export const useDotAnimation = function (props: UseDotAnimationProps) {
+export const useDotsTransition = function (props: UseDotAnimationProps) {
   const {
     currentGraph,
     path,
-    graphs,
-    points,
-    opacityFn = defaultOpacityTransitionFn,
-    translateFn = defaultTranslateTransitionFn,
+    dataPoints,
+    dots,
+    opacityWl = defaultOpacityTransitionWl,
+    translateWl = defaultTranslateTransitionWl,
   } = props;
 
   useAnimatedReaction(
@@ -180,21 +150,22 @@ export const useDotAnimation = function (props: UseDotAnimationProps) {
       _currentCommands: path.value.toCmds(),
     }),
     ({ _currentGraph, _currentCommands }) => {
-      const newDots = [...graphs.map((x) => x.dots)][_currentGraph]!;
-
-      points.map((_dot, i) => {
-        const _newDot = newDots[i];
+      const newDataPoints = dataPoints[_currentGraph];
+      if (newDataPoints === undefined)
+        throw new Error('Data points cannot be undefined');
+      dots.map((_dot, i) => {
+        const _newDot = newDataPoints[i];
         if (!_newDot) {
-          _dot.opacity.value = opacityFn(0);
+          _dot.opacity.value = opacityWl(0);
           return;
         } else {
-          _dot.x.value = translateFn(_newDot.x);
+          _dot.x.value = translateWl(_newDot.x);
           const newY = getYForX(_currentCommands, _dot.x.value);
           if (newY !== undefined) {
             _dot.y.value = newY;
           }
           //   _dot.y.value = withTiming(newDots[i]!.y, { duration: 1000 });
-          _dot.opacity.value = defaultOpacityTransitionFn(1);
+          _dot.opacity.value = opacityWl(1);
         }
       });
     }
