@@ -12,6 +12,7 @@ import { useSharedValue, withTiming } from 'react-native-reanimated';
 const angryPath = Skia.Path.Make();
 angryPath.moveTo(16, 25);
 angryPath.cubicTo(32.2, 27.09, 43.04, 28.2, 48.51, 28.34);
+
 angryPath.cubicTo(53.99, 28.48, 62.15, 27.78, 73, 26.25);
 angryPath.cubicTo(66.28, 53.93, 60.19, 69.81, 54.74, 73.88);
 angryPath.cubicTo(50.63, 76.96, 40.4, 74.65, 27.48, 54.51);

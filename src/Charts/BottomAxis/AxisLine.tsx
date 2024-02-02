@@ -6,21 +6,21 @@ import { getPositionWl } from '../gesture';
 
 export type Props = {
   width: number;
-  offsetY: number;
   focalX: Animated.SharedValue<number>;
   scale: Animated.SharedValue<number>;
   offsetX: Animated.SharedValue<number>;
   strokeWidth?: number;
+  offsetY?: number;
   color?: Color;
 };
 
 const AxisLine: FC<Props> = function (props) {
   const {
     width,
-    offsetY,
     focalX,
     scale,
     offsetX,
+    offsetY = 0,
     strokeWidth = StyleSheet.hairlineWidth,
     color = 'black',
   } = props;

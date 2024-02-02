@@ -6,15 +6,15 @@ export type WeightItem = {
 
 const WEIGHT_DATA: WeightItem[] = require('../assets/data/weight.json');
 
-const WEIGHT = WEIGHT_DATA.filter((x) => x.weight !== null).map(
-  (x) => [new Date(x.date).getTime(), x.weight] as [number, number]
+const WEIGHTS = WEIGHT_DATA.filter((x) => x.weight !== null).map(
+  (x) => [new Date(x.date), x.weight] as [Date, number]
 );
 
 const BODY_FAT = WEIGHT_DATA.filter((x) => x.body_fat !== null).map(
-  (x) => [new Date(x.date).getTime(), x.body_fat] as [number, number]
+  (x) => [new Date(x.date), x.body_fat] as [Date, number]
 );
 
-export { BODY_FAT, WEIGHT, WEIGHT_DATA };
+export { BODY_FAT, WEIGHTS, WEIGHT_DATA };
 
 export const MONTHLY_DATA = [
   { value: 0.5, label: 'Jan' },

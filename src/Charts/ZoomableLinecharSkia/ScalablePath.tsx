@@ -9,13 +9,21 @@ export type Props = {
   focalX: Animated.SharedValue<number>;
   offsetX: Animated.SharedValue<number>;
   color?: string;
+  pathProps?: Omit<React.ComponentProps<typeof Path>, 'color'>;
 };
 
-const Line: FC<Props> = function (props) {
-  const { path, scale, focalX, offsetX, color = 'red' } = props;
+const ScalablePath: FC<Props> = function (props) {
+  const { path, scale, focalX, offsetX, pathProps, color = 'red' } = props;
 
   const animatedPath = useDerivedValue(() => {
-    const _cmds = scaleCommands(path.value.toCmds(), scale, focalX, offsetX);
+    let _cmds = [];
+    try {
+      _cmds = scaleCommands(path.value?.toCmds() ?? [], scale, focalX, offsetX);
+    } catch (e) {
+      console.log(e);
+      console.log(path.value == null);
+      console.log(path.value);
+    }
     const _path = Skia.Path.MakeFromCmds(_cmds);
     if (!_path) throw new Error('Path is null');
     return _path;
@@ -29,8 +37,9 @@ const Line: FC<Props> = function (props) {
       strokeJoin="round"
       strokeCap="round"
       color={color}
+      {...pathProps}
     />
   );
 };
 
-export { Line };
+export { ScalablePath };

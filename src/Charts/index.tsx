@@ -3,12 +3,12 @@ export { Cursor } from './Cursor';
 export type { CursorProps } from './Cursor';
 export { LineChart } from './LinechartSkia';
 export type { LineChartProps, LineItem } from './LinechartSkia';
-export { Line, ZoomableLineChart } from './ZoomableLinecharSkia';
+export { ScalablePath, ZoomableLineChart } from './ZoomableLinecharSkia';
 export type { ZoomableLineChartProps } from './ZoomableLinecharSkia';
 export {
   getClosestPoint,
   getPositionWl,
-  useAxisGesture,
+  useScalableGesture,
   useCursorGesture,
   useUpdateAxis,
 } from './gesture';

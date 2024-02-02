@@ -19,6 +19,7 @@ export type RootStackParamList = {
   ZoomableLineChartScreen: undefined;
   TestScreen: undefined;
   DotsScreen: undefined;
+  AdvancedChartScreen: undefined;
 };
 
 export type RNFC<Screen extends keyof RootStackParamList> =

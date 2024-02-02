@@ -1,8 +1,8 @@
 import { Circle, Paint } from '@shopify/react-native-skia';
+import { getPositionWl } from 'obi-chart';
 import React, { type FC } from 'react';
 import type Animated from 'react-native-reanimated';
 import { useDerivedValue } from 'react-native-reanimated';
-import { getPositionWl } from 'obi-chart';
 
 export type Props = {
   x: Animated.SharedValue<number>;
@@ -26,7 +26,7 @@ const Dot: FC<Props> = function (props) {
   }, []);
 
   return (
-    <Circle cx={x} cy={y} r={5} opacity={opacity}>
+    <Circle cx={x} cy={y} r={3} opacity={opacity}>
       <Paint color="white" />
     </Circle>
   );

@@ -5,9 +5,9 @@ import type { StyleProp, ViewStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import type { SharedValue } from 'react-native-reanimated';
-import { Line } from './Line';
+import { ScalablePath } from './ScalablePath';
 
-export { Line };
+export { ScalablePath };
 
 export type ZoomableLineChartProps = {
   height: number;
@@ -37,7 +37,7 @@ const ZoomableLineChart: FC<ZoomableLineChartProps> = function (props) {
       ]}
     >
       <Group transform={[{ translateY: offsetY }]}>
-        <Line {...rest} />
+        <ScalablePath {...rest} />
         {children}
       </Group>
     </Canvas>

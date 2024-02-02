@@ -33,7 +33,7 @@ export type AxisGestureProps = {
 /**
  * Return utilities for zooming and panning the axis
  */
-export const useAxisGesture = (props: AxisGestureProps) => {
+export const useScalableGesture = (props: AxisGestureProps) => {
   const { width } = props;
   const startOffset = props.startOffset ?? 0;
   const startScale = props.startScale ?? 1;

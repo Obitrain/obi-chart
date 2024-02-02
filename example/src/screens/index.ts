@@ -1,3 +1,4 @@
+export { AdvancedChartScreen } from './AdvancedChartScreen';
 export { BottomAxisScreen } from './BottomAxisScreen';
 export { DotsScreen } from './DotsScreen';
 export { HomeScreen } from './Home';

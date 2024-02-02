@@ -1,4 +1,4 @@
-import { BottomAxis, useAxisGesture, useUpdateAxis } from 'obi-chart';
+import { BottomAxis, useScalableGesture, useUpdateAxis } from 'obi-chart';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -28,7 +28,7 @@ export function BottomAxisScreen() {
   const _width = width - PADDING_HORIZONTAL * 2;
 
   const { scale, focalX, pinchGesture, panGesture, offsetX, reset } =
-    useAxisGesture({
+    useScalableGesture({
       width: _width,
       startOffset: PADDING_HORIZONTAL,
     });

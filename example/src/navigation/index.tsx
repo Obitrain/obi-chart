@@ -82,6 +82,13 @@ const SCREENS: ScreenType[] = [
       title: 'Dots',
     },
   },
+  {
+    name: 'AdvancedChartScreen',
+    component: Screens.AdvancedChartScreen,
+    options: {
+      title: 'Advanced Chart',
+    },
+  },
 ];
 
 const TOPBAR_DEFAULT_OPTIONS = Platform.select<DrawerNavigationOptions>({
@@ -98,7 +105,7 @@ const TOPBAR_DEFAULT_OPTIONS = Platform.select<DrawerNavigationOptions>({
 });
 
 function RootNavigator() {
-  const initRoute: ScreenName = __DEV__ ? 'LineChartScreen' : 'Home';
+  const initRoute: ScreenName = __DEV__ ? 'ZoomableLineChartScreen' : 'Home';
   return (
     <Drawer.Navigator
       screenOptions={{ ...TOPBAR_DEFAULT_OPTIONS }}

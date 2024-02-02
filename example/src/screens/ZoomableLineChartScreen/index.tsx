@@ -1,17 +1,22 @@
 import { Group, usePathInterpolation } from '@shopify/react-native-skia';
 import {
   ZoomableLineChart,
-  useAxisGesture,
   useDotsTransition,
+  useScalableGesture,
+  type AnimatedDot,
 } from 'obi-chart';
 import React, { type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, {
+  runOnUI,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { Button, Colors } from '../../components';
 import { useDimensions } from '../../hooks';
 import { Dot } from './Dot';
-import { useData } from './utils';
+import { useData, zoomPeriod } from './utils';
 
 const GRAPH_HEIGHT = 140;
 const PADDING_HORIZONTAL = 20;
@@ -52,7 +57,7 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
   //   const path = useSharedValue(graph.skiaPath);
 
   const { scale, focalX, pinchGesture, panGesture, offsetX, reset } =
-    useAxisGesture({ width: _width, startOffset: PADDING_HORIZONTAL });
+    useScalableGesture({ width: _width, startOffset: PADDING_HORIZONTAL });
 
   const resetChart = () => {
     reset();
@@ -97,6 +102,20 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
           small
           onPress={() => (focalX.value = focalX.value === 0 ? TEST_FOCAL : 0)}
         />
+        <Button
+          label="Zoom"
+          small
+          onPress={() => {
+            runOnUI(zoomPeriod)(
+              dots[0]!,
+              dots[1]!,
+              scale,
+              focalX,
+              offsetX,
+              _width
+            );
+          }}
+        />
       </View>
       <GestureDetector gesture={gesture}>
         <View style={styles.graphContainer}>
@@ -117,11 +136,7 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
 };
 
 export const renderDots = function (
-  dots: {
-    x: Animated.SharedValue<number>;
-    y: Animated.SharedValue<number>;
-    opacity: Animated.SharedValue<number>;
-  }[],
+  dots: AnimatedDot[],
   scale: Animated.SharedValue<number>,
   focalX: Animated.SharedValue<number>,
   offsetX: Animated.SharedValue<number>

@@ -4,7 +4,7 @@ import {
   type PathCommand,
   type SkPath,
 } from '@shopify/react-native-skia';
-import { scaleLinear } from 'd3-scale';
+import { scaleLinear, type ScaleLinear } from 'd3-scale';
 import * as shape from 'd3-shape';
 import Animated, {
   useAnimatedReaction,
@@ -30,6 +30,7 @@ export type GraphData = {
   path: string;
   skiaPath: SkPath;
   dataPoints: DataPoint[];
+  scaleX: ScaleLinear<number, number, never>;
 };
 
 export const buildGraph = function (
@@ -70,6 +71,7 @@ export const buildGraph = function (
     path,
     dataPoints,
     skiaPath,
+    scaleX,
   };
 };
 
@@ -77,6 +79,8 @@ export const buildGraph = function (
  * For now, only support commands of type:
  * - PathVerb.Move
  * - PathVerb.Cubic
+ * - PathVerb.Quad
+ * - PathVerb.Line
  */
 export const scaleCommands = function (
   commands: PathCommand[],
@@ -91,6 +95,14 @@ export const scaleCommands = function (
     const commandType = command[0];
     if (commandType === undefined)
       throw new Error('Got undefined command type');
+
+    if (commandType === PathVerb.Line) {
+      return [
+        commandType,
+        getPositionWl(command[1]!, focalX.value, scaleX.value, offsetX.value),
+        command[2]! * _scaleY,
+      ];
+    }
     if (commandType === PathVerb.Move) {
       return [
         commandType,
@@ -98,6 +110,14 @@ export const scaleCommands = function (
         command[2]! * _scaleY,
       ];
     }
+    if (commandType === PathVerb.Quad)
+      return [
+        commandType,
+        getPositionWl(command[1]!, focalX.value, scaleX.value, offsetX.value),
+        command[2]! * _scaleY,
+        getPositionWl(command[3]!, focalX.value, scaleX.value, offsetX.value),
+        command[4]! * _scaleY,
+      ];
     if (commandType === PathVerb.Cubic) {
       return [
         commandType,
@@ -112,7 +132,9 @@ export const scaleCommands = function (
         command[6]! * _scaleY,
       ];
     }
-    return command;
+    if (commandType === PathVerb.Close) return command;
+    if (commandType === PathVerb.Move) return command;
+    throw new Error(`Unsupported command type ${commandType}`);
   });
 };
 
