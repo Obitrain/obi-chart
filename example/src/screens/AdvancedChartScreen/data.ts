@@ -12,12 +12,17 @@ const ALL_DATA_AXIS = getAxisTicks(
 );
 
 const YEARLY_DATA = getEvenlySpacedData(WEIGHTS, 12);
-const YEARLY_DATA_AXIS = getAxisTicks(
-  WEIGHTS.map((x) => x[0]),
-  'year'
-);
+// const YEARLY_DATA_AXIS = getAxisTicks(
+//   WEIGHTS.map((x) => x[0]),
+//   'year'
+// );
 
-console.log(getDateBoundaries(YEARLY_DATA.map((x) => x[0])));
+console.log(
+  getDateBoundaries(
+    YEARLY_DATA.map((x) => x[0]),
+    'year'
+  )
+);
 
 export const useData = function (width: number, height: number) {
   // shape.curveBasis,
@@ -67,5 +72,14 @@ export const useData = function (width: number, height: number) {
     }));
   }, [scaleX]);
 
-  return { data, dots, axisTicks };
+  const scaleY = firstGraph.scaleY;
+  //   console.log(
+  //     'ScaleY: ',
+  //     scaleY(0),
+  //     scaleY(75),
+  //     scaleY.range(),
+  //     scaleY.domain()
+  //   );
+
+  return { data, dots, axisTicks, yDomain: scaleY.domain() };
 };

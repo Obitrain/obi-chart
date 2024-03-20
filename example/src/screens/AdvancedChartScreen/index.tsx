@@ -1,5 +1,5 @@
 import Slider from '@react-native-community/slider';
-import { Canvas, Group } from '@shopify/react-native-skia';
+import { Canvas, Group, matchFont } from '@shopify/react-native-skia';
 import {
   AxisLine,
   ScalablePath,
@@ -7,7 +7,7 @@ import {
   type AnimatedDot,
 } from 'obi-chart';
 import React, { type FC } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useDerivedValue,
@@ -17,27 +17,43 @@ import { Button, Colors, ReText } from '../../components';
 import { useDimensions } from '../../hooks';
 import { Dot } from './Dot';
 import { Tick } from './Tick';
+import { YAxis } from './YAxis';
 import { useData } from './data';
 
 export type Props = {};
 
 const GRAPH_HEIGHT = 140;
+const CANVAS_HEIGHT = GRAPH_HEIGHT * 2;
 // const PADDING_HORIZONTAL = 20;
 const OFFSET_AXIS = GRAPH_HEIGHT + 50;
+
+const fontFamily = Platform.select({ ios: 'Helvetica', default: 'serif' });
+
+const font = matchFont({ fontFamily, fontSize: 14 });
 
 const AdvancedChartScreen: FC<Props> = function ({}) {
   const { width } = useDimensions();
   const [hideAxis, setHideAxis] = React.useState(false);
   const [hideDots, setHideDots] = React.useState(false);
   const [hideSettings, setHideSettings] = React.useState(false);
+  const [hideYAxis, setHideYAxis] = React.useState(false);
 
-  const { data: graphs, dots, axisTicks } = useData(width, GRAPH_HEIGHT);
+  const graphWidth = width - 40;
+
+  const {
+    data: graphs,
+    dots,
+    axisTicks,
+    yDomain,
+  } = useData(graphWidth, GRAPH_HEIGHT);
 
   const { scale, focalX, offsetX, pinchGesture, panGesture, reset } =
     useScalableGesture({
       width: width,
       startOffset: 0,
     });
+
+  //   console.log(dots[0]!.y.value, 'dots[0]!.y.value');
 
   const resetChart = () => {
     reset();
@@ -77,6 +93,10 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
           onPress={() => setHideAxis((old) => !old)}
         />
         <Button
+          label={hideYAxis ? 'Show Y Axis' : 'Hide Y axis'}
+          onPress={() => setHideYAxis((old) => !old)}
+        />
+        <Button
           label={hideDots ? 'Show Dots' : 'Hide Dots'}
           onPress={() => setHideDots((old) => !old)}
         />
@@ -96,23 +116,39 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
         </View>
       )}
       <GestureDetector gesture={gesture}>
-        <Canvas style={[styles.canvas, { width, height: GRAPH_HEIGHT * 2 }]}>
-          <ScalablePath
-            {...{ focalX, offsetX, scale, path }}
-            color={Colors.primary}
-          />
-          {!hideDots ? renderDots(dots, scale, focalX, offsetX) : null}
-          {!hideAxis ? (
-            <>
-              <AxisLine
-                {...{ width, focalX, scale, offsetX }}
-                offsetY={OFFSET_AXIS}
+        <Canvas style={[styles.canvas, { width, height: CANVAS_HEIGHT }]}>
+          <Group
+            transform={[{ translateY: (CANVAS_HEIGHT - OFFSET_AXIS) / 2 }]}
+          >
+            <ScalablePath
+              {...{ focalX, offsetX, scale, path }}
+              color={Colors.primary}
+            />
+            {!hideDots ? renderDots(dots, scale, focalX, offsetX) : null}
+            {!hideAxis ? (
+              <>
+                <AxisLine
+                  {...{ focalX, scale, offsetX }}
+                  width={graphWidth}
+                  offsetY={OFFSET_AXIS}
+                />
+                {renderTicks(axisTicks, scale, focalX, offsetX, graphWidth)}
+              </>
+            ) : null}
+            {!hideYAxis ? (
+              <YAxis
+                minY={yDomain[0]!}
+                maxY={yDomain[1]!}
+                height={OFFSET_AXIS}
+                width={width}
+                font={font}
               />
-              {renderTicks(axisTicks, scale, focalX, offsetX)}
-            </>
-          ) : null}
+            ) : null}
+          </Group>
         </Canvas>
       </GestureDetector>
+
+      {/* Settings */}
 
       {!hideSettings ? (
         <>
@@ -182,9 +218,11 @@ export const renderTicks = function (
   ticks: AnimatedTick[],
   scale: Animated.SharedValue<number>,
   focalX: Animated.SharedValue<number>,
-  offsetX: Animated.SharedValue<number>
+  offsetX: Animated.SharedValue<number>,
+  maxWidth?: number
 ) {
   //   <Group style="stroke" strokeWidth={4} color={Colors.primary}>
+
   return (
     <>
       {ticks.map((tick, i) => (
@@ -192,8 +230,9 @@ export const renderTicks = function (
           key={i}
           initPosition={tick.x}
           label={tick.label}
+          font={font}
           offsetY={OFFSET_AXIS + 10}
-          {...{ scale, focalX, offsetX }}
+          {...{ scale, focalX, offsetX, maxWidth }}
         />
       ))}
     </>
@@ -207,7 +246,7 @@ const styles = StyleSheet.create({
   },
   canvas: {
     backgroundColor: 'white',
-    marginTop: 100,
+    marginTop: 30,
   },
   btnsContainer: {
     flexDirection: 'row',

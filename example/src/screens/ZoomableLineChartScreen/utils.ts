@@ -45,6 +45,15 @@ export const useData = function (width: number, height: number) {
   return { data, dots };
 };
 
+/**
+ * Zoom from one dot to another
+ * @param fromDot
+ * @param toDot
+ * @param scale
+ * @param focalX
+ * @param offsetX
+ * @param width
+ */
 export const zoomPeriod = function (
   fromDot: AnimatedDot,
   toDot: AnimatedDot,
@@ -66,6 +75,9 @@ export const zoomPeriod = function (
     scale.value,
     offsetX.value
   );
-  const _scale = width / (toDotPos - fromDotPos);
+  const _scale = (width * scale.value) / (toDotPos - fromDotPos);
+  console.debug(
+    `Zooming from ${fromDotPos} to ${toDotPos} with scale ${_scale}`
+  );
   scale.value = withTiming(_scale, { duration: 1000 });
 };

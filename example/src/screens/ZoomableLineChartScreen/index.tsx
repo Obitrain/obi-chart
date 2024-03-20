@@ -5,7 +5,7 @@ import {
   useScalableGesture,
   type AnimatedDot,
 } from 'obi-chart';
-import React, { type FC } from 'react';
+import React, { useCallback, useRef, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -69,6 +69,20 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
     progress.value = withTiming(newGraph, { duration: 1000 });
   };
 
+  const _firstZoomDot = useRef<number>(0);
+  const _secondZoomDot = useRef<number>(1);
+
+  const _onPressZoom = useCallback(() => {
+    const _fromDot = dots[_firstZoomDot.current];
+    const _toDot = dots[_secondZoomDot.current];
+    if (_fromDot === undefined || _toDot === undefined)
+      throw new Error('Zoom dots are undefined');
+    console.info(`Zooming from ${_fromDot.x.value} to ${_toDot.x.value}`);
+
+    _secondZoomDot.current = _secondZoomDot.current === 1 ? dots.length - 1 : 1;
+    runOnUI(zoomPeriod)(_fromDot, _toDot, scale, focalX, offsetX, _width);
+  }, [dots, scale, focalX, offsetX, _width]);
+
   //   const _updateRange = useCallback(
   //     (newValue?: number) => {
   //       const _newValue = newValue ?? 0;
@@ -102,20 +116,7 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
           small
           onPress={() => (focalX.value = focalX.value === 0 ? TEST_FOCAL : 0)}
         />
-        <Button
-          label="Zoom"
-          small
-          onPress={() => {
-            runOnUI(zoomPeriod)(
-              dots[0]!,
-              dots[1]!,
-              scale,
-              focalX,
-              offsetX,
-              _width
-            );
-          }}
-        />
+        <Button label="Zoom" small onPress={_onPressZoom} />
       </View>
       <GestureDetector gesture={gesture}>
         <View style={styles.graphContainer}>

@@ -31,6 +31,7 @@ export type GraphData = {
   skiaPath: SkPath;
   dataPoints: DataPoint[];
   scaleX: ScaleLinear<number, number, never>;
+  scaleY: ScaleLinear<number, number, never>;
 };
 
 export const buildGraph = function (
@@ -72,6 +73,7 @@ export const buildGraph = function (
     dataPoints,
     skiaPath,
     scaleX,
+    scaleY,
   };
 };
 

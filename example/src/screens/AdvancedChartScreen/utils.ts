@@ -87,6 +87,17 @@ const getMonthInterval = function (month: number, nbMonths: number): string {
   return (month - (month % nbMonths) + 1).toString().padStart(2, '0');
 };
 
+/**
+ * Get the date interval based on the date range.
+ * For example, for the date 2021-01-01:
+ * - day: 2021-01-01
+ * - month: 2021-01
+ * - trimester: 2021-01
+ * - year: 2021
+ * @param date
+ * @param dateRange
+ * @returns
+ */
 const getDateInterval = function (date: Date, dateRange: DateRange): string {
   const year = date.getFullYear();
   let month = date.getMonth();
@@ -105,6 +116,8 @@ const getDateInterval = function (date: Date, dateRange: DateRange): string {
   throw new Error('Invalid date range');
 };
 
+//@ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fmtData = function (data: [Date, number][], dateRange: DateRange) {
   const _dataFmt = new Map<string, [number, number]>();
   for (const [date, value] of data) {
@@ -116,11 +129,22 @@ const fmtData = function (data: [Date, number][], dateRange: DateRange) {
   return [..._dataFmt.values()];
 };
 
-export function getDateBoundaries(dates: Date[]) {
+/**
+ * Groups an array of Date objects by a specific time interval (day, month, trimester, year)
+ * and calculates the earliest and latest dates within each interval.
+ * For instance, given the dates [2021-01-01, 2021-01-25, 2021-03-01, 2021-10-01]:
+ *
+
+ * @param {Date[]} dates - An array of dates to group and find boundary dates for.
+ * @returns {Map<string, [Date, Date]>} - A map where each key represents an interval
+ * as a string (formatted according to the interval type, e.g., '2021', '2021-03', '2021-01-01'),
+ * and each value is a tuple containing the earliest and latest dates within that interval.
+ */
+export function getDateBoundaries(dates: Date[], dateRange: DateRange) {
   const ranges = new Map<string, [Date, Date]>();
 
   for (const date of dates) {
-    const _dateStr = getDateInterval(date, 'year');
+    const _dateStr = getDateInterval(date, dateRange);
     const _range = ranges.get(_dateStr);
     if (!_range) ranges.set(_dateStr, [date, date]);
     else if (date > _range[1]) ranges.set(_dateStr, [_range[0], date]);

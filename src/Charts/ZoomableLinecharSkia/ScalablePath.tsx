@@ -1,4 +1,9 @@
-import { Path, Skia, type SkPath } from '@shopify/react-native-skia';
+import {
+  Path,
+  Skia,
+  type PathCommand,
+  type SkPath,
+} from '@shopify/react-native-skia';
 import React, { type FC } from 'react';
 import Animated, { useDerivedValue } from 'react-native-reanimated';
 import { scaleCommands } from '../graphUtils';
@@ -16,13 +21,13 @@ const ScalablePath: FC<Props> = function (props) {
   const { path, scale, focalX, offsetX, pathProps, color = 'red' } = props;
 
   const animatedPath = useDerivedValue(() => {
-    let _cmds = [];
+    let _cmds: PathCommand[] = [];
     try {
       _cmds = scaleCommands(path.value?.toCmds() ?? [], scale, focalX, offsetX);
     } catch (e) {
-      console.log(e);
-      console.log(path.value == null);
-      console.log(path.value);
+      console.error(e);
+      console.error(path.value == null);
+      console.error(path.value);
     }
     const _path = Skia.Path.MakeFromCmds(_cmds);
     if (!_path) throw new Error('Path is null');
