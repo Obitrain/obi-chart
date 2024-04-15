@@ -1,28 +1,22 @@
 import * as shape from 'd3-shape';
-import { buildGraph } from 'obi-chart';
+import { Utils, buildGraph } from 'obi-chart';
 import { useMemo } from 'react';
 import { makeMutable } from 'react-native-reanimated';
 import { WEIGHTS } from '../../data';
-import { getAxisTicks, getDateBoundaries, getEvenlySpacedData } from './utils';
+import { getAxisTicks } from './utils';
 
-const ALL_DATA = getEvenlySpacedData(WEIGHTS, 20);
+const ALL_DATA = Utils.getEvenlySpacedData(WEIGHTS, 20);
+console.log(JSON.stringify(ALL_DATA, null, 2));
 const ALL_DATA_AXIS = getAxisTicks(
   WEIGHTS.map((x) => x[0]),
   'all'
 );
 
-const YEARLY_DATA = getEvenlySpacedData(WEIGHTS, 12);
+const YEARLY_DATA = Utils.getEvenlySpacedData(WEIGHTS, 12);
 // const YEARLY_DATA_AXIS = getAxisTicks(
 //   WEIGHTS.map((x) => x[0]),
 //   'year'
 // );
-
-console.log(
-  getDateBoundaries(
-    YEARLY_DATA.map((x) => x[0]),
-    'year'
-  )
-);
 
 export const useData = function (width: number, height: number) {
   // shape.curveBasis,

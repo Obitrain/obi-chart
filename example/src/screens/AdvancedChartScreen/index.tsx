@@ -37,6 +37,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
   const [hideDots, setHideDots] = React.useState(false);
   const [hideSettings, setHideSettings] = React.useState(false);
   const [hideYAxis, setHideYAxis] = React.useState(false);
+  const [currentChart, setCurrentChart] = React.useState(0);
 
   const graphWidth = width - 40;
 
@@ -49,7 +50,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
 
   const { scale, focalX, offsetX, pinchGesture, panGesture, reset } =
     useScalableGesture({
-      width: width,
+      width: graphWidth,
       startOffset: 0,
     });
 
@@ -68,7 +69,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
   //       //graphs[1]!.skiaPath, graphs[2]!.skiaPath
   //     ]
   //   );
-  const path = useSharedValue(graphs[0]!.skiaPath);
+  const path = useSharedValue(graphs[currentChart]!.skiaPath);
   //   const path = useSharedValue(graphs[0]!.skiaPath);
 
   const gesture = Gesture.Simultaneous(
@@ -103,6 +104,16 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
         <Button
           label={hideSettings ? 'Show Settings' : 'Hide Settings'}
           onPress={() => setHideSettings((old) => !old)}
+        />
+        <Button
+          label={'Change chart'}
+          onPress={() => {
+            setCurrentChart((old) => {
+              const _newChartIdx = (old + 1) % graphs.length;
+              path.value = graphs[_newChartIdx]!.skiaPath;
+              return _newChartIdx;
+            });
+          }}
         />
         <Button label="Reset Chart" small onPress={resetChart} />
       </View>

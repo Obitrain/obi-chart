@@ -25,9 +25,8 @@ const ScalablePath: FC<Props> = function (props) {
     try {
       _cmds = scaleCommands(path.value?.toCmds() ?? [], scale, focalX, offsetX);
     } catch (e) {
-      console.error(e);
-      console.error(path.value == null);
-      console.error(path.value);
+      console.error('Got error while scaling path: ', typeof e);
+      _cmds = [];
     }
     const _path = Skia.Path.MakeFromCmds(_cmds);
     if (!_path) throw new Error('Path is null');

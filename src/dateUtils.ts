@@ -1,4 +1,59 @@
-import type { DateRange } from 'obi-chart';
+export type DateItem = [Date, number];
+export type DateRange = 'day' | 'month' | 'trimester' | 'year' | 'all';
+
+/**
+ * Returns an array of dates that are evenly spaced between the first and last dates.
+ * For example, given the dates:
+ *  [2021-01-01, 2021-01-25, 2021-03-01, 2021-10-01]
+ * and a sample size of 3, the function will return:
+ * [2021-01-01, 2021-03-01, 2021-10-01]
+ * @param dates
+ * @param sampleSize
+ * @returns
+ */
+export function getEvenlySpacedData(
+  dates: DateItem[],
+  sampleSize: number
+): DateItem[] {
+  if (sampleSize <= 0 || dates.length === 0) {
+    return [];
+  }
+
+  if (sampleSize >= dates.length) {
+    return dates;
+  }
+
+  // Calculate total time span and interval
+  const firstItem = dates[0]!;
+  const lastItem = dates[dates.length - 1]!;
+  const startTime = firstItem[0].getTime();
+  const endTime = lastItem[0].getTime();
+  const timeSpan = endTime - startTime;
+  const timeInterval = timeSpan / (sampleSize - 1);
+
+  const sampledDates: DateItem[] = [firstItem]; // Always include the first date
+  let nextTime = startTime + timeInterval;
+
+  // Select dates closest to each time interval
+  for (let i = 1; i < sampleSize - 1; i++) {
+    let closestDate = dates[0];
+    let minDiff = Math.abs(firstItem[0].getTime() - nextTime);
+
+    for (let j = 1; j < dates.length; j++) {
+      const diff = Math.abs(dates[j]![0].getTime() - nextTime);
+      if (diff < minDiff) {
+        closestDate = dates[j];
+        minDiff = diff;
+      }
+    }
+    sampledDates.push(closestDate!);
+    nextTime += timeInterval;
+  }
+
+  sampledDates.push(lastItem); // Always include the last date
+
+  return sampledDates;
+}
 
 export type AxisItem = { ts: number; label: string };
 
@@ -38,7 +93,11 @@ export const getAxisTicks = function (
   return data;
 };
 
-const getMonthInterval = function (month: number, nbMonths: number): string {
+export const getMonthInterval = function (
+  month: number,
+  nbMonths: number
+): string {
+  if (month <= 0) throw new Error('Months should start at 1');
   return (month - (month % nbMonths) + 1).toString().padStart(2, '0');
 };
 
@@ -53,16 +112,21 @@ const getMonthInterval = function (month: number, nbMonths: number): string {
  * @param dateRange
  * @returns
  */
-const getDateInterval = function (date: Date, dateRange: DateRange): string {
+export const getDateInterval = function (
+  date: Date,
+  dateRange: DateRange
+): string {
   const year = date.getFullYear();
-  let month = date.getMonth();
-  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const day = date.getDate().toString().padStart(2, '0');
+
+  const monthStr = month.toString().padStart(2, '0');
 
   switch (dateRange) {
     case 'day':
-      return `${year}-${month}-${day}`;
+      return `${year}-${monthStr}-${day}`;
     case 'month':
-      return `${year}-${month}`;
+      return `${year}-${monthStr}`;
     case 'trimester':
       return `${year}-${getMonthInterval(month, 3)}`;
     case 'year':
