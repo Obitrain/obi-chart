@@ -1,54 +1,77 @@
 import * as shape from 'd3-shape';
-import { Utils, buildGraph } from 'obi-chart';
+import { buildGraph, type AnimatedDot } from 'obi-chart';
 import { useMemo } from 'react';
-import { makeMutable } from 'react-native-reanimated';
+import Animated, { makeMutable } from 'react-native-reanimated';
 import { WEIGHTS } from '../../data';
-import { getAxisTicks } from './utils';
+import { getAxisTicks, getEvenlySpacedData } from './utils';
 
-const ALL_DATA = Utils.getEvenlySpacedData(WEIGHTS, 20);
-console.log(JSON.stringify(ALL_DATA, null, 2));
-const ALL_DATA_AXIS = getAxisTicks(
+export type AnimatedTick = {
+  label: Animated.SharedValue<string>;
+  x: Animated.SharedValue<number>;
+};
+
+const ALL_DATA = getEvenlySpacedData(WEIGHTS, 20);
+const ALL_DATA_TICKS = getAxisTicks(
   WEIGHTS.map((x) => x[0]),
   'all'
 );
 
-const YEARLY_DATA = Utils.getEvenlySpacedData(WEIGHTS, 12);
-// const YEARLY_DATA_AXIS = getAxisTicks(
-//   WEIGHTS.map((x) => x[0]),
-//   'year'
-// );
+const YEARLY_DATA = getEvenlySpacedData(WEIGHTS, 12, 'year');
+const YEARLY_DATA_TICKS = getAxisTicks(
+  WEIGHTS.map((x) => x[0]),
+  'year'
+);
+
+const _DATA = [ALL_DATA, YEARLY_DATA];
+const _TICKS = [ALL_DATA_TICKS, YEARLY_DATA_TICKS];
 
 export const useData = function (width: number, height: number) {
   // shape.curveBasis,
 
-  const data = useMemo(
-    () => [
-      buildGraph(
-        ALL_DATA.map((x) => [x[0].getTime(), x[1]]),
-        width,
-        height,
-        {
-          curve: shape.curveBumpX,
-        }
+  const graphs = useMemo(
+    () =>
+      _DATA.map((x) =>
+        buildGraph(
+          x.map((_item) => [_item[0].getTime(), _item[1]]),
+          width,
+          height,
+          { curve: shape.curveBumpX }
+        )
       ),
-      buildGraph(
-        YEARLY_DATA.map((x) => [x[0].getTime(), x[1]]),
-        width,
-        height,
-        {
-          curve: shape.curveBumpX,
-        }
-      ),
-    ],
     [height, width]
   );
-  const firstGraph = data[0];
+  const axesX: AnimatedTick[][] = useMemo(() => {
+    return _TICKS.map((t, i) => {
+      let _graph = graphs[i];
+      if (_graph === undefined) throw new Error('No graph found');
+      return t.map(({ ts, label }) => ({
+        label: makeMutable(label),
+        x: makeMutable(_graph!.scaleX(ts)),
+        opacity: makeMutable(0),
+      }));
+    });
+  }, [graphs]);
+
+  const z = useMemo(() => {
+    return _TICKS.map((t, i) => {
+      let _graph = graphs[i];
+      if (_graph === undefined) throw new Error('No graph found');
+      return t.map(({ ts, label }) => ({
+        label: label,
+        x: _graph!.scaleX(ts),
+        opacity: 0,
+      }));
+    });
+  }, [graphs]);
+
+  console.log(z[1]);
+
+  const firstGraph = graphs[0];
   if (firstGraph === undefined) throw new Error('No graph found');
 
   // Dots
-
-  const maxNbPoints = Math.max(...data.map((x) => x.dataPoints.length));
-  const dots = useMemo(() => {
+  const maxNbPoints = Math.max(...graphs.map((x) => x.dataPoints.length));
+  const dots: AnimatedDot[] = useMemo(() => {
     return Array.from({ length: maxNbPoints }).map((_x, i) => ({
       x: makeMutable(firstGraph.dataPoints[i]?.x ?? 0),
       y: makeMutable(firstGraph.dataPoints[i]?.y ?? 0),
@@ -56,24 +79,7 @@ export const useData = function (width: number, height: number) {
     }));
   }, [firstGraph, maxNbPoints]);
 
-  // Axis
-  const scaleX = firstGraph.scaleX;
-  const axisTicks = useMemo(() => {
-    return ALL_DATA_AXIS.map(({ ts, label }) => ({
-      x: makeMutable(scaleX(ts)),
-      label: makeMutable(label),
-      opacity: makeMutable(0),
-    }));
-  }, [scaleX]);
+  const domains = graphs.map((g) => g.scaleY.domain());
 
-  const scaleY = firstGraph.scaleY;
-  //   console.log(
-  //     'ScaleY: ',
-  //     scaleY(0),
-  //     scaleY(75),
-  //     scaleY.range(),
-  //     scaleY.domain()
-  //   );
-
-  return { data, dots, axisTicks, yDomain: scaleY.domain() };
+  return { graphs, dots, axesX, yDomains: domains };
 };

@@ -6,7 +6,7 @@ import {
   useScalableGesture,
   type AnimatedDot,
 } from 'obi-chart';
-import React, { type FC } from 'react';
+import React, { useCallback, useRef, type FC } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -18,7 +18,7 @@ import { useDimensions } from '../../hooks';
 import { Dot } from './Dot';
 import { Tick } from './Tick';
 import { YAxis } from './YAxis';
-import { useData } from './data';
+import { useData, type AnimatedTick } from './data';
 
 export type Props = {};
 
@@ -41,12 +41,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
 
   const graphWidth = width - 40;
 
-  const {
-    data: graphs,
-    dots,
-    axisTicks,
-    yDomain,
-  } = useData(graphWidth, GRAPH_HEIGHT);
+  const { graphs, dots, axesX, yDomains } = useData(graphWidth, GRAPH_HEIGHT);
 
   const { scale, focalX, offsetX, pinchGesture, panGesture, reset } =
     useScalableGesture({
@@ -70,7 +65,8 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
   //     ]
   //   );
   const path = useSharedValue(graphs[currentChart]!.skiaPath);
-  //   const path = useSharedValue(graphs[0]!.skiaPath);
+  const yDomain = useRef(yDomains[currentChart]!);
+  const axisTicks = useRef(axesX[currentChart]!);
 
   const gesture = Gesture.Simultaneous(
     //@ts-expect-error
@@ -85,6 +81,30 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
   const offsetXStr = useDerivedValue(() => {
     return offsetX.value.toFixed(2);
   }, [offsetX]);
+
+  const _changeChart = useCallback(
+    (newChartIdx) => {
+      const newGraph = graphs[newChartIdx]!;
+      path.value = newGraph.skiaPath;
+      yDomain.current = yDomains[newChartIdx]!;
+      axisTicks.current = axesX[newChartIdx]!;
+      console.log(axisTicks.current.length / 12);
+
+      scale.value =
+        // all
+        newChartIdx === 0
+          ? 1
+          : // yearly
+            axisTicks.current.length / 12;
+
+      dots.map((dot, i) => {
+        dot.x.value = newGraph.dataPoints[i]?.x ?? 0;
+        dot.y.value = newGraph.dataPoints[i]?.y ?? 0;
+        dot.opacity.value = newGraph.dataPoints[i] !== undefined ? 1 : 0;
+      });
+    },
+    [axesX, dots, graphs, path, scale, yDomains]
+  );
 
   return (
     <View style={styles.container}>
@@ -110,7 +130,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
           onPress={() => {
             setCurrentChart((old) => {
               const _newChartIdx = (old + 1) % graphs.length;
-              path.value = graphs[_newChartIdx]!.skiaPath;
+              _changeChart(_newChartIdx);
               return _newChartIdx;
             });
           }}
@@ -131,10 +151,12 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
           <Group
             transform={[{ translateY: (CANVAS_HEIGHT - OFFSET_AXIS) / 2 }]}
           >
-            <ScalablePath
-              {...{ focalX, offsetX, scale, path }}
-              color={Colors.primary}
-            />
+            {false && (
+              <ScalablePath
+                {...{ focalX, offsetX, scale, path }}
+                color={Colors.primary}
+              />
+            )}
             {!hideDots ? renderDots(dots, scale, focalX, offsetX) : null}
             {!hideAxis ? (
               <>
@@ -143,13 +165,19 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
                   width={graphWidth}
                   offsetY={OFFSET_AXIS}
                 />
-                {renderTicks(axisTicks, scale, focalX, offsetX, graphWidth)}
+                {renderTicks(
+                  axisTicks.current,
+                  scale,
+                  focalX,
+                  offsetX,
+                  graphWidth
+                )}
               </>
             ) : null}
             {!hideYAxis ? (
               <YAxis
-                minY={yDomain[0]!}
-                maxY={yDomain[1]!}
+                minY={yDomain.current[0]!}
+                maxY={yDomain.current[1]!}
                 height={OFFSET_AXIS}
                 width={width}
                 font={font}
@@ -218,11 +246,6 @@ export const renderDots = function (
       ))}
     </Group>
   );
-};
-
-type AnimatedTick = {
-  label: Animated.SharedValue<string>;
-  x: Animated.SharedValue<number>;
 };
 
 export const renderTicks = function (

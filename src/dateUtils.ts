@@ -1,97 +1,4 @@
-export type DateItem = [Date, number];
 export type DateRange = 'day' | 'month' | 'trimester' | 'year' | 'all';
-
-/**
- * Returns an array of dates that are evenly spaced between the first and last dates.
- * For example, given the dates:
- *  [2021-01-01, 2021-01-25, 2021-03-01, 2021-10-01]
- * and a sample size of 3, the function will return:
- * [2021-01-01, 2021-03-01, 2021-10-01]
- * @param dates
- * @param sampleSize
- * @returns
- */
-export function getEvenlySpacedData(
-  dates: DateItem[],
-  sampleSize: number
-): DateItem[] {
-  if (sampleSize <= 0 || dates.length === 0) {
-    return [];
-  }
-
-  if (sampleSize >= dates.length) {
-    return dates;
-  }
-
-  // Calculate total time span and interval
-  const firstItem = dates[0]!;
-  const lastItem = dates[dates.length - 1]!;
-  const startTime = firstItem[0].getTime();
-  const endTime = lastItem[0].getTime();
-  const timeSpan = endTime - startTime;
-  const timeInterval = timeSpan / (sampleSize - 1);
-
-  const sampledDates: DateItem[] = [firstItem]; // Always include the first date
-  let nextTime = startTime + timeInterval;
-
-  // Select dates closest to each time interval
-  for (let i = 1; i < sampleSize - 1; i++) {
-    let closestDate = dates[0];
-    let minDiff = Math.abs(firstItem[0].getTime() - nextTime);
-
-    for (let j = 1; j < dates.length; j++) {
-      const diff = Math.abs(dates[j]![0].getTime() - nextTime);
-      if (diff < minDiff) {
-        closestDate = dates[j];
-        minDiff = diff;
-      }
-    }
-    sampledDates.push(closestDate!);
-    nextTime += timeInterval;
-  }
-
-  sampledDates.push(lastItem); // Always include the last date
-
-  return sampledDates;
-}
-
-export type AxisItem = { ts: number; label: string };
-
-export const getAxisTicks = function (
-  dates: Date[],
-  dateRange: DateRange
-): AxisItem[] {
-  const firstDate = dates[0];
-  const lastDate = dates[dates.length - 1];
-  if (firstDate === undefined || lastDate === undefined)
-    throw new Error('No date found');
-
-  let data: AxisItem[] = [];
-  switch (dateRange) {
-    case 'all':
-      const diff = lastDate.getFullYear() - firstDate.getFullYear();
-      if (diff === 0)
-        data = [
-          {
-            ts: firstDate.getTime(),
-            label: firstDate.getFullYear().toString(),
-          },
-        ];
-      else
-        data = Array.from({ length: diff + 1 }).map((_, i) => {
-          const year = firstDate.getFullYear() + i;
-          return { ts: Date.UTC(year, 0, 1, 0, 0, 0), label: year.toString() };
-        });
-      break;
-    //   case 'year':
-    //     data = Array.from({ length: 12}).map((_, i) => {
-    //         const month = i + 1;
-    //         return { ts: Date.UTC(firstDate.getFullYear(), month, 1, 0, 0, 0), label: month.toString() };
-    //         }
-  }
-
-  return data;
-};
 
 export const getMonthInterval = function (
   month: number,
@@ -171,4 +78,86 @@ export function getDateBoundaries(dates: Date[], dateRange: DateRange) {
     else if (date > _range[1]) ranges.set(_dateStr, [_range[0], date]);
   }
   return ranges;
+}
+
+export function sampleDates(
+  dates: Date[],
+  sampleSize: number,
+  indexOffset: number = 0
+): { dates: Date[]; indexes: number[] } {
+  if (sampleSize <= 0 || dates.length === 0) {
+    return { dates: [], indexes: [] };
+  }
+
+  if (sampleSize >= dates.length) {
+    return {
+      dates,
+      indexes: Array.from({ length: dates.length }, (_, i) => indexOffset + i),
+    };
+  }
+
+  // Calculate total time span and interval
+  const firstItem = dates[0]!;
+  const lastItem = dates[dates.length - 1]!;
+  const startTime = firstItem.getTime();
+  const endTime = lastItem.getTime();
+  const timeSpan = endTime - startTime;
+  const timeInterval = timeSpan / (sampleSize - 1);
+
+  const sampledDates: Date[] = [firstItem]; // Always include the first date
+  const sampledIndexes = [0];
+  let nextTime = startTime + timeInterval;
+
+  // Select dates closest to each time interval
+  for (let i = 1; i < sampleSize - 1; i++) {
+    let closestDate = dates[0];
+    let minDiff = Math.abs(startTime - nextTime);
+    let closestIndex = 0;
+    for (let j = 1; j < dates.length; j++) {
+      const diff = Math.abs(dates[j]!.getTime() - nextTime);
+      if (diff < minDiff) {
+        closestDate = dates[j];
+        closestIndex = j;
+        minDiff = diff;
+      }
+    }
+    sampledDates.push(closestDate!);
+    sampledIndexes.push(closestIndex);
+    nextTime += timeInterval;
+  }
+
+  sampledDates.push(lastItem); // Always include the last date
+  sampledIndexes.push(dates.length - 1);
+
+  return {
+    dates: sampledDates,
+    indexes: sampledIndexes.map((x) => indexOffset + x),
+  };
+}
+
+export function sampleDatesByRange(
+  dates: Date[],
+  sampleSize: number,
+  dateRange: DateRange
+): Map<string, { dates: Date[]; indexes: number[] }> {
+  const boundaries = getDateBoundaries(dates, dateRange);
+  const rangedData = new Map<string, Date[]>();
+  for (let i = 0; i < dates.length; i++) {
+    let date = dates[i]!;
+    for (const [key, [minDate, maxDate]] of boundaries) {
+      if (date >= minDate && date <= maxDate) {
+        if (!rangedData.has(key)) rangedData.set(key, []);
+        rangedData.get(key)!.push(date);
+        break;
+      }
+    }
+  }
+  const sampledData = new Map<string, { dates: Date[]; indexes: number[] }>();
+  let offset = 0;
+  for (const [key, value] of rangedData) {
+    sampledData.set(key, sampleDates(value, sampleSize, offset));
+    offset += value.length;
+  }
+
+  return sampledData;
 }

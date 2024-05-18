@@ -2,25 +2,6 @@ import { it } from '@jest/globals';
 import * as U from '../dateUtils';
 
 it.each([
-  {
-    input: [
-      [new Date('2021-01-01'), 1],
-      [new Date('2021-01-25'), 1],
-      [new Date('2021-03-01'), 1],
-      [new Date('2021-10-01'), 1],
-      [new Date('2021-12-01'), 1],
-    ] as U.DateItem[],
-    sampleSize: 3,
-    output: ['2021-01-01', '2021-10-01', '2021-12-01'],
-  },
-])('getEvenlySpacedData works', ({ input, sampleSize, output }) => {
-  const _output = U.getEvenlySpacedData(input, sampleSize).map(
-    (x) => x[0].toISOString().split('T')[0]
-  );
-  expect(output).toEqual(_output);
-});
-
-it.each([
   { month: 1, nbMonths: 3, output: '01' },
   { month: 2, nbMonths: 2, output: '03' },
 ])(`getMonthInterval works`, ({ month, nbMonths, output }) => {
@@ -76,3 +57,90 @@ it.each([
   const _output = U.getDateBoundaries(input, dateRange);
   expect(_output).toEqual(output);
 });
+
+it.each([
+  {
+    input: [
+      '2021-01-01',
+      '2021-01-25',
+      '2022-03-01',
+      '2022-10-01',
+      '2022-12-01',
+    ],
+    sampleSize: 3,
+    output: {
+      dates: ['2021-01-01', '2022-03-01', '2022-12-01'],
+      indexes: [0, 2, 4],
+    },
+  },
+])(
+  'sampleDates with sampleSize $sampleSize',
+  ({ input, sampleSize, output }) => {
+    const _input = input.map((x) => new Date(x));
+    const _output = U.sampleDates(_input, sampleSize);
+    const _outputDates = _output.dates.map(
+      (x) => x.toISOString().split('T')[0]
+    );
+    expect({
+      ..._output,
+      dates: _outputDates,
+    }).toEqual(output);
+  }
+);
+it.each([
+  {
+    input: [
+      // 2021
+      '2021-01-01',
+      '2021-01-25',
+      '2021-07-01',
+      '2021-10-01',
+      // 2022
+      '2022-03-01',
+      '2022-10-01',
+      '2022-12-01',
+      // 2023
+      '2023-04-01',
+    ],
+    sampleSize: 3,
+    dateRange: 'year' as U.DateRange,
+    output: new Map([
+      [
+        '2021',
+        {
+          dates: ['2021-01-01', '2021-07-01', '2021-10-01'],
+          indexes: [0, 2, 3],
+        },
+      ],
+      [
+        '2022',
+        {
+          dates: ['2022-03-01', '2022-10-01', '2022-12-01'],
+          indexes: [4, 5, 6],
+        },
+      ],
+      [
+        '2023',
+        {
+          dates: ['2023-04-01'],
+          indexes: [7],
+        },
+      ],
+    ]),
+  },
+])(
+  'sampleDatesByRange with sampleSize $sampleSize and dateRange $dateRange',
+  ({ input, sampleSize, output, dateRange }) => {
+    const _input = input.map((x) => new Date(x));
+    const _output = U.sampleDatesByRange(_input, sampleSize, dateRange);
+    for (const [key, value] of _output) {
+      const _outputDates = value.dates.map(
+        (x) => x.toISOString().split('T')[0]
+      );
+      // @ts-ignore
+      _output.set(key, { ...value, dates: _outputDates });
+    }
+
+    expect(_output).toEqual(output);
+  }
+);

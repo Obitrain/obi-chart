@@ -1,5 +1,5 @@
 import type { DateRange } from 'obi-chart';
-
+import { Utils } from 'obi-chart';
 export type AxisItem = { ts: number; label: string };
 
 export const getAxisTicks = function (
@@ -12,9 +12,9 @@ export const getAxisTicks = function (
     throw new Error('No date found');
 
   let data: AxisItem[] = [];
+  const diff = lastDate.getFullYear() - firstDate.getFullYear();
   switch (dateRange) {
     case 'all':
-      const diff = lastDate.getFullYear() - firstDate.getFullYear();
       if (diff === 0)
         data = [
           {
@@ -28,83 +28,50 @@ export const getAxisTicks = function (
           return { ts: Date.UTC(year, 0, 1, 0, 0, 0), label: year.toString() };
         });
       break;
-    //   case 'year':
-    //     data = Array.from({ length: 12}).map((_, i) => {
-    //         const month = i + 1;
-    //         return { ts: Date.UTC(firstDate.getFullYear(), month, 1, 0, 0, 0), label: month.toString() };
-    //         }
+    case 'year':
+      for (let i = 0; i < diff; i++) {
+        let _yearlyData = Array.from({ length: 12 }).map((_, monthNumber) => {
+          let ts = Date.UTC(
+            firstDate.getFullYear() + i,
+            monthNumber,
+            1,
+            0,
+            0,
+            0
+          );
+          return {
+            ts,
+            label: new Date(ts).toLocaleString(undefined, { month: 'narrow' }),
+          };
+        });
+        data = data.concat(..._yearlyData);
+      }
+      break;
   }
-
   return data;
 };
 
-const getMonthInterval = function (month: number, nbMonths: number): string {
-  return (month - (month % nbMonths) + 1).toString().padStart(2, '0');
-};
+export type DataItem = [Date, number];
 
-/**
- * Get the date interval based on the date range.
- * For example, for the date 2021-01-01:
- * - day: 2021-01-01
- * - month: 2021-01
- * - trimester: 2021-01
- * - year: 2021
- * @param date
- * @param dateRange
- * @returns
- */
-const getDateInterval = function (date: Date, dateRange: DateRange): string {
-  const year = date.getFullYear();
-  let month = date.getMonth();
-  const day = date.getDate();
+export const getEvenlySpacedData = function (
+  data: DataItem[],
+  sampleSize: number,
+  dateRange: DateRange | undefined = undefined
+): DataItem[] {
+  const _dates = data.map((x) => x[0]);
 
-  switch (dateRange) {
-    case 'day':
-      return `${year}-${month}-${day}`;
-    case 'month':
-      return `${year}-${month}`;
-    case 'trimester':
-      return `${year}-${getMonthInterval(month, 3)}`;
-    case 'year':
-      return `${year}`;
+  const _sampledDates =
+    dateRange !== undefined
+      ? Utils.sampleDatesByRange(_dates, sampleSize, dateRange)
+      : new Map([['all', Utils.sampleDates(_dates, sampleSize)]]);
+
+  const sampledData: DataItem[] = [];
+  for (const { indexes } of _sampledDates.values()) {
+    for (const i of indexes) {
+      let _data = data[i];
+      if (_data === undefined) throw new Error(`No data found at index ${i}`);
+      sampledData.push(_data);
+    }
   }
-  throw new Error('Invalid date range');
+  return sampledData;
 };
-
-//@ts-ignore
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fmtData = function (data: [Date, number][], dateRange: DateRange) {
-  const _dataFmt = new Map<string, [number, number]>();
-  for (const [date, value] of data) {
-    const _dateStr = getDateInterval(date, dateRange);
-    if (!_dataFmt.has(_dateStr))
-      _dataFmt.set(_dateStr, [date.getTime(), value]);
-  }
-
-  return [..._dataFmt.values()];
-};
-
-/**
- * Groups an array of Date objects by a specific time interval (day, month, trimester, year)
- * and calculates the earliest and latest dates within each interval.
- * For instance, given the dates [2021-01-01, 2021-01-25, 2021-03-01, 2021-10-01]:
- *  - month: { '2021-01': [2021-01-01, 2021-01-25],
-*              '2021-03': [2021-03-01, 2021-03-01],
-               '2021-10': [2021-10-01, 2021-10-01] }
-
- * @param {Date[]} dates - An array of dates to group and find boundary dates for.
- * @returns {Map<string, [Date, Date]>} - A map where each key represents an interval
- * as a string (formatted according to the interval type, e.g., '2021', '2021-03', '2021-01-01'),
- * and each value is a tuple containing the earliest and latest dates within that interval.
- */
-export function getDateBoundaries(dates: Date[], dateRange: DateRange) {
-  const ranges = new Map<string, [Date, Date]>();
-
-  for (const date of dates) {
-    const _dateStr = getDateInterval(date, dateRange);
-    const _range = ranges.get(_dateStr);
-    if (!_range) ranges.set(_dateStr, [date, date]);
-    else if (date > _range[1]) ranges.set(_dateStr, [_range[0], date]);
-  }
-  return ranges;
-}

@@ -40,7 +40,6 @@ const YAxis: FC<Props> = function (props) {
     <Group color={color}>
       {Array.from({ length: nbLines }).map((_x, i) => {
         const y = height - (i + 1) * step;
-        console.log(y);
         const label = `${Math.ceil(
           ((height - y) * (maxY - minY)) / height + minY
         )}`;
