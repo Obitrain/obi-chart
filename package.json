@@ -47,7 +47,7 @@
   },
   "homepage": "https://github.com/Andarius/obi-chart#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://gitlab.com/api/v4/projects/10478649/packages/npm/"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
