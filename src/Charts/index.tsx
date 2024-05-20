@@ -1,15 +1,15 @@
 export { AxisLine, BottomAxis, Tick } from './BottomAxis';
 export { Cursor } from './Cursor';
 export type { CursorProps } from './Cursor';
-export { LineChart } from './LinechartSkia';
-export type { LineChartProps, LineItem } from './LinechartSkia';
-export { ScalablePath, ZoomableLineChart } from './ZoomableLinecharSkia';
-export type { ZoomableLineChartProps } from './ZoomableLinecharSkia';
+export { LineChart } from './Linechart';
+export type { LineChartProps, LineItem } from './Linechart';
+export { ScalablePath, ZoomableLineChart } from './ZoomableLinechart';
+export type { ZoomableLineChartProps } from './ZoomableLinechart';
 export {
   getClosestPoint,
   getPositionWl,
-  useScalableGesture,
   useCursorGesture,
+  useScalableGesture,
   useUpdateAxis,
 } from './gesture';
 export type { UseCursorGestureProps } from './gesture';
