@@ -11,7 +11,7 @@ import {
   Paint,
   usePathInterpolation,
 } from '@shopify/react-native-skia';
-import React, { useState, type FC } from 'react';
+import React, { useMemo, useState, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   GestureDetector,
@@ -43,12 +43,29 @@ const LineChartScreen: FC<Props> = function ({}) {
   const currentGraph = useSharedValue(0);
   const progress = useSharedValue(0);
   const [isContinuous, setContinous] = useState(true);
+  const [showMultiple, setShowMultiple] = useState(false);
 
   const path = usePathInterpolation(
     progress,
     [0, 1, 2],
     [graphs[0]!.skiaPath, graphs[1]!.skiaPath, graphs[2]!.skiaPath]
   );
+  const paths = useMemo(() => {
+    return [
+      {
+        path: graphs[0]!.skiaPath,
+        color: Colors.primary,
+      },
+      {
+        path: graphs[1]!.skiaPath,
+        color: Colors.secondary,
+      },
+      {
+        path: graphs[2]!.skiaPath,
+        color: Colors.success,
+      },
+    ];
+  }, [graphs]);
 
   const commands = useDerivedValue(() => {
     return path.value.toCmds();
@@ -66,6 +83,7 @@ const LineChartScreen: FC<Props> = function ({}) {
   }, []);
 
   const _onChangeGraph = function () {
+    setShowMultiple(false);
     const newGraph = (currentGraph.value + 1) % 3;
     currentGraph.value = newGraph;
     progress.value = withTiming(newGraph, { duration: 1000 });
@@ -85,6 +103,10 @@ const LineChartScreen: FC<Props> = function ({}) {
       <View style={styles.btnsContainer}>
         <Button label="Change Graph" onPress={_onChangeGraph} />
         <Button
+          label="Show Multiple"
+          onPress={() => setShowMultiple((old) => !old)}
+        />
+        <Button
           label={isContinuous ? 'Continous' : 'Discrete'}
           onPress={() => setContinous((old) => !old)}
         />
@@ -100,6 +122,7 @@ const LineChartScreen: FC<Props> = function ({}) {
           offsetX={PADDING_HORIZONTAL}
           width={width}
           path={path}
+          paths={showMultiple ? paths : undefined}
           color={Colors.primary}
         >
           {renderDots(dots)}
