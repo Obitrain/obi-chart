@@ -13,6 +13,13 @@ export {
   useUpdateAxis,
 } from './gesture';
 export type { UseCursorGestureProps } from './gesture';
-export { buildGraph, scaleCommands, useDotsTransition } from './graphUtils';
+export {
+  buildGraph,
+  defaultOpacityTransitionWl,
+  defaultTranslateTransitionWl,
+  scaleCommands,
+  useDotsTransition,
+} from './graphUtils';
+export type { Config, GraphData, UseDotAnimationProps } from './graphUtils';
 export { getYForX } from './maths';
 export type { AnimatedDot, DataPoint, LineGraphType } from './types';

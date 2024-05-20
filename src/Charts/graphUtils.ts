@@ -150,11 +150,11 @@ export type UseDotAnimationProps = {
   translateWl?: (position: number) => number;
 };
 
-const defaultOpacityTransitionWl = function (opacity: number) {
+export const defaultOpacityTransitionWl = function (opacity: number) {
   'worklet';
   return withTiming(opacity, { duration: 200 });
 };
-const defaultTranslateTransitionWl = function (position: number) {
+export const defaultTranslateTransitionWl = function (position: number) {
   'worklet';
   return withTiming(position, { duration: 1000 });
 };
