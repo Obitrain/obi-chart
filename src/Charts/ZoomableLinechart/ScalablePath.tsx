@@ -8,7 +8,7 @@ import React, { type FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { scaleCommands } from '../graphUtils';
 
-export type Props = {
+export type ScalablePathProps = {
   path: SharedValue<SkPath>;
   scale: SharedValue<number>;
   focalX: SharedValue<number>;
@@ -17,7 +17,7 @@ export type Props = {
   pathProps?: Omit<React.ComponentProps<typeof Path>, 'color'>;
 };
 
-const ScalablePath: FC<Props> = function (props) {
+const ScalablePath: FC<ScalablePathProps> = function (props) {
   const { path, scale, focalX, offsetX, pathProps, color = 'red' } = props;
 
   const animatedPath = useDerivedValue(() => {

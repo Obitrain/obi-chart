@@ -4,22 +4,6 @@ import React from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 import type { SharedValue } from 'react-native-reanimated';
-import { type Config, type GraphData } from '../graphUtils';
-import type { DataPoint } from '../types';
-
-export type LineItem = {
-  data: DataPoint[];
-  color?: string;
-  config?: Config;
-  currentValue?: SharedValue<number>;
-};
-
-export type PositionType = {
-  x: SharedValue<number>;
-  y: SharedValue<number>;
-};
-
-export type GraphDataSkia = Omit<GraphData, 'path'> & { path: SkPath };
 
 export type LineChartProps = {
   path: SharedValue<SkPath>;

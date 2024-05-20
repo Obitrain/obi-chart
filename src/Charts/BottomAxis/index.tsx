@@ -1,3 +1,3 @@
-export { AxisLine } from './AxisLine';
-export { BottomAxis } from './BottomAxis';
-export { Tick } from './Tick';
+export { AxisLine, type AxisLineProps } from './AxisLine';
+export { BottomAxis, type BottomAxisProps } from './BottomAxis';
+export { Tick, type TickProps } from './Tick';

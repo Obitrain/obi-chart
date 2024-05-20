@@ -1,12 +1,12 @@
 // ChartUtilsScreen.tsx
-import { Canvas } from '@shopify/react-native-skia';
+import { Canvas, type SkFont } from '@shopify/react-native-skia';
 import React, { type FC } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { AxisLine } from './AxisLine';
 import { Tick } from './Tick';
 
-export type AxisProps = {
+export type BottomAxisProps = {
   labels: string[];
   width: number;
   //   tickInterval: number;
@@ -15,10 +15,11 @@ export type AxisProps = {
   offsetX: SharedValue<number>;
   offsetY?: number;
   style?: StyleProp<ViewStyle>;
+  font: SkFont;
 };
 
-const BottomAxis: FC<AxisProps> = function (props) {
-  const { labels, scale, focalX, offsetX, style, width } = props;
+const BottomAxis: FC<BottomAxisProps> = function (props) {
+  const { labels, scale, focalX, offsetX, style, width, font } = props;
   const offsetY = props.offsetY ?? 0;
   const tickInterval = width / (labels.length - 1);
 
@@ -30,7 +31,7 @@ const BottomAxis: FC<AxisProps> = function (props) {
           key={i}
           label={_label}
           initPosition={tickInterval * i}
-          {...{ offsetX, offsetY, focalX, scale }}
+          {...{ offsetX, offsetY, focalX, scale, font }}
         />
       ))}
     </Canvas>

@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from '../gesture';
 
-export type Props = {
+export type AxisLineProps = {
   width: number;
   focalX: SharedValue<number>;
   scale: SharedValue<number>;
@@ -14,7 +14,7 @@ export type Props = {
   color?: Color;
 };
 
-const AxisLine: FC<Props> = function (props) {
+const AxisLine: FC<AxisLineProps> = function (props) {
   const {
     width,
     focalX,

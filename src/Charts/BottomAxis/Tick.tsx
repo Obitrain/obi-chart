@@ -1,24 +1,26 @@
-import { Group, Line, Text, matchFont, vec } from '@shopify/react-native-skia';
+import {
+  Group,
+  Line,
+  Text,
+  vec,
+  type SkFont,
+} from '@shopify/react-native-skia';
 import React from 'react';
-import { Platform } from 'react-native';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from '../gesture';
 
-type TickProps = {
+export type TickProps = {
   initPosition: number;
   label: string;
   scale: SharedValue<number>;
   focalX: SharedValue<number>;
   offsetX: SharedValue<number>;
   offsetY?: number;
+  font: SkFont;
 };
 
-const fontFamily = Platform.select({ ios: 'Helvetica', default: 'serif' });
-
-const font = matchFont({ fontFamily, fontSize: 14 });
-
 export const Tick: React.FC<TickProps> = (props) => {
-  const { label, scale, focalX, offsetX, initPosition } = props;
+  const { label, scale, focalX, offsetX, initPosition, font } = props;
   const offsetY = props.offsetY ?? 0;
   const transform = useDerivedValue(
     () => [

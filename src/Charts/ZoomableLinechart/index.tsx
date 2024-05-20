@@ -4,9 +4,10 @@ import React from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 import type { SharedValue } from 'react-native-reanimated';
-import { ScalablePath } from './ScalablePath';
+import { ScalablePath, type ScalablePathProps } from './ScalablePath';
 
 export { ScalablePath };
+export type { ScalablePathProps };
 
 export type ZoomableLineChartProps = {
   height: number;

@@ -3,8 +3,9 @@ import {
   useScalableGesture,
   useUpdateAxis,
 } from '@obitrain/charts';
+import { matchFont } from '@shopify/react-native-skia';
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Button } from '../components';
 import { useDimensions } from '../hooks';
@@ -25,6 +26,9 @@ const RANGE_SCALES: number[] = [
 const PADDING_HORIZONTAL = 20;
 const TEST_ZOOM = 2;
 const TEST_FOCAL = 200;
+
+const fontFamily = Platform.select({ ios: 'Helvetica', default: 'serif' });
+const font = matchFont({ fontFamily, fontSize: 14 });
 
 export function BottomAxisScreen() {
   const [currentRange, setCurrentRange] = useState(0);
@@ -86,6 +90,7 @@ export function BottomAxisScreen() {
             scale,
             focalX,
             offsetX,
+            font,
             width: _width,
           }}
           labels={DATA_RANGES[currentRange]!}

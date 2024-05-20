@@ -1,3 +1,4 @@
+import { buildGraph } from '@obitrain/charts';
 import * as shape from 'd3-shape';
 import { useMemo } from 'react';
 import {
@@ -6,7 +7,6 @@ import {
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
-import { buildGraph } from '../../../../src/Charts';
 import { MONTHLY_DATA, MONTHLY_DATA_2 } from '../../data';
 
 const textToString = function (value: number) {

@@ -2,7 +2,7 @@ export { AxisLine, BottomAxis, Tick } from './BottomAxis';
 export { Cursor } from './Cursor';
 export type { CursorProps } from './Cursor';
 export { LineChart } from './Linechart';
-export type { LineChartProps, LineItem } from './Linechart';
+export type { LineChartProps } from './Linechart';
 export { ScalablePath, ZoomableLineChart } from './ZoomableLinechart';
 export type { ZoomableLineChartProps } from './ZoomableLinechart';
 export {
