@@ -5,14 +5,14 @@ import {
   type SkPath,
 } from '@shopify/react-native-skia';
 import React, { type FC } from 'react';
-import Animated, { useDerivedValue } from 'react-native-reanimated';
+import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { scaleCommands } from '../graphUtils';
 
 export type Props = {
-  path: Animated.SharedValue<SkPath>;
-  scale: Animated.SharedValue<number>;
-  focalX: Animated.SharedValue<number>;
-  offsetX: Animated.SharedValue<number>;
+  path: SharedValue<SkPath>;
+  scale: SharedValue<number>;
+  focalX: SharedValue<number>;
+  offsetX: SharedValue<number>;
   color?: string;
   pathProps?: Omit<React.ComponentProps<typeof Path>, 'color'>;
 };

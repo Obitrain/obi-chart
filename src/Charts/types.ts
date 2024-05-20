@@ -1,4 +1,4 @@
-import type Animated from 'react-native-reanimated';
+import type { SharedValue } from 'react-native-reanimated';
 import type { GraphData } from './graphUtils';
 
 export type LineGraphType = GraphData; // Omit<GraphData, 'path'> & { path: RPath };
@@ -10,7 +10,7 @@ export type DataPoint = {
 };
 
 export type AnimatedDot = {
-  x: Animated.SharedValue<number>;
-  y: Animated.SharedValue<number>;
-  opacity: Animated.SharedValue<number>;
+  x: SharedValue<number>;
+  y: SharedValue<number>;
+  opacity: SharedValue<number>;
 };

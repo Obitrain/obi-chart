@@ -2,7 +2,7 @@
 import { Canvas } from '@shopify/react-native-skia';
 import React, { type FC } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
-import type Animated from 'react-native-reanimated';
+import type { SharedValue } from 'react-native-reanimated';
 import { AxisLine } from './AxisLine';
 import { Tick } from './Tick';
 
@@ -10,9 +10,9 @@ export type AxisProps = {
   labels: string[];
   width: number;
   //   tickInterval: number;
-  scale: Animated.SharedValue<number>;
-  focalX: Animated.SharedValue<number>;
-  offsetX: Animated.SharedValue<number>;
+  scale: SharedValue<number>;
+  focalX: SharedValue<number>;
+  offsetX: SharedValue<number>;
   offsetY?: number;
   style?: StyleProp<ViewStyle>;
 };

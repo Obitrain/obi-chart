@@ -1,16 +1,15 @@
+import { getPositionWl } from '@obitrain/charts';
 import { Circle, Paint } from '@shopify/react-native-skia';
 import React, { type FC } from 'react';
-import type Animated from 'react-native-reanimated';
-import { useDerivedValue } from 'react-native-reanimated';
-import { getPositionWl } from 'obi-chart';
+import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 
 export type Props = {
-  x: Animated.SharedValue<number>;
-  y: Animated.SharedValue<number>;
-  opacity: Animated.SharedValue<number>;
-  scale: Animated.SharedValue<number>;
-  focalX: Animated.SharedValue<number>;
-  offsetX: Animated.SharedValue<number>;
+  x: SharedValue<number>;
+  y: SharedValue<number>;
+  opacity: SharedValue<number>;
+  scale: SharedValue<number>;
+  focalX: SharedValue<number>;
+  offsetX: SharedValue<number>;
 };
 
 const Dot: FC<Props> = function (props) {

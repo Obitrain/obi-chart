@@ -1,14 +1,14 @@
 import { Line, vec, type Color } from '@shopify/react-native-skia';
 import React, { type FC } from 'react';
 import { StyleSheet } from 'react-native';
-import Animated, { useDerivedValue } from 'react-native-reanimated';
+import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from '../gesture';
 
 export type Props = {
   width: number;
-  focalX: Animated.SharedValue<number>;
-  scale: Animated.SharedValue<number>;
-  offsetX: Animated.SharedValue<number>;
+  focalX: SharedValue<number>;
+  scale: SharedValue<number>;
+  offsetX: SharedValue<number>;
   strokeWidth?: number;
   offsetY?: number;
   color?: Color;

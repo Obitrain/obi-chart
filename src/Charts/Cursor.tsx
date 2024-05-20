@@ -1,17 +1,17 @@
 import { Circle, type PathCommand } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
-import Animated, { useDerivedValue } from 'react-native-reanimated';
+import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getYForX } from './maths';
 
 const CURSOR_SIZE = 10;
 
 export type CursorProps = {
-  commands: Animated.SharedValue<PathCommand[]>;
-  positionX: Animated.SharedValue<number>;
+  commands: SharedValue<PathCommand[]>;
+  positionX: SharedValue<number>;
   size?: number;
   color?: string;
-  currentValue?: Animated.SharedValue<number>;
+  currentValue?: SharedValue<number>;
 };
 
 const Cursor: FC<CursorProps> = function ({

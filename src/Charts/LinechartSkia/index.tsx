@@ -2,7 +2,6 @@ import { Canvas, Group, Path, type SkPath } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import type { SharedValue } from 'react-native-reanimated';
 import { type Config, type GraphData } from '../graphUtils';
@@ -12,12 +11,12 @@ export type LineItem = {
   data: DataPoint[];
   color?: string;
   config?: Config;
-  currentValue?: Animated.SharedValue<number>;
+  currentValue?: SharedValue<number>;
 };
 
 export type PositionType = {
-  x: Animated.SharedValue<number>;
-  y: Animated.SharedValue<number>;
+  x: SharedValue<number>;
+  y: SharedValue<number>;
 };
 
 export type GraphDataSkia = Omit<GraphData, 'path'> & { path: SkPath };

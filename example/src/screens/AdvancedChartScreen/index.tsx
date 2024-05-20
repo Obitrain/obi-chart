@@ -1,17 +1,18 @@
-import Slider from '@react-native-community/slider';
-import { Canvas, Group, matchFont } from '@shopify/react-native-skia';
 import {
   AxisLine,
   ScalablePath,
   useScalableGesture,
   type AnimatedDot,
-} from 'obi-chart';
+} from '@obitrain/charts';
+import Slider from '@react-native-community/slider';
+import { Canvas, Group, matchFont } from '@shopify/react-native-skia';
 import React, { useCallback, useRef, type FC } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
+import {
   useDerivedValue,
   useSharedValue,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { Button, Colors, ReText } from '../../components';
 import { useDimensions } from '../../hooks';
@@ -68,11 +69,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
   const yDomain = useRef(yDomains[currentChart]!);
   const axisTicks = useRef(axesX[currentChart]!);
 
-  const gesture = Gesture.Simultaneous(
-    //@ts-expect-error
-    pinchGesture,
-    panGesture
-  );
+  const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
 
   const scaleStr = useDerivedValue(() => {
     return scale.value.toFixed(2);
@@ -235,9 +232,9 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
 
 export const renderDots = function (
   dots: AnimatedDot[],
-  scale: Animated.SharedValue<number>,
-  focalX: Animated.SharedValue<number>,
-  offsetX: Animated.SharedValue<number>
+  scale: SharedValue<number>,
+  focalX: SharedValue<number>,
+  offsetX: SharedValue<number>
 ) {
   return (
     <Group style="stroke" strokeWidth={4} color={Colors.primary}>
@@ -250,9 +247,9 @@ export const renderDots = function (
 
 export const renderTicks = function (
   ticks: AnimatedTick[],
-  scale: Animated.SharedValue<number>,
-  focalX: Animated.SharedValue<number>,
-  offsetX: Animated.SharedValue<number>,
+  scale: SharedValue<number>,
+  focalX: SharedValue<number>,
+  offsetX: SharedValue<number>,
   maxWidth?: number
 ) {
   //   <Group style="stroke" strokeWidth={4} color={Colors.primary}>

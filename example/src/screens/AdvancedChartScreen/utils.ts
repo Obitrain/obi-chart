@@ -1,5 +1,5 @@
-import type { DateRange } from 'obi-chart';
-import { Utils } from 'obi-chart';
+import type { DateRange } from '@obitrain/charts';
+import { Utils } from '@obitrain/charts';
 export type AxisItem = { ts: number; label: string };
 
 export const getAxisTicks = function (

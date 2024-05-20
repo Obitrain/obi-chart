@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "obi-chart": ["./src/index"]
+      "@obitrain/charts": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

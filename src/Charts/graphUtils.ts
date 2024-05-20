@@ -6,9 +6,10 @@ import {
 } from '@shopify/react-native-skia';
 import { scaleLinear, type ScaleLinear } from 'd3-scale';
 import * as shape from 'd3-shape';
-import Animated, {
+import {
   useAnimatedReaction,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { getPositionWl } from './gesture';
 import { getYForX } from './maths';
@@ -86,10 +87,10 @@ export const buildGraph = function (
  */
 export const scaleCommands = function (
   commands: PathCommand[],
-  scaleX: Animated.SharedValue<number>,
-  focalX: Animated.SharedValue<number>,
-  offsetX: Animated.SharedValue<number>,
-  scaleY?: Animated.SharedValue<number>
+  scaleX: SharedValue<number>,
+  focalX: SharedValue<number>,
+  offsetX: SharedValue<number>,
+  scaleY?: SharedValue<number>
 ): PathCommand[] {
   'worklet';
   const _scaleY = scaleY ? scaleY.value : 1;
@@ -141,8 +142,8 @@ export const scaleCommands = function (
 };
 
 export type UseDotAnimationProps = {
-  currentGraph: Animated.SharedValue<number>;
-  path: Animated.SharedValue<SkPath>;
+  currentGraph: SharedValue<number>;
+  path: SharedValue<SkPath>;
   dataPoints: DataPoint[][];
   dots: AnimatedDot[];
   opacityWl?: (opacity: number) => number;

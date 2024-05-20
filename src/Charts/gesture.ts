@@ -1,12 +1,13 @@
 import { clamp } from '@shopify/react-native-skia';
 import { useCallback } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
-import Animated, {
+import {
   runOnJS,
   useAnimatedReaction,
   useDerivedValue,
   useSharedValue,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import type { DataPoint } from './types';
 
@@ -131,7 +132,7 @@ export const useScalableGesture = (props: AxisGestureProps) => {
 };
 
 export type UpdateAxisProps = {
-  scale: Animated.SharedValue<number>;
+  scale: SharedValue<number>;
   scales: number[];
   onScaleChange?: (index: number) => void;
 };
@@ -169,8 +170,8 @@ export const useUpdateAxis = function (props: UpdateAxisProps) {
 export type UseCursorGestureProps = {
   width: number;
   height: number;
-  points: Animated.SharedValue<DataPoint[]>;
-  closestDataPoint?: Animated.SharedValue<DataPoint>;
+  points: SharedValue<DataPoint[]>;
+  closestDataPoint?: SharedValue<DataPoint>;
   isContinuous?: boolean;
 };
 

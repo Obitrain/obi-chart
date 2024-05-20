@@ -1,16 +1,16 @@
 import {
-  Circle,
-  Group,
-  Paint,
-  usePathInterpolation,
-} from '@shopify/react-native-skia';
-import {
   Cursor,
   LineChart,
   useCursorGesture,
   useDotsTransition,
   type AnimatedDot,
-} from 'obi-chart';
+} from '@obitrain/charts';
+import {
+  Circle,
+  Group,
+  Paint,
+  usePathInterpolation,
+} from '@shopify/react-native-skia';
 import React, { useState, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
@@ -78,7 +78,6 @@ const LineChartScreen: FC<Props> = function ({}) {
     points: dataPoints,
   });
 
-  //@ts-expect-error
   const gesture: GestureType = isContinuous ? panGesture : tapGesture;
 
   return (

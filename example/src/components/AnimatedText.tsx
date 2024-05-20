@@ -1,7 +1,10 @@
 import React from 'react';
 import type { TextProps as RNTextProps, TextInputProps } from 'react-native';
 import { StyleSheet, TextInput } from 'react-native';
-import Animated, { useAnimatedProps } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedProps,
+  type SharedValue,
+} from 'react-native-reanimated';
 
 // Taken from https://github.com/wcandillon/react-native-redash/blob/2cc3c56c03ca6bfbd0c1ea2b542da16dbd0bb282/src/ReText.tsx#L20
 
@@ -13,7 +16,7 @@ const styles = StyleSheet.create({
 Animated.addWhitelistedNativeProps({ text: true });
 
 interface TextProps extends Omit<TextInputProps, 'value' | 'style'> {
-  text: Animated.SharedValue<string>;
+  text: SharedValue<string>;
   style?: Animated.AnimateProps<RNTextProps>['style'];
 }
 

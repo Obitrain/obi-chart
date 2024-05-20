@@ -1,13 +1,13 @@
+import { buildGraph, type AnimatedDot } from '@obitrain/charts';
 import * as shape from 'd3-shape';
-import { buildGraph, type AnimatedDot } from 'obi-chart';
 import { useMemo } from 'react';
-import Animated, { makeMutable } from 'react-native-reanimated';
+import { makeMutable, type SharedValue } from 'react-native-reanimated';
 import { WEIGHTS } from '../../data';
 import { getAxisTicks, getEvenlySpacedData } from './utils';
 
 export type AnimatedTick = {
-  label: Animated.SharedValue<string>;
-  x: Animated.SharedValue<number>;
+  label: SharedValue<string>;
+  x: SharedValue<number>;
 };
 
 const ALL_DATA = getEvenlySpacedData(WEIGHTS, 20);

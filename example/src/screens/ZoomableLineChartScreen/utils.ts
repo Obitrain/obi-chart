@@ -1,7 +1,11 @@
+import { buildGraph, getPositionWl, type AnimatedDot } from '@obitrain/charts';
 import * as shape from 'd3-shape';
-import { buildGraph, getPositionWl, type AnimatedDot } from 'obi-chart';
 import { useMemo } from 'react';
-import Animated, { makeMutable, withTiming } from 'react-native-reanimated';
+import {
+  makeMutable,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
 import { MONTHLY_DATA, MONTHLY_DATA_2 } from '../../data';
 
 export const DATASET_1 = MONTHLY_DATA.map(
@@ -57,9 +61,9 @@ export const useData = function (width: number, height: number) {
 export const zoomPeriod = function (
   fromDot: AnimatedDot,
   toDot: AnimatedDot,
-  scale: Animated.SharedValue<number>,
-  focalX: Animated.SharedValue<number>,
-  offsetX: Animated.SharedValue<number>,
+  scale: SharedValue<number>,
+  focalX: SharedValue<number>,
+  offsetX: SharedValue<number>,
   width: number
 ) {
   'worklet';

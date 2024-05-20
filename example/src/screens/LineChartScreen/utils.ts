@@ -1,9 +1,10 @@
 import * as shape from 'd3-shape';
 import { useMemo } from 'react';
-import Animated, {
+import {
   makeMutable,
   useDerivedValue,
   useSharedValue,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { buildGraph } from '../../../../src/Charts';
 import { MONTHLY_DATA, MONTHLY_DATA_2 } from '../../data';
@@ -15,7 +16,7 @@ const textToString = function (value: number) {
 
 export const useShareNumberToStr = function (
   initValue: number = 0
-): [Animated.SharedValue<number>, Animated.SharedValue<string>] {
+): [SharedValue<number>, SharedValue<string>] {
   const value = useSharedValue<number>(initValue);
   const valueStr = useDerivedValue(() => {
     return textToString(value.value);

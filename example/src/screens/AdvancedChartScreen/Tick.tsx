@@ -1,3 +1,4 @@
+import { getPositionWl } from '@obitrain/charts';
 import {
   Group,
   Line,
@@ -6,14 +7,12 @@ import {
   type Color,
   type SkFont,
 } from '@shopify/react-native-skia';
-import { getPositionWl } from 'obi-chart';
 import React, { type FC } from 'react';
-import type Animated from 'react-native-reanimated';
-import { useDerivedValue } from 'react-native-reanimated';
+import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 
 const useLabelOpacity = function (
   label: string,
-  translateX: Animated.SharedValue<number>,
+  translateX: SharedValue<number>,
   font: SkFont,
   maxWidth?: number
 ) {
@@ -35,11 +34,11 @@ const useLabelOpacity = function (
 };
 
 export type Props = {
-  initPosition: Animated.SharedValue<number>;
-  label: Animated.SharedValue<string>;
-  scale: Animated.SharedValue<number>;
-  focalX: Animated.SharedValue<number>;
-  offsetX: Animated.SharedValue<number>;
+  initPosition: SharedValue<number>;
+  label: SharedValue<string>;
+  scale: SharedValue<number>;
+  focalX: SharedValue<number>;
+  offsetX: SharedValue<number>;
   offsetY?: number;
   maxWidth?: number;
   font: SkFont;

@@ -1,4 +1,8 @@
-import { BottomAxis, useScalableGesture, useUpdateAxis } from 'obi-chart';
+import {
+  BottomAxis,
+  useScalableGesture,
+  useUpdateAxis,
+} from '@obitrain/charts';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -53,7 +57,6 @@ export function BottomAxisScreen() {
     currentRangeShared.value = 0;
   };
 
-  //@ts-expect-error
   const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
 
   return (

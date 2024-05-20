@@ -1,7 +1,7 @@
 {
-  "name": "obi-chart",
+  "name": "@obitrain/charts",
   "version": "0.3.1",
-  "description": "React Native charts using react-native-skia",
+  "description": "Charting library for React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/src/index.d.ts",

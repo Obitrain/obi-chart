@@ -1,15 +1,15 @@
 import { Group, Line, Text, matchFont, vec } from '@shopify/react-native-skia';
 import React from 'react';
 import { Platform } from 'react-native';
-import Animated, { useDerivedValue } from 'react-native-reanimated';
+import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from '../gesture';
 
 type TickProps = {
   initPosition: number;
   label: string;
-  scale: Animated.SharedValue<number>;
-  focalX: Animated.SharedValue<number>;
-  offsetX: Animated.SharedValue<number>;
+  scale: SharedValue<number>;
+  focalX: SharedValue<number>;
+  offsetX: SharedValue<number>;
   offsetY?: number;
 };
 

@@ -1,17 +1,18 @@
-import { Group, usePathInterpolation } from '@shopify/react-native-skia';
 import {
   ZoomableLineChart,
   useDotsTransition,
   useScalableGesture,
   type AnimatedDot,
-} from 'obi-chart';
+} from '@obitrain/charts';
+import { Group, usePathInterpolation } from '@shopify/react-native-skia';
 import React, { useCallback, useRef, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
+import {
   runOnUI,
   useSharedValue,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { Button, Colors } from '../../components';
 import { useDimensions } from '../../hooks';
@@ -98,7 +99,6 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
   //     onScaleChange: (_newIndex) => _updateRange(_newIndex),
   //   });
 
-  //@ts-expect-error
   const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
 
   return (
@@ -138,9 +138,9 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
 
 export const renderDots = function (
   dots: AnimatedDot[],
-  scale: Animated.SharedValue<number>,
-  focalX: Animated.SharedValue<number>,
-  offsetX: Animated.SharedValue<number>
+  scale: SharedValue<number>,
+  focalX: SharedValue<number>,
+  offsetX: SharedValue<number>
 ) {
   return (
     <Group style="stroke" strokeWidth={4} color={Colors.primary}>
