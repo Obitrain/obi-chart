@@ -3,6 +3,7 @@ import {
   LineChart,
   useCursorGesture,
   useDotsTransition,
+  useSharedNumberToStr,
   type AnimatedDot,
 } from '@obitrain/charts';
 import {
@@ -25,7 +26,7 @@ import {
 } from 'react-native-reanimated';
 import { Button, Colors, ReText } from '../../components';
 import { useDimensions } from '../../hooks';
-import { useData, useShareNumberToStr } from './utils';
+import { useData } from './utils';
 
 export type Props = {};
 
@@ -39,7 +40,7 @@ const LineChartScreen: FC<Props> = function ({}) {
 
   const { data: graphs, dots } = useData(_width, _height);
 
-  const [cursorY, cursorYStr] = useShareNumberToStr(0);
+  const [cursorY, cursorYStr] = useSharedNumberToStr(0);
 
   const currentGraph = useSharedValue(0);
   const progress = useSharedValue(0);
