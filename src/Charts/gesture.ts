@@ -170,7 +170,7 @@ export const useUpdateAxis = function (props: UpdateAxisProps) {
 export type UseCursorGestureProps = {
   width: number;
   height: number;
-  points: SharedValue<DataPoint[]>;
+  points?: SharedValue<DataPoint[]>;
   closestDataPoint?: SharedValue<DataPoint>;
   isContinuous?: boolean;
 };
@@ -232,6 +232,10 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
 
   useDerivedValue(() => {
     if (isContinuous) return;
+    if (points === undefined) {
+      console.warn('Points must be defined for non-continuous mode');
+      return;
+    }
     const _closestDot = getClosestPoint(xPosition.value, points.value);
     if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
     xPosition.value = _closestDot.x;
