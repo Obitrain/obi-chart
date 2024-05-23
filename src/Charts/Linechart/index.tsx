@@ -41,9 +41,10 @@ const LineChart: FC<LineChartProps> = function (props) {
       ? [{ path: path, color: color ?? 'red' }]
       : [];
   if (_paths.length === 0) {
-    throw new Error('Specify either a path or multiple paths.');
+    console.warn('Specify either a path or multiple paths.');
+    return null;
+    // throw new Error('Specify either a path or multiple paths.');
   }
-
   return (
     <Canvas
       style={[
