@@ -9,6 +9,7 @@ import {
   Circle,
   Group,
   Paint,
+  Rect,
   usePathInterpolation,
 } from '@shopify/react-native-skia';
 import React, { useMemo, useState, type FC } from 'react';
@@ -44,6 +45,7 @@ const LineChartScreen: FC<Props> = function ({}) {
   const progress = useSharedValue(0);
   const [isContinuous, setContinous] = useState(true);
   const [showMultiple, setShowMultiple] = useState(false);
+  const [showBackground, setShowBackground] = useState(false);
 
   const path = usePathInterpolation(
     progress,
@@ -110,6 +112,10 @@ const LineChartScreen: FC<Props> = function ({}) {
           label={isContinuous ? 'Continous' : 'Discrete'}
           onPress={() => setContinous((old) => !old)}
         />
+        <Button
+          label={showBackground ? 'Hide Background' : 'Show Background'}
+          onPress={() => setShowBackground((old) => !old)}
+        />
       </View>
       <View style={styles.textContainer}>
         <ReText style={styles.value} text={cursorYStr} />
@@ -124,6 +130,15 @@ const LineChartScreen: FC<Props> = function ({}) {
           path={path}
           paths={showMultiple ? paths : undefined}
           color={Colors.primary}
+          background={
+            showBackground ? (
+              <Rect
+                width={width}
+                height={GRAPH_HEIGHT * 2}
+                color={Colors.secondary}
+              />
+            ) : null
+          }
         >
           {renderDots(dots)}
           <Cursor
@@ -158,6 +173,7 @@ const styles = StyleSheet.create({
   btnsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    flexWrap: 'wrap',
     marginVertical: 20,
   },
   chartContainer: {

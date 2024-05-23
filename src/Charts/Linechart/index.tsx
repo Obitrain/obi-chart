@@ -19,6 +19,7 @@ export type LineChartProps = {
   color?: string;
   offsetY?: number;
   offsetX?: number;
+  background?: React.ReactNode;
 };
 
 const LineChart: FC<LineChartProps> = function (props) {
@@ -30,6 +31,7 @@ const LineChart: FC<LineChartProps> = function (props) {
     children,
     color,
     paths,
+    background,
     offsetX = 0,
     offsetY = 0,
   } = props;
@@ -56,6 +58,7 @@ const LineChart: FC<LineChartProps> = function (props) {
       ]}
     >
       <Group transform={[{ translateY: offsetY }, { translateX: offsetX }]}>
+        {background}
         {_paths.map((_path, i) => (
           <Path
             key={`${_path.id ?? i}`}
