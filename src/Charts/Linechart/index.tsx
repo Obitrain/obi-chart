@@ -20,6 +20,7 @@ export type LineChartProps = {
   offsetY?: number;
   offsetX?: number;
   background?: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 const LineChart: FC<LineChartProps> = function (props) {
