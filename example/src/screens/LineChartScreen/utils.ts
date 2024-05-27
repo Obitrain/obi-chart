@@ -15,11 +15,13 @@ const textToString = function (value: number) {
 };
 
 export const useShareNumberToStr = function (
-  initValue: number = 0
+  initValue: number = 0,
+  fmtWl?: (value: number) => string
 ): [SharedValue<number>, SharedValue<string>] {
+  const _fmtFn = fmtWl ?? textToString;
   const value = useSharedValue<number>(initValue);
   const valueStr = useDerivedValue(() => {
-    return textToString(value.value);
+    return _fmtFn(value.value);
   }, [value]);
 
   return [value, valueStr];

@@ -14,17 +14,19 @@ import {
   usePathInterpolation,
 } from '@shopify/react-native-skia';
 import React, { useMemo, useState, type FC } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import {
   GestureDetector,
   type GestureType,
 } from 'react-native-gesture-handler';
 import {
+  makeMutable,
   useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { Button, Colors, ReText } from '../../components';
+import { ReTextInt } from '../../components/AnimatedText';
 import { useDimensions } from '../../hooks';
 import { useData } from './utils';
 
@@ -56,16 +58,22 @@ const LineChartScreen: FC<Props> = function ({}) {
   const paths = useMemo(() => {
     return [
       {
+        id: 'graph1',
         path: graphs[0]!.skiaPath,
         color: Colors.primary,
+        value: makeMutable(0),
       },
       {
+        id: 'graph2',
         path: graphs[1]!.skiaPath,
         color: Colors.secondary,
+        value: makeMutable(0),
       },
       {
+        id: 'graph3',
         path: graphs[2]!.skiaPath,
         color: Colors.success,
+        value: makeMutable(0),
       },
     ];
   }, [graphs]);
@@ -119,7 +127,16 @@ const LineChartScreen: FC<Props> = function ({}) {
         />
       </View>
       <View style={styles.textContainer}>
-        <ReText style={styles.value} text={cursorYStr} />
+        {showMultiple ? (
+          paths.map((path, i) => (
+            <View>
+              <Text>{path.id}</Text>
+              <ReTextInt key={i} style={styles.value} text={path.value} />
+            </View>
+          ))
+        ) : (
+          <ReText style={styles.value} text={cursorYStr} />
+        )}
       </View>
       <GestureDetector gesture={gesture}>
         <LineChart
@@ -142,12 +159,24 @@ const LineChartScreen: FC<Props> = function ({}) {
           }
         >
           {renderDots(dots)}
-          <Cursor
-            commands={commands}
-            positionX={xPosition}
-            currentValue={cursorY}
-            color="blue"
-          />
+          {showMultiple ? (
+            paths.map((path) => (
+              <Cursor
+                key={path.id}
+                path={path.path}
+                positionX={xPosition}
+                currentValue={path.value}
+                color="blue"
+              />
+            ))
+          ) : (
+            <Cursor
+              commands={commands}
+              positionX={xPosition}
+              currentValue={cursorY}
+              color="blue"
+            />
+          )}
         </LineChart>
       </GestureDetector>
     </View>
@@ -184,6 +213,9 @@ const styles = StyleSheet.create({
   textContainer: {
     marginLeft: 20,
     marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginRight: 20,
   },
   value: {
     color: Colors.secondary,

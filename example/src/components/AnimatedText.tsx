@@ -3,6 +3,8 @@ import type { TextProps as RNTextProps, TextInputProps } from 'react-native';
 import { StyleSheet, TextInput } from 'react-native';
 import Animated, {
   useAnimatedProps,
+  useDerivedValue,
+  type AnimatedProps,
   type SharedValue,
 } from 'react-native-reanimated';
 
@@ -17,7 +19,7 @@ Animated.addWhitelistedNativeProps({ text: true });
 
 interface TextProps extends Omit<TextInputProps, 'value' | 'style'> {
   text: SharedValue<string>;
-  style?: Animated.AnimateProps<RNTextProps>['style'];
+  style?: AnimatedProps<RNTextProps>['style'];
 }
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
@@ -41,4 +43,38 @@ const ReText = (props: TextProps) => {
   );
 };
 
-export { ReText };
+interface TextIntProps extends Omit<TextInputProps, 'value' | 'style'> {
+  text: SharedValue<number>;
+  style?: AnimatedProps<RNTextProps>['style'];
+  fmtWl?: (x: number) => string;
+}
+
+const textToString = function (value: number) {
+  'worklet';
+  return value.toFixed(0).toString();
+};
+
+const ReTextInt = (props: TextIntProps) => {
+  const { style, text, fmtWl = textToString, ...rest } = props;
+  const _valueStr = useDerivedValue(() => {
+    return fmtWl(text.value);
+  }, [text]);
+
+  const animatedProps = useAnimatedProps(() => {
+    return {
+      text: _valueStr.value,
+    } as any;
+  });
+  return (
+    <AnimatedTextInput
+      underlineColorAndroid="transparent"
+      editable={false}
+      value={_valueStr.value}
+      style={[styles.baseStyle, style || undefined]}
+      {...rest}
+      {...{ animatedProps }}
+    />
+  );
+};
+
+export { ReText, ReTextInt };
