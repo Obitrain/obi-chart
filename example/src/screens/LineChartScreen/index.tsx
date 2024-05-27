@@ -128,10 +128,10 @@ const LineChartScreen: FC<Props> = function ({}) {
       </View>
       <View style={styles.textContainer}>
         {showMultiple ? (
-          paths.map((path, i) => (
+          paths.map((_path, i) => (
             <View>
-              <Text>{path.id}</Text>
-              <ReTextInt key={i} style={styles.value} text={path.value} />
+              <Text>{_path.id}</Text>
+              <ReTextInt key={i} style={styles.value} text={_path.value} />
             </View>
           ))
         ) : (
@@ -160,12 +160,12 @@ const LineChartScreen: FC<Props> = function ({}) {
         >
           {renderDots(dots)}
           {showMultiple ? (
-            paths.map((path) => (
+            paths.map((_path) => (
               <Cursor
-                key={path.id}
-                path={path.path}
+                key={_path.id}
+                path={_path.path}
                 positionX={xPosition}
-                currentValue={path.value}
+                currentValue={_path.value}
                 color="blue"
               />
             ))
