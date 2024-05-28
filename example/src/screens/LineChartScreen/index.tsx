@@ -3,7 +3,6 @@ import {
   LineChart,
   useCursorGesture,
   useDotsTransition,
-  useSharedNumberToStr,
   type AnimatedDot,
 } from '@obitrain/charts';
 import {
@@ -25,7 +24,7 @@ import {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { Button, Colors, ReText } from '../../components';
+import { Button, Colors } from '../../components';
 import { ReTextInt } from '../../components/AnimatedText';
 import { useDimensions } from '../../hooks';
 import { useData } from './utils';
@@ -42,14 +41,13 @@ const LineChartScreen: FC<Props> = function ({}) {
 
   const { data: graphs, dots } = useData(_width, _height);
 
-  const [cursorY, cursorYStr] = useSharedNumberToStr(0);
-
   const currentGraph = useSharedValue(0);
   const progress = useSharedValue(0);
   const [isContinuous, setContinous] = useState(true);
   const [showMultiple, setShowMultiple] = useState(false);
   const [showBackground, setShowBackground] = useState(false);
 
+  const cursorY = useSharedValue(0);
   const path = usePathInterpolation(
     progress,
     [0, 1, 2],
@@ -60,18 +58,21 @@ const LineChartScreen: FC<Props> = function ({}) {
       {
         id: 'graph1',
         path: graphs[0]!.skiaPath,
+        commands: makeMutable(graphs[0]!.skiaPath.toCmds()),
         color: Colors.primary,
         value: makeMutable(0),
       },
       {
         id: 'graph2',
         path: graphs[1]!.skiaPath,
+        commands: makeMutable(graphs[1]!.skiaPath.toCmds()),
         color: Colors.secondary,
         value: makeMutable(0),
       },
       {
         id: 'graph3',
         path: graphs[2]!.skiaPath,
+        commands: makeMutable(graphs[2]!.skiaPath.toCmds()),
         color: Colors.success,
         value: makeMutable(0),
       },
@@ -129,13 +130,13 @@ const LineChartScreen: FC<Props> = function ({}) {
       <View style={styles.textContainer}>
         {showMultiple ? (
           paths.map((_path, i) => (
-            <View>
+            <View key={_path.id}>
               <Text>{_path.id}</Text>
               <ReTextInt key={i} style={styles.value} text={_path.value} />
             </View>
           ))
         ) : (
-          <ReText style={styles.value} text={cursorYStr} />
+          <ReTextInt style={styles.value} text={cursorY} />
         )}
       </View>
       <GestureDetector gesture={gesture}>
@@ -163,10 +164,10 @@ const LineChartScreen: FC<Props> = function ({}) {
             paths.map((_path) => (
               <Cursor
                 key={_path.id}
-                path={_path.path}
+                commands={_path.commands}
                 positionX={xPosition}
                 currentValue={_path.value}
-                color="blue"
+                color={_path.color}
               />
             ))
           ) : (
