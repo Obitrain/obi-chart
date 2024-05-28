@@ -11,8 +11,8 @@ export type CursorProps = {
   positionX: SharedValue<number>;
   size?: number;
   color?: string;
-  currentValue?: SharedValue<number>;
-  translateY?: SharedValue<number>;
+  currentValue?: SharedValue<number | undefined>;
+  translateY?: SharedValue<number | undefined>;
 };
 
 const Cursor: FC<CursorProps> = function ({
@@ -44,7 +44,7 @@ const Cursor: FC<CursorProps> = function ({
 
   const transform = useDerivedValue(() => [
     { translateX: positionX.value },
-    { translateY: _translateY.value },
+    { translateY: _translateY.value ?? 0 },
   ]);
   return <Circle transform={transform} cx={0} cy={0} r={size} color={color} />;
 };
