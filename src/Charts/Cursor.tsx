@@ -7,7 +7,7 @@ import { getYForX } from './maths';
 const CURSOR_SIZE = 10;
 
 export type CursorProps = {
-  commands: SharedValue<PathCommand[]>;
+  commands?: SharedValue<PathCommand[]>;
   positionX: SharedValue<number>;
   size?: number;
   color?: string;
