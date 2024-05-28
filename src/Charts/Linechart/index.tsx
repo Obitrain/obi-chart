@@ -1,17 +1,17 @@
-import { Canvas, Group, Path, type PathDef } from '@shopify/react-native-skia';
+import { Canvas, Group, Path, type SkPath } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 
 export type LinePath = {
-  path: PathDef | SharedValue<PathDef>;
+  path: SkPath | SharedValue<SkPath>;
   color: string;
   id?: string;
 };
 
 export type LineChartProps = {
-  path?: PathDef | SharedValue<PathDef>;
+  path?: SkPath | SharedValue<SkPath>;
   paths?: LinePath[];
   height: number;
   width: number;
