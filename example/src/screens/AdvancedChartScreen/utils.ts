@@ -1,5 +1,5 @@
 import type { DateRange } from '@obitrain/charts';
-import { Utils } from '@obitrain/charts';
+import { sampleDates, sampleDatesByRange } from '@obitrain/charts';
 export type AxisItem = { ts: number; label: string };
 
 export const getAxisTicks = function (
@@ -62,8 +62,8 @@ export const getEvenlySpacedData = function (
 
   const _sampledDates =
     dateRange !== undefined
-      ? Utils.sampleDatesByRange(_dates, sampleSize, dateRange)
-      : new Map([['all', Utils.sampleDates(_dates, sampleSize)]]);
+      ? sampleDatesByRange(_dates, sampleSize, dateRange)
+      : new Map([['all', sampleDates(_dates, sampleSize)]]);
 
   const sampledData: DataItem[] = [];
   for (const { indexes } of _sampledDates.values()) {
