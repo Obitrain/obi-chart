@@ -1,6 +1,6 @@
 {
   "name": "@obitrain/charts",
-  "version": "0.4.14",
+  "version": "0.4.15",
   "description": "Charting library for React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
