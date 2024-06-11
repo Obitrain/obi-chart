@@ -21,5 +21,12 @@ export {
   useDotsTransition,
 } from './graphUtils';
 export type { Config, GraphData, UseDotAnimationProps } from './graphUtils';
-export { getYForX } from './maths';
+export {
+  commandsToBezier,
+  cubicBezierYForX,
+  getYForX,
+  magnitude,
+  normalize,
+  selectCurve,
+} from './maths';
 export type { AnimatedDot, DataPoint, LineGraphType } from './types';

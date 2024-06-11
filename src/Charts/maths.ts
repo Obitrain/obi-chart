@@ -180,7 +180,7 @@ export const selectCurve = (
 /**
  * Convert commands to cubic bezier
  */
-export const norm = (cmds: PathCommand[]): PathCommand[] => {
+export const commandsToBezier = (cmds: PathCommand[]): PathCommand[] => {
   'worklet';
   const normCmds: PathCommand[] = [];
   let x = 0,
@@ -223,7 +223,7 @@ export const getYForX = (
   precision = 2
 ): number | undefined => {
   'worklet';
-  const cmdsNorm = norm(cmds);
+  const cmdsNorm = commandsToBezier(cmds);
   const c = selectCurve(cmdsNorm, x);
   if (c == null) return undefined;
 
