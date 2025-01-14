@@ -52,19 +52,17 @@ export const useData = function (width: number, height: number) {
     });
   }, [graphs]);
 
-  const z = useMemo(() => {
-    return _TICKS.map((t, i) => {
-      let _graph = graphs[i];
-      if (_graph === undefined) throw new Error('No graph found');
-      return t.map(({ ts, label }) => ({
-        label: label,
-        x: _graph!.scaleX(ts),
-        opacity: 0,
-      }));
-    });
-  }, [graphs]);
-
-  console.log(z[1]);
+  //   const z = useMemo(() => {
+  //     return _TICKS.map((t, i) => {
+  //       let _graph = graphs[i];
+  //       if (_graph === undefined) throw new Error('No graph found');
+  //       return t.map(({ ts, label }) => ({
+  //         label: label,
+  //         x: _graph!.scaleX(ts),
+  //         opacity: 0,
+  //       }));
+  //     });
+  //   }, [graphs]);
 
   const firstGraph = graphs[0];
   if (firstGraph === undefined) throw new Error('No graph found');

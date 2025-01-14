@@ -11,7 +11,7 @@ export type CursorProps = {
   positionX: SharedValue<number>;
   size?: number;
   color?: string;
-  currentValue?: SharedValue<number | undefined>;
+  currentValue?: SharedValue<number> | SharedValue<undefined>;
   translateY?: SharedValue<number | undefined>;
 };
 
