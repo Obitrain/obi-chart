@@ -105,7 +105,7 @@ const TOPBAR_DEFAULT_OPTIONS = Platform.select<DrawerNavigationOptions>({
 });
 
 function RootNavigator() {
-  const initRoute: ScreenName = __DEV__ ? 'AdvancedChartScreen' : 'Home';
+  const initRoute: ScreenName = __DEV__ ? 'Home' : 'Home';
   return (
     <Drawer.Navigator
       screenOptions={{ ...TOPBAR_DEFAULT_OPTIONS }}
