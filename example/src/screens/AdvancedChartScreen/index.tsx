@@ -85,7 +85,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
       path.value = newGraph.skiaPath;
       yDomain.current = yDomains[newChartIdx]!;
       axisTicks.current = axesX[newChartIdx]!;
-      console.log(axisTicks.current.length / 12);
+      //   console.log(axisTicks.current.length / 12);
 
       scale.value =
         // all

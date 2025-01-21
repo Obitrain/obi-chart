@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type { TextProps as RNTextProps, TextInputProps } from 'react-native';
 import { StyleSheet, TextInput } from 'react-native';
 import Animated, {
@@ -26,16 +26,25 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 const ReText = (props: TextProps) => {
   const { style, text, ...rest } = props;
+
+  const [initValue, setInitValue] = useState(() => text.value);
+
   const animatedProps = useAnimatedProps(() => {
     return {
       text: text.value,
     } as any;
   });
+
+  useEffect(() => {
+    setInitValue(text.value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <AnimatedTextInput
       underlineColorAndroid="transparent"
       editable={false}
-      value={text.value}
+      value={initValue}
       style={[styles.baseStyle, style || undefined]}
       {...rest}
       {...{ animatedProps }}
@@ -56,6 +65,8 @@ const textToString = function (value: number) {
 
 const ReTextInt = (props: TextIntProps) => {
   const { style, text, fmtWl = textToString, ...rest } = props;
+  const [initValue, setInitValue] = useState(() => fmtWl(text.value));
+
   const _valueStr = useDerivedValue(() => {
     return fmtWl(text.value);
   }, [text]);
@@ -65,11 +76,17 @@ const ReTextInt = (props: TextIntProps) => {
       text: _valueStr.value,
     } as any;
   });
+
+  useEffect(() => {
+    setInitValue(fmtWl(text.value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <AnimatedTextInput
       underlineColorAndroid="transparent"
       editable={false}
-      value={_valueStr.value}
+      value={initValue}
       style={[styles.baseStyle, style || undefined]}
       {...rest}
       {...{ animatedProps }}
