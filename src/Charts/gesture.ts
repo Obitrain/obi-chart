@@ -1,13 +1,13 @@
 import { clamp } from '@shopify/react-native-skia';
 import { useCallback } from 'react';
-import { Gesture } from 'react-native-gesture-handler';
+import { Gesture, type PanGesture, type PinchGesture } from 'react-native-gesture-handler';
 import {
-  runOnJS,
-  useAnimatedReaction,
-  useDerivedValue,
-  useSharedValue,
-  withTiming,
-  type SharedValue,
+    runOnJS,
+    useAnimatedReaction,
+    useDerivedValue,
+    useSharedValue,
+    withTiming,
+    type SharedValue,
 } from 'react-native-reanimated';
 import type { DataPoint } from './types';
 
@@ -31,10 +31,19 @@ export type AxisGestureProps = {
   startScale?: number;
 };
 
+export type ScalableGesture = {
+    scale: SharedValue<number>;
+    focalX: SharedValue<number>;
+    pinchGesture: PinchGesture;
+    panGesture: PanGesture;
+    offsetX: SharedValue<number>;
+    reset: () => void;
+};
+
 /**
  * Return utilities for zooming and panning the axis
  */
-export const useScalableGesture = (props: AxisGestureProps) => {
+export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => {
   const { width } = props;
   const startOffset = props.startOffset ?? 0;
   const startScale = props.startScale ?? 1;
