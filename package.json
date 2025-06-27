@@ -33,7 +33,7 @@
     "clean": "del-cli lib",
     "prepare": "bob build",
     "env:load": "./bin/load-env.sh",
-    "release": "yarn env:load && release-it",
+    "release": "./bin/release.sh",
     "check-deps": "rnx-align-deps --diff-mode allow-subset package.json"
   },
   "keywords": [
