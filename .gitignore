@@ -81,3 +81,9 @@ lib/
 # LLMS
 CLAUDE.md
 .claude/
+
+
+# Expo
+
+example/android/
+example/ios/
