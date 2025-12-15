@@ -48,7 +48,7 @@ const solveCubic = (a: number, b: number, c: number, d: number): number[] => {
   // Convert to depressed cubic t^3+pt+q = 0 (subst x = t - b/3a)
   const p = (3 * a * c - b * b) / (3 * a * a);
   const q = (2 * b * b * b - 9 * a * b * c + 27 * a * a * d) / (27 * a * a * a);
-  let roots;
+  let roots: number[] = [];
 
   if (Math.abs(p) < 1e-8) {
     // p = 0 -> t^3 = -q -> t = -q^1/3
@@ -74,8 +74,10 @@ const solveCubic = (a: number, b: number, c: number, d: number): number[] => {
     }
   }
 
+
+
   // Convert back from depressed cubic
-  for (let i = 0; i < roots.length; i++) roots[i] -= b / (3 * a);
+  for (let i = 0; i < roots.length; i++) roots[i]! -= b / (3 * a);
 
   return roots;
 };

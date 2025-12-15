@@ -1,9 +1,11 @@
 import {
   Cursor,
+  GestureDetector,
   LineChart,
   useCursorGesture,
   useDotsTransition,
   type AnimatedDot,
+  type GestureType,
 } from '@obitrain/charts';
 import {
   Circle,
@@ -14,10 +16,6 @@ import {
 } from '@shopify/react-native-skia';
 import React, { useMemo, useState, type FC } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import {
-  GestureDetector,
-  type GestureType,
-} from 'react-native-gesture-handler';
 import {
   makeMutable,
   useDerivedValue,
