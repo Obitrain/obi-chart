@@ -1,8 +1,8 @@
 import {
-  AxisLine,
-  ScalablePath,
-  useScalableGesture,
-  type AnimatedDot,
+    AxisLine,
+    ScalablePath,
+    useScalableGesture,
+    type AnimatedDot,
 } from '@obitrain/charts';
 import Slider from '@react-native-community/slider';
 import { Canvas, Group, matchFont } from '@shopify/react-native-skia';
@@ -10,9 +10,9 @@ import React, { useCallback, useRef, type FC } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
-  useDerivedValue,
-  useSharedValue,
-  type SharedValue,
+    useDerivedValue,
+    useSharedValue,
+    type SharedValue,
 } from 'react-native-reanimated';
 import { Button, Colors, ReText } from '../../components';
 import { useDimensions } from '../../hooks';
@@ -80,7 +80,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
   }, [offsetX]);
 
   const _changeChart = useCallback(
-    (newChartIdx) => {
+    (newChartIdx: number) => {
       const newGraph = graphs[newChartIdx]!;
       path.value = newGraph.skiaPath;
       yDomain.current = yDomains[newChartIdx]!;

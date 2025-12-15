@@ -81,3 +81,7 @@ lib/
 # LLMS
 CLAUDE.md
 .claude/
+
+
+# Other
+.env
