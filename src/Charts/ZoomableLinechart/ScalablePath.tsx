@@ -4,7 +4,7 @@ import {
   type PathCommand,
   type SkPath,
 } from '@shopify/react-native-skia';
-import React, { type FC } from 'react';
+import { type FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { scaleCommands } from '../graphUtils';
 

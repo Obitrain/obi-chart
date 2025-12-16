@@ -1,5 +1,4 @@
 import { StatusBar } from 'expo-status-bar';
-import * as React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import useCachedResources from './hooks/useCacheRessources';

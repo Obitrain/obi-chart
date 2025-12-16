@@ -37,7 +37,7 @@ module.exports = {
             'warn',
             { fixStyle: 'inline-type-imports' }
         ],
-        'deprecation/deprecation': 'warn'
+        'deprecation/deprecation': 'warn'   
         // '@typescript-eslint/no-deprecated': 'warn'
     }
 }
