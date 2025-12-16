@@ -70,6 +70,8 @@ android/keystores/debug.keystore
 
 # Expo
 .expo/
+example/android/
+example/ios/
 
 # Turborepo
 .turbo/
@@ -81,10 +83,6 @@ lib/
 # LLMS
 CLAUDE.md
 .claude/
-
-# Expo
-example/android/
-example/ios/
 
 # Other
 .env

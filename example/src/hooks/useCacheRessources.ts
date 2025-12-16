@@ -1,6 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
-import * as Font from
-'expo-font';
+import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 
