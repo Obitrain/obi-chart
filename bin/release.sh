@@ -12,5 +12,10 @@ set -a
 source .env
 set +a
 
+if [ -z "${GITHUB_TOKEN:-}" ]; then
+    echo "Error: GITHUB_TOKEN is not set. GitHub release will fail."
+    echo "Please set GITHUB_TOKEN in your .env file."
+    exit 1
+fi
 
 yarn release-it
