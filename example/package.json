@@ -9,20 +9,20 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@react-native-community/slider": "4.5.6",
+    "@react-native-community/slider": "^5.1.1",
     "@react-navigation/drawer": "^6.6.15",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
-    "@shopify/react-native-skia": "v2.0.0-next.4",
+    "@shopify/react-native-skia": "^2.4.7",
     "babel-plugin-module-resolver": "^5.0.2",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
     "expo": "^53.0.0",
-    "expo-splash-screen": "~0.30.9",
+    "expo-splash-screen": "~0.30.10",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-native": "0.79.4",
+    "react-native": "0.79.6",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
@@ -32,7 +32,9 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@expo/webpack-config": "~19.0.1",
-    "babel-loader": "^8.1.0"
+    "babel-loader": "^8.1.0",
+    "react-native-builder-bob": "^0.40.17",
+    "react-native-monorepo-config": "^0.3.1"
   },
   "private": true
 }

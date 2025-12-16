@@ -1,18 +1,18 @@
 import {
-  ZoomableLineChart,
-  useDotsTransition,
-  useScalableGesture,
-  type AnimatedDot,
+    ZoomableLineChart,
+    useDotsTransition,
+    useScalableGesture,
+    type AnimatedDot,
 } from '@obitrain/charts';
 import { Group, usePathInterpolation } from '@shopify/react-native-skia';
-import React, { useCallback, useRef, type FC } from 'react';
+import { useCallback, useRef, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
-  runOnUI,
-  useSharedValue,
-  withTiming,
-  type SharedValue,
+    runOnUI,
+    useSharedValue,
+    withTiming,
+    type SharedValue,
 } from 'react-native-reanimated';
 import { Button, Colors } from '../../components';
 import { useDimensions } from '../../hooks';

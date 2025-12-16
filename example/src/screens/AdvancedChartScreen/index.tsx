@@ -6,7 +6,7 @@ import {
 } from '@obitrain/charts';
 import Slider from '@react-native-community/slider';
 import { Canvas, Group, matchFont } from '@shopify/react-native-skia';
-import React, { useCallback, useRef, type FC } from 'react';
+import { useCallback, useRef, useState, type FC } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
@@ -34,11 +34,11 @@ const font = matchFont({ fontFamily, fontSize: 14 });
 
 const AdvancedChartScreen: FC<Props> = function ({}) {
   const { width } = useDimensions();
-  const [hideAxis, setHideAxis] = React.useState(false);
-  const [hideDots, setHideDots] = React.useState(false);
-  const [hideSettings, setHideSettings] = React.useState(false);
-  const [hideYAxis, setHideYAxis] = React.useState(false);
-  const [currentChart, setCurrentChart] = React.useState(0);
+  const [hideAxis, setHideAxis] = useState(false);
+  const [hideDots, setHideDots] = useState(false);
+  const [hideSettings, setHideSettings] = useState(false);
+  const [hideYAxis, setHideYAxis] = useState(false);
+  const [currentChart, setCurrentChart] = useState(0);
 
   const graphWidth = width - 40;
 

@@ -78,5 +78,13 @@ android/keystores/debug.keystore
 lib/
 
 
+# LLMS
+CLAUDE.md
+.claude/
+
+# Expo
+example/android/
+example/ios/
+
 # Other
 .env

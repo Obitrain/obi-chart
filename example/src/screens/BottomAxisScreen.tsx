@@ -4,7 +4,7 @@ import {
   useUpdateAxis,
 } from '@obitrain/charts';
 import { matchFont } from '@shopify/react-native-skia';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Button } from '../components';

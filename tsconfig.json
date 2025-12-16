@@ -2,16 +2,18 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "@obitrain/charts": ["./src/index"]
+      "@obitrain/charts": ["./src/index"],
+      "react-native-gesture-handler": ["./example/node_modules/react-native-gesture-handler"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "lib": ["esnext"],
-    "module": "esnext",
-    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,

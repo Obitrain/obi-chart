@@ -1,5 +1,10 @@
 
 {
   "extends": "./tsconfig",
+  "compilerOptions": {
+    "paths": {
+      "@obitrain/charts": ["./src/index"]
+    }
+  },
   "exclude": ["example"]
 }

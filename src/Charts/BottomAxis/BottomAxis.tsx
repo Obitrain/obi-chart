@@ -1,6 +1,6 @@
 // ChartUtilsScreen.tsx
 import { Canvas, type SkFont } from '@shopify/react-native-skia';
-import React, { type FC } from 'react';
+import { type FC } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { AxisLine } from './AxisLine';
