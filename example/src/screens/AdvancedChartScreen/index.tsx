@@ -1,7 +1,5 @@
 import {
     AxisLine,
-    Gesture,
-    GestureDetector,
     ScalablePath,
     useScalableGesture,
     type AnimatedDot,
@@ -10,6 +8,7 @@ import Slider from '@react-native-community/slider';
 import { Canvas, Group, matchFont } from '@shopify/react-native-skia';
 import React, { useCallback, useRef, type FC } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
     useDerivedValue,
     useSharedValue,

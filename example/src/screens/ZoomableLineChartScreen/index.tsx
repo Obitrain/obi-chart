@@ -1,6 +1,4 @@
 import {
-  Gesture,
-  GestureDetector,
   ZoomableLineChart,
   useDotsTransition,
   useScalableGesture,
@@ -9,6 +7,7 @@ import {
 import { Group, usePathInterpolation } from '@shopify/react-native-skia';
 import React, { useCallback, useRef, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
   runOnUI,
   useSharedValue,

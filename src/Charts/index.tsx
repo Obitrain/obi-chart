@@ -1,8 +1,3 @@
-export {
-  Gesture,
-  GestureDetector,
-  type GestureType,
-} from 'react-native-gesture-handler';
 export { AxisLine, BottomAxis, Tick } from './BottomAxis';
 export { Cursor } from './Cursor';
 export type { CursorProps } from './Cursor';
