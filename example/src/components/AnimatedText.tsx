@@ -15,7 +15,6 @@ const styles = StyleSheet.create({
     color: 'black',
   },
 });
-Animated.addWhitelistedNativeProps({ text: true });
 
 interface TextProps extends Omit<TextInputProps, 'value' | 'style'> {
   text: SharedValue<string>;
