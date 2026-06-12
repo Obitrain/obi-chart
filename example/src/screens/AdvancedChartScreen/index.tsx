@@ -30,7 +30,8 @@ const OFFSET_AXIS = GRAPH_HEIGHT + 50;
 
 const fontFamily = Platform.select({ ios: 'Helvetica', default: 'serif' });
 
-const font = matchFont({ fontFamily, fontSize: 14 });
+// matchFont relies on the system font manager, which is not implemented on web
+const font = Platform.OS === 'web' ? null : matchFont({ fontFamily, fontSize: 14 });
 
 const AdvancedChartScreen: FC<Props> = function ({}) {
   const { width } = useDimensions();
@@ -118,6 +119,13 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
     { at: 5200, run: () => setHideDots(false) },
     { at: 6500, run: resetChart },
   ]);
+
+  if (font === null)
+    return (
+      <View style={styles.container}>
+        <Text>This screen is not supported on web (matchFont)</Text>
+      </View>
+    );
 
   return (
     <View style={styles.container}>
@@ -268,7 +276,7 @@ export const renderTicks = function (
           key={i}
           initPosition={tick.x}
           label={tick.label}
-          font={font}
+          font={font!}
           offsetY={OFFSET_AXIS + 10}
           {...{ scale, focalX, offsetX, maxWidth }}
         />
