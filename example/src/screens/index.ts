@@ -1,4 +1,5 @@
 export { AdvancedChartScreen } from './AdvancedChartScreen';
+export { BodyCompositionScreen } from './BodyCompositionScreen';
 export { BottomAxisScreen } from './BottomAxisScreen';
 export { DotsScreen } from './DotsScreen';
 export { HomeScreen } from './Home';

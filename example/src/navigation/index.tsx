@@ -152,6 +152,13 @@ const SCREENS: ScreenType[] = [
       title: 'Advanced Chart',
     },
   },
+  {
+    name: 'BodyCompositionScreen',
+    component: Screens.BodyCompositionScreen,
+    options: {
+      title: 'Body Composition (Withings)',
+    },
+  },
 ];
 
 const TOPBAR_DEFAULT_OPTIONS: DrawerNavigationOptions = {
