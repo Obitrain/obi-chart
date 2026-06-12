@@ -30,6 +30,13 @@ yarn add @shopify/react-native-skia react-native-reanimated react-native-worklet
 The exact ranges live in the `peerDependencies` of `package.json`. Development and tests run on
 Expo SDK 57 / React Native 0.86 / Node `>= 20.19.4`.
 
+### 2. Body Composition (Withings-style)
+
+Two series with hollow dot markers, a pinch-to-zoom interaction with live-clamped panning, and a time axis that adapts its granularity (years → months → weeks → days) to the visible window. See the [implementation notes](./docs/body-composition-chart.md) and the `BodyCompositionScreen` example.
+
+![Body Composition](./static/body-composition.png)
+
+
 ## Usage
 
 ### Static line chart
