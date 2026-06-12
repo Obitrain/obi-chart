@@ -3,9 +3,10 @@ import {
   Line,
   Text,
   vec,
+  type Color,
   type SkFont,
 } from '@shopify/react-native-skia';
-import React from 'react';
+import { memo } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from '../gesture';
 
@@ -17,10 +18,30 @@ export type TickProps = {
   offsetX: SharedValue<number>;
   offsetY?: number;
   font: SkFont;
+  color?: Color;
+  labelColor?: Color;
+  /** Length of the tick line. Use a negative value (e.g. -chartHeight) to draw a vertical gridline above the axis. */
+  tickLength?: number;
+  strokeWidth?: number;
+  showLabel?: boolean;
 };
 
-export const Tick: React.FC<TickProps> = (props) => {
-  const { label, scale, focalX, offsetX, initPosition, font } = props;
+// Memoized: zoom/pan flows through shared values, so a Tick only needs to
+// re-render when its label or base position changes
+export const Tick = memo(function Tick(props: TickProps) {
+  const {
+    label,
+    scale,
+    focalX,
+    offsetX,
+    initPosition,
+    font,
+    color = 'black',
+    labelColor,
+    tickLength = 10,
+    strokeWidth,
+    showLabel = true,
+  } = props;
   const offsetY = props.offsetY ?? 0;
   const transform = useDerivedValue(() => [
     {
@@ -38,14 +59,21 @@ export const Tick: React.FC<TickProps> = (props) => {
 
   return (
     <Group transform={transform}>
-      <Line color="black" p1={vec(0, offsetY)} p2={vec(0, offsetY + 10)} />
-      <Text
-        text={label}
-        color="black"
-        x={-width / 2}
-        y={offsetY + 23}
-        font={font}
+      <Line
+        color={color}
+        strokeWidth={strokeWidth}
+        p1={vec(0, offsetY)}
+        p2={vec(0, offsetY + tickLength)}
       />
+      {showLabel ? (
+        <Text
+          text={label}
+          color={labelColor ?? color}
+          x={-width / 2}
+          y={offsetY + 23}
+          font={font}
+        />
+      ) : null}
     </Group>
   );
-};
+});
