@@ -2,13 +2,12 @@ import { clamp } from '@shopify/react-native-skia';
 import { useCallback } from 'react';
 import { Gesture, type PanGesture, type PinchGesture } from 'react-native-gesture-handler';
 import {
-    runOnJS,
     useAnimatedReaction,
-    useDerivedValue,
     useSharedValue,
     withTiming,
     type SharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import type { DataPoint } from './types';
 
 /**
@@ -75,11 +74,6 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
     startScale,
   ]);
 
-  const animateFocalPoint = (newFocalX: number) => {
-    'worklet';
-    focalX.value = withTiming(newFocalX, { duration: 300 }); // Smooth transition with duration
-  };
-
   const panGesture = Gesture.Pan()
     .onUpdate((event) => {
       const newOffsetX = lastOffsetX.value + event.translationX;
@@ -105,15 +99,12 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
       let newOffset;
 
       if (leftBound > startOffset) {
-        // console.log(`Left Boundary reached`);
         newOffset = offsetX.value - leftBound + startOffset;
-      } else if (rightBound < width) {
-        // console.log(`Right Boundary reached`);
+      } else if (rightBound < width + startOffset) {
         newOffset = offsetX.value + width - rightBound + startOffset;
       } else {
         newOffset = offsetX.value;
       }
-      if (newOffset === undefined) throw new Error('newOffset is undefined');
 
       offsetX.value = withTiming(newOffset, { duration: 300 });
       lastOffsetX.value = newOffset;
@@ -121,13 +112,15 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate((event) => {
-      const newScale = lastScale.value * event.scale;
-      scale.value = clamp(newScale, 1, Infinity); // Clamp the scale value
-      animateFocalPoint(event.focalX);
+      // Rebase offsetX so moving the focal point doesn't shift the content
+      offsetX.value += (focalX.value - event.focalX) * (1 - scale.value);
+      focalX.value = event.focalX;
+      scale.value = clamp(lastScale.value * event.scale, 1, Infinity);
     })
     .onEnd(() => {
       lastScale.value = scale.value;
       lastFocalX.value = focalX.value;
+      lastOffsetX.value = offsetX.value;
     });
 
   return {
@@ -165,12 +158,11 @@ export const useUpdateAxis = function (props: UpdateAxisProps) {
           currentIndex.value !== i
         ) {
           currentIndex.value = i;
-          if (onScaleChange !== undefined) runOnJS(onScaleChange)(i);
+          if (onScaleChange !== undefined) scheduleOnRN(onScaleChange, i);
           break;
         }
       }
-    },
-    []
+    }
   );
 
   return { currentIndex };
@@ -221,34 +213,43 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
     isContinuous = true,
   } = props;
 
+  if (!isContinuous && points === undefined)
+    console.warn('Points must be defined for non-continuous mode');
+
   const xPosition = useSharedValue(0);
-  const yPosition = useSharedValue(height); // GRAPH_HEIGHT
+  const yPosition = useSharedValue(height);
 
-  const panGesture = Gesture.Pan()
-    .onBegin((event) => {
-      xPosition.value = clamp(event.x, 0, width);
-      yPosition.value = clamp(event.y, 0, height);
-    })
-    .onUpdate((event) => {
-      xPosition.value = clamp(event.x, 0, width);
-      yPosition.value = clamp(event.y, 0, height);
-    });
-
-  const tapGesture = Gesture.Tap().onBegin((event) => {
-    xPosition.value = clamp(event.x, 0, width);
-    yPosition.value = clamp(event.y, 0, height);
-  });
-
-  useDerivedValue(() => {
-    if (isContinuous) return;
-    if (points === undefined) {
-      console.warn('Points must be defined for non-continuous mode');
+  const setPosition = (x: number, y: number) => {
+    'worklet';
+    yPosition.value = clamp(y, 0, height);
+    if (isContinuous || points === undefined) {
+      xPosition.value = clamp(x, 0, width);
       return;
     }
-    const _closestDot = getClosestPoint(xPosition.value, points.value);
+    const _closestDot = getClosestPoint(clamp(x, 0, width), points.value);
     if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
     xPosition.value = _closestDot.x;
-  }, [xPosition, isContinuous]);
+  };
+
+  const panGesture = Gesture.Pan()
+    .onBegin((event) => setPosition(event.x, event.y))
+    .onUpdate((event) => setPosition(event.x, event.y));
+
+  const tapGesture = Gesture.Tap().onBegin((event) =>
+    setPosition(event.x, event.y)
+  );
+
+  // Re-snap the cursor when the data points change (e.g. switching graphs)
+  useAnimatedReaction(
+    () => points?.value,
+    (_points) => {
+      if (isContinuous || _points === undefined || _points.length === 0)
+        return;
+      const _closestDot = getClosestPoint(xPosition.value, _points);
+      if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
+      xPosition.value = _closestDot.x;
+    }
+  );
 
   return { panGesture, tapGesture, xPosition, yPosition };
 };

@@ -1,10 +1,18 @@
 export { AxisLine, BottomAxis, Tick } from './BottomAxis';
+export type {
+  AxisLineProps,
+  BottomAxisProps,
+  TickProps,
+} from './BottomAxis';
 export { Cursor } from './Cursor';
 export type { CursorProps } from './Cursor';
 export { LineChart } from './Linechart';
 export type { LineChartProps, LinePath } from './Linechart';
 export { ScalablePath, ZoomableLineChart } from './ZoomableLinechart';
-export type { ZoomableLineChartProps } from './ZoomableLinechart';
+export type {
+  ScalablePathProps,
+  ZoomableLineChartProps,
+} from './ZoomableLinechart';
 export {
   getClosestPoint,
   getPositionWl,
@@ -12,7 +20,12 @@ export {
   useScalableGesture,
   useUpdateAxis,
 } from './gesture';
-export type { UseCursorGestureProps } from './gesture';
+export type {
+  AxisGestureProps,
+  ScalableGesture,
+  UpdateAxisProps,
+  UseCursorGestureProps,
+} from './gesture';
 export {
   buildGraph,
   defaultOpacityTransitionWl,
@@ -20,7 +33,13 @@ export {
   scaleCommands,
   useDotsTransition,
 } from './graphUtils';
-export type { Config, GraphData, UseDotAnimationProps } from './graphUtils';
+export type {
+  BuildGraphConfig,
+  // eslint-disable-next-line deprecation/deprecation
+  Config,
+  GraphData,
+  UseDotAnimationProps,
+} from './graphUtils';
 export {
   commandsToBezier,
   cubicBezierYForX,

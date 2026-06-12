@@ -9,11 +9,11 @@ import { useCallback, useRef, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
-    runOnUI,
     useSharedValue,
     withTiming,
     type SharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnUI } from 'react-native-worklets';
 import { Button, Colors } from '../../components';
 import { useDimensions } from '../../hooks';
 import { Dot } from './Dot';
@@ -81,7 +81,7 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
     console.info(`Zooming from ${_fromDot.x.value} to ${_toDot.x.value}`);
 
     _secondZoomDot.current = _secondZoomDot.current === 1 ? dots.length - 1 : 1;
-    runOnUI(zoomPeriod)(_fromDot, _toDot, scale, focalX, offsetX, _width);
+    scheduleOnUI(zoomPeriod, _fromDot, _toDot, scale, focalX, offsetX, _width);
   }, [dots, scale, focalX, offsetX, _width]);
 
   //   const _updateRange = useCallback(

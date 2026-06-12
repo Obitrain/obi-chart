@@ -17,23 +17,21 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
-    "expo": "^55.0.0",
-    "expo-splash-screen": "~55.0.17",
+    "expo": "~55.0.17",
+    "expo-splash-screen": "~55.0.19",
     "expo-status-bar": "~55.0.5",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-native": "0.83.4",
+    "react-native": "0.83.6",
     "react-native-gesture-handler": "~2.30.0",
     "react-native-reanimated": "4.2.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.23.0",
     "react-native-web": "^0.21.0",
-    "react-native-worklets": "0.7.2"
+    "react-native-worklets": "0.7.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@expo/webpack-config": "~19.0.1",
-    "babel-loader": "^8.1.0",
     "react-native-builder-bob": "^0.40.17",
     "react-native-monorepo-config": "^0.3.1"
   },

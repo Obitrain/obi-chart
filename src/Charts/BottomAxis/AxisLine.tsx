@@ -27,12 +27,12 @@ const AxisLine: FC<AxisLineProps> = function (props) {
   const p1 = useDerivedValue(() => {
     const p1X = getPositionWl(0, focalX.value, scale.value, offsetX.value);
     return vec(p1X, offsetY);
-  }, []);
+  });
 
   const p2 = useDerivedValue(() => {
-    const p1X = getPositionWl(width, focalX.value, scale.value, offsetX.value);
-    return vec(p1X, offsetY);
-  }, [width]);
+    const p2X = getPositionWl(width, focalX.value, scale.value, offsetX.value);
+    return vec(p2X, offsetY);
+  });
 
   return <Line {...{ p1, p2, color, strokeWidth }} />;
 };

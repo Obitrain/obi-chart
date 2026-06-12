@@ -15,7 +15,7 @@ import { getPositionWl } from './gesture';
 import { getYForX } from './maths';
 import type { AnimatedDot, DataPoint } from './types';
 
-export type Config = {
+export type BuildGraphConfig = {
   minX?: number;
   maxX?: number;
   minY?: number;
@@ -24,8 +24,11 @@ export type Config = {
   curve?: shape.CurveFactory | shape.CurveFactoryLineOnly;
 };
 
+/** @deprecated Use {@link BuildGraphConfig} instead */
+export type Config = BuildGraphConfig;
+
 export type GraphData = {
-  data: [number, number][];
+  data: [x: number, y: number][];
   minY: number;
   maxY: number;
   path: string;
@@ -36,38 +39,40 @@ export type GraphData = {
 };
 
 export const buildGraph = function (
-  data: [number, number][],
+  data: [x: number, y: number][],
   width: number,
   height: number,
-  config?: Config
+  config?: BuildGraphConfig
 ): GraphData {
-  const minX = config?.minX ?? Math.min(...data.map((x) => x[0]));
-  const maxX = config?.maxX ?? Math.max(...data.map((x) => x[0]));
+  if (data.length === 0)
+    throw new Error('buildGraph requires at least one data point');
+
+  const minX = config?.minX ?? Math.min(...data.map((d) => d[0]));
+  const maxX = config?.maxX ?? Math.max(...data.map((d) => d[0]));
   const scaleX = scaleLinear().domain([minX, maxX]).range([0, width]);
 
-  const minY = config?.minY ?? Math.min(...data.map((x) => x[1]));
-  const maxY = config?.maxY ?? Math.max(...data.map((x) => x[1]));
+  const minY = config?.minY ?? Math.min(...data.map((d) => d[1]));
+  const maxY = config?.maxY ?? Math.max(...data.map((d) => d[1]));
   const scaleY = scaleLinear().domain([minY, maxY]).range([height, 0]);
 
-  const fmtValues = data.map((x) => [x[1], x[0]] as [number, number]);
-
   const path = shape
-    .line()
-    .x(([, x]) => scaleX(x))
-    .y(([y]) => scaleY(y))
-    .curve(config?.curve ?? shape.curveBasis)(fmtValues) as string;
+    .line<[number, number]>()
+    .x(([x]) => scaleX(x))
+    .y(([, y]) => scaleY(y))
+    .curve(config?.curve ?? shape.curveBasis)(data);
+  if (path === null) throw new Error('Failed to build the line path');
 
-  const dataPoints = fmtValues.map(([y, x]) => ({
+  const dataPoints = data.map(([x, y]) => ({
     x: scaleX(x),
     y: scaleY(y),
     value: y,
   }));
 
   const skiaPath = Skia.Path.MakeFromSVGString(path);
-  if (skiaPath == null) throw new Error('Path not found');
+  if (skiaPath == null) throw new Error('Failed to parse the SVG path');
 
   return {
-    data: fmtValues,
+    data,
     minY,
     maxY,
     path,
@@ -136,7 +141,6 @@ export const scaleCommands = function (
       ];
     }
     if (commandType === PathVerb.Close) return command;
-    if (commandType === PathVerb.Move) return command;
     throw new Error(`Unsupported command type ${commandType}`);
   });
 };
@@ -173,25 +177,26 @@ export const useDotsTransition = function (props: UseDotAnimationProps) {
     () => ({
       _currentGraph: currentGraph.value,
       _currentCommands: path.value.toCmds(),
+      // Track the animating x values so y stays glued to the curve
+      // even when the path is swapped instantly or tweens on another duration
+      _xs: dots.map((d) => d.x.value),
     }),
     ({ _currentGraph, _currentCommands }) => {
       const newDataPoints = dataPoints[_currentGraph];
       if (newDataPoints === undefined)
         throw new Error('Data points cannot be undefined');
-      dots.map((_dot, i) => {
+      dots.forEach((_dot, i) => {
         const _newDot = newDataPoints[i];
         if (!_newDot) {
           _dot.opacity.value = opacityWl(0);
           return;
-        } else {
-          _dot.x.value = translateWl(_newDot.x);
-          const newY = getYForX(_currentCommands, _dot.x.value);
-          if (newY !== undefined) {
-            _dot.y.value = newY;
-          }
-          //   _dot.y.value = withTiming(newDots[i]!.y, { duration: 1000 });
-          _dot.opacity.value = opacityWl(1);
         }
+        _dot.x.value = translateWl(_newDot.x);
+        const newY = getYForX(_currentCommands, _dot.x.value);
+        if (newY !== undefined) {
+          _dot.y.value = newY;
+        }
+        _dot.opacity.value = opacityWl(1);
       });
     }
   );

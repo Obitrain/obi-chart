@@ -87,11 +87,13 @@ Our pre-commit hooks verify that your commit message matches this format when co
 
 We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
 
-Our pre-commit hooks verify that the linter and tests pass when committing.
+Our pre-commit hooks verify that the linter and type checks pass when committing.
 
-### Publishing to npm
+### Publishing
 
 We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
+
+The package is published to the GitLab package registry (see `publishConfig` in `package.json`), and release-it also creates a GitHub release, which requires a `GITHUB_TOKEN`.
 
 To publish new versions, run the following:
 
@@ -99,11 +101,13 @@ To publish new versions, run the following:
 yarn release
 ```
 
+This runs `bin/release.sh`, which sources the `.env` file (created automatically via `yarn env:load` if missing) before calling release-it. `yarn env:load` requires the [Bitwarden Secrets CLI](https://bitwarden.com/help/secrets-manager-cli/) (`bws`) with access to the `Obitrain-prd` vault to fetch the GitLab registry and GitHub tokens.
+
 ### Scripts
 
 The `package.json` file contains various scripts for common tasks:
 
-- `yarn`: setup project by installing dependencies and pods - run with `POD_INSTALL=0` to skip installing pods.
+- `yarn`: setup project by installing dependencies. The example app is Expo-based: `yarn example ios` / `yarn example android` handle the native builds (including CocoaPods) via Expo.
 - `yarn typecheck`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
 - `yarn test`: run unit tests with Jest.

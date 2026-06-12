@@ -1,12 +1,6 @@
-import {
-  Path,
-  Skia,
-  type PathCommand,
-  type SkPath,
-} from '@shopify/react-native-skia';
+import { Path, Skia, type SkPath } from '@shopify/react-native-skia';
 import { type FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
-import { scaleCommands } from '../graphUtils';
 
 export type ScalablePathProps = {
   path: SharedValue<SkPath>;
@@ -21,17 +15,15 @@ const ScalablePath: FC<ScalablePathProps> = function (props) {
   const { path, scale, focalX, offsetX, pathProps, color = 'red' } = props;
 
   const animatedPath = useDerivedValue(() => {
-    let _cmds: PathCommand[] = [];
-    try {
-      _cmds = scaleCommands(path.value?.toCmds() ?? [], scale, focalX, offsetX);
-    } catch (e) {
-      console.error('Got error while scaling path: ', typeof e);
-      _cmds = [];
-    }
-    const _path = Skia.Path.MakeFromCmds(_cmds);
-    if (!_path) throw new Error('Path is null');
+    // Affine equivalent of getPositionWl: x' = scale * x + focalX * (1 - scale) + offsetX
+    const _path = path.value.copy();
+    _path.transform(
+      Skia.Matrix()
+        .translate(focalX.value * (1 - scale.value) + offsetX.value, 0)
+        .scale(scale.value, 1)
+    );
     return _path;
-  }, [scale]);
+  });
 
   return (
     <Path

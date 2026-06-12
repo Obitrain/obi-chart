@@ -22,19 +22,16 @@ export type TickProps = {
 export const Tick: React.FC<TickProps> = (props) => {
   const { label, scale, focalX, offsetX, initPosition, font } = props;
   const offsetY = props.offsetY ?? 0;
-  const transform = useDerivedValue(
-    () => [
-      {
-        translateX: getPositionWl(
-          initPosition,
-          focalX.value,
-          scale.value,
-          offsetX.value
-        ),
-      },
-    ],
-    [initPosition, offsetX]
-  );
+  const transform = useDerivedValue(() => [
+    {
+      translateX: getPositionWl(
+        initPosition,
+        focalX.value,
+        scale.value,
+        offsetX.value
+      ),
+    },
+  ]);
   const width = font
     .getGlyphWidths(font.getGlyphIDs(label))
     .reduce((a, b) => a + b, 0);

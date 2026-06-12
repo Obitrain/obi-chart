@@ -3,11 +3,18 @@ import * as U from '../dateUtils';
 
 it.each([
   { month: 1, nbMonths: 3, output: '01' },
-  { month: 2, nbMonths: 2, output: '03' },
-])(`getMonthInterval works`, ({ month, nbMonths, output }) => {
-  const _output = U.getMonthInterval(month, nbMonths);
-  expect(_output).toEqual(output);
-});
+  { month: 3, nbMonths: 3, output: '01' },
+  { month: 4, nbMonths: 3, output: '04' },
+  { month: 12, nbMonths: 3, output: '10' },
+  { month: 2, nbMonths: 2, output: '01' },
+  { month: 3, nbMonths: 2, output: '03' },
+])(
+  'getMonthInterval works with month $month and nbMonths $nbMonths',
+  ({ month, nbMonths, output }) => {
+    const _output = U.getMonthInterval(month, nbMonths);
+    expect(_output).toEqual(output);
+  }
+);
 
 it.each([
   {
@@ -30,6 +37,11 @@ it.each([
     dateRange: 'day' as U.DateRange,
     output: '2021-01-01',
   },
+  {
+    input: new Date('2021-01-01'),
+    dateRange: 'all' as U.DateRange,
+    output: 'all',
+  },
 ])(
   'getDateInterval works with dateRange $dateRange',
   ({ input, dateRange, output }) => {
@@ -40,6 +52,7 @@ it.each([
 
 it.each([
   {
+    name: 'sorted dates',
     input: [
       new Date('2021-01-01'),
       new Date('2021-01-25'),
@@ -53,7 +66,22 @@ it.each([
       ['2022', [new Date('2022-03-01'), new Date('2022-12-01')]],
     ]),
   },
-])('getDateBoundaries works', ({ input, dateRange, output }) => {
+  {
+    name: 'unsorted dates',
+    input: [
+      new Date('2021-01-25'),
+      new Date('2021-01-01'),
+      new Date('2021-01-10'),
+      new Date('2022-12-01'),
+      new Date('2022-03-01'),
+    ],
+    dateRange: 'year' as U.DateRange,
+    output: new Map([
+      ['2021', [new Date('2021-01-01'), new Date('2021-01-25')]],
+      ['2022', [new Date('2022-03-01'), new Date('2022-12-01')]],
+    ]),
+  },
+])('getDateBoundaries works with $name', ({ input, dateRange, output }) => {
   const _output = U.getDateBoundaries(input, dateRange);
   expect(_output).toEqual(output);
 });
@@ -71,6 +99,20 @@ it.each([
     output: {
       dates: ['2021-01-01', '2022-03-01', '2022-12-01'],
       indexes: [0, 2, 4],
+    },
+  },
+  {
+    input: [
+      '2021-01-01',
+      '2021-01-25',
+      '2022-03-01',
+      '2022-10-01',
+      '2022-12-01',
+    ],
+    sampleSize: 1,
+    output: {
+      dates: ['2021-01-01'],
+      indexes: [0],
     },
   },
 ])(

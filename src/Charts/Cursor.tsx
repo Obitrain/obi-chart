@@ -10,7 +10,7 @@ export type CursorProps = {
   positionX: SharedValue<number>;
   size?: number;
   color?: string;
-  currentValue?: SharedValue<number> | SharedValue<undefined>;
+  currentValue?: SharedValue<number> | SharedValue<number | undefined>;
   translateY?: SharedValue<number | undefined>;
 };
 
@@ -23,23 +23,22 @@ const Cursor: FC<CursorProps> = function ({
   size = CURSOR_SIZE,
 }) {
   if (currentValue !== undefined && translateY !== undefined) {
-    console.warn('Current value as no effect when translateY is set');
+    console.warn('currentValue has no effect when translateY is set');
   }
 
-  const _translateY = translateY
-    ? translateY
-    : // eslint-disable-next-line react-hooks/rules-of-hooks
-      useDerivedValue(() => {
-        const _commands = commands?.value;
-        if (_commands === undefined) {
-          return 0;
-        }
-        const _value = getYForX(_commands, positionX.value) ?? 0;
-        if (currentValue !== undefined) {
-          currentValue.value = _value;
-        }
-        return _value;
-      });
+  const derivedTranslateY = useDerivedValue(() => {
+    const _commands = commands?.value;
+    if (_commands === undefined) {
+      return 0;
+    }
+    const _value = getYForX(_commands, positionX.value) ?? 0;
+    if (translateY === undefined && currentValue !== undefined) {
+      currentValue.value = _value;
+    }
+    return _value;
+  });
+
+  const _translateY = translateY ?? derivedTranslateY;
 
   const transform = useDerivedValue(() => [
     { translateX: positionX.value },

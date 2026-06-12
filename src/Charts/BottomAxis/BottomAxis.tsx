@@ -21,7 +21,7 @@ export type BottomAxisProps = {
 const BottomAxis: FC<BottomAxisProps> = function (props) {
   const { labels, scale, focalX, offsetX, style, width, font } = props;
   const offsetY = props.offsetY ?? 0;
-  const tickInterval = width / (labels.length - 1);
+  const tickInterval = labels.length > 1 ? width / (labels.length - 1) : 0;
 
   return (
     <Canvas style={style}>

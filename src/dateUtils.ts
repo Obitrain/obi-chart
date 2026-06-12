@@ -5,7 +5,7 @@ export const getMonthInterval = function (
   nbMonths: number
 ): string {
   if (month <= 0) throw new Error('Months should start at 1');
-  return (month - (month % nbMonths) + 1).toString().padStart(2, '0');
+  return (month - ((month - 1) % nbMonths)).toString().padStart(2, '0');
 };
 
 /**
@@ -38,21 +38,9 @@ export const getDateInterval = function (
       return `${year}-${getMonthInterval(month, 3)}`;
     case 'year':
       return `${year}`;
+    case 'all':
+      return 'all';
   }
-  throw new Error('Invalid date range');
-};
-
-//@ts-ignore
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fmtData = function (data: [Date, number][], dateRange: DateRange) {
-  const _dataFmt = new Map<string, [number, number]>();
-  for (const [date, value] of data) {
-    const _dateStr = getDateInterval(date, dateRange);
-    if (!_dataFmt.has(_dateStr))
-      _dataFmt.set(_dateStr, [date.getTime(), value]);
-  }
-
-  return [..._dataFmt.values()];
 };
 
 /**
@@ -75,7 +63,8 @@ export function getDateBoundaries(dates: Date[], dateRange: DateRange) {
     const _dateStr = getDateInterval(date, dateRange);
     const _range = ranges.get(_dateStr);
     if (!_range) ranges.set(_dateStr, [date, date]);
-    else if (date > _range[1]) ranges.set(_dateStr, [_range[0], date]);
+    else if (date < _range[0]) _range[0] = date;
+    else if (date > _range[1]) _range[1] = date;
   }
   return ranges;
 }
@@ -94,6 +83,10 @@ export function sampleDates(
       dates,
       indexes: Array.from({ length: dates.length }, (_, i) => indexOffset + i),
     };
+  }
+
+  if (sampleSize === 1) {
+    return { dates: [dates[0]!], indexes: [indexOffset] };
   }
 
   // Calculate total time span and interval
