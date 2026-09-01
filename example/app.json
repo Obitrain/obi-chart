@@ -3,6 +3,7 @@
     "name": "ObiChartExample",
     "slug": "obi-chart-example",
     "version": "1.0.0",
+    "scheme": "obichart",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

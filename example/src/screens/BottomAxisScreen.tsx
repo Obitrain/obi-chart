@@ -8,7 +8,7 @@ import React, { useCallback, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Button } from '../components';
-import { useDimensions } from '../hooks';
+import { useDemo, useDimensions } from '../hooks';
 
 const DATA_RANGES = [
   Array.from({ length: 5 }, (_, i) => i.toString()),
@@ -62,6 +62,14 @@ export function BottomAxisScreen() {
   };
 
   const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
+
+  useDemo([
+    { at: 1000, run: () => (scale.value = TEST_ZOOM) },
+    { at: 2500, run: () => (focalX.value = TEST_FOCAL) },
+    { at: 4000, run: () => _updateRange() },
+    { at: 5500, run: () => _updateRange() },
+    { at: 7000, run: resetChart },
+  ]);
 
   return (
     <View style={styles.container}>

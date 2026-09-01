@@ -40,9 +40,9 @@ project.xcworkspace
 local.properties
 android.iml
 
-# Cocoapods
+# Cocoapods / generated iOS project (expo prebuild)
 #
-example/ios/Pods
+example/ios/
 
 # Ruby
 example/vendor/
@@ -80,3 +80,4 @@ lib/
 
 # Other
 .env
+.scratch/

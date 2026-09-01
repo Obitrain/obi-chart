@@ -34,6 +34,7 @@
     "prepare": "bob build",
     "env:load": "./bin/load-env.sh",
     "release": "./bin/release.sh",
+    "gifs": "./bin/capture-gifs.sh",
     "check-deps": "rnx-align-deps --diff-mode allow-subset package.json"
   },
   "keywords": [

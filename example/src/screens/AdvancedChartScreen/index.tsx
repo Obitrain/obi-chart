@@ -15,7 +15,7 @@ import {
     type SharedValue,
 } from 'react-native-reanimated';
 import { Button, Colors, ReText } from '../../components';
-import { useDimensions } from '../../hooks';
+import { useDemo, useDimensions } from '../../hooks';
 import { Dot } from './Dot';
 import { Tick } from './Tick';
 import { YAxis } from './YAxis';
@@ -103,6 +103,22 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
     [axesX, dots, graphs, path, scale, yDomains]
   );
 
+  const _nextChart = useCallback(() => {
+    setCurrentChart((old) => {
+      const _newChartIdx = (old + 1) % graphs.length;
+      _changeChart(_newChartIdx);
+      return _newChartIdx;
+    });
+  }, [_changeChart, graphs.length]);
+
+  useDemo([
+    { at: 1000, run: _nextChart },
+    { at: 2500, run: _nextChart },
+    { at: 4000, run: () => setHideDots(true) },
+    { at: 5200, run: () => setHideDots(false) },
+    { at: 6500, run: resetChart },
+  ]);
+
   return (
     <View style={styles.container}>
       <View style={styles.btnsContainer}>
@@ -122,16 +138,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
           label={hideSettings ? 'Show Settings' : 'Hide Settings'}
           onPress={() => setHideSettings((old) => !old)}
         />
-        <Button
-          label={'Change chart'}
-          onPress={() => {
-            setCurrentChart((old) => {
-              const _newChartIdx = (old + 1) % graphs.length;
-              _changeChart(_newChartIdx);
-              return _newChartIdx;
-            });
-          }}
-        />
+        <Button label={'Change chart'} onPress={_nextChart} />
         <Button label="Reset Chart" small onPress={resetChart} />
       </View>
       {false && (

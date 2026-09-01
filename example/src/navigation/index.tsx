@@ -6,6 +6,7 @@ import {
   DarkTheme,
   DefaultTheme,
   NavigationContainer,
+  type LinkingOptions,
 } from '@react-navigation/native';
 import * as React from 'react';
 import { Platform, type ColorSchemeName } from 'react-native';
@@ -16,6 +17,22 @@ import * as Screens from '../screens';
 
 const Drawer = createDrawerNavigator();
 
+// obichart://<path>?demo=1 — used by bin/capture-gifs.sh
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ['obichart://'],
+  config: {
+    screens: {
+      Home: '',
+      BottomAxisScreen: 'bottom-axis',
+      LineChartScreen: 'line-chart',
+      ZoomableLineChartScreen: 'zoomable-line-chart',
+      DotsScreen: 'dots',
+      AdvancedChartScreen: 'advanced-chart',
+      TestScreen: 'test',
+    },
+  },
+};
+
 export default function Navigation({
   colorScheme,
 }: {
@@ -23,6 +40,7 @@ export default function Navigation({
 }) {
   return (
     <NavigationContainer
+      linking={linking}
       theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
     >
       <RootNavigator />

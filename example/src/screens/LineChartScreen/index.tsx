@@ -26,7 +26,7 @@ import {
 } from 'react-native-reanimated';
 import { Button, Colors } from '../../components';
 import { ReTextInt } from '../../components/AnimatedText';
-import { useDimensions } from '../../hooks';
+import { useDemo, useDimensions } from '../../hooks';
 import { useData } from './utils';
 
 export type Props = {};
@@ -109,6 +109,13 @@ const LineChartScreen: FC<Props> = function ({}) {
   });
 
   const gesture: GestureType = isContinuous ? panGesture : tapGesture;
+
+  useDemo([
+    { at: 1000, run: _onChangeGraph },
+    { at: 2500, run: _onChangeGraph },
+    { at: 4000, run: _onChangeGraph },
+    { at: 5500, run: () => setShowMultiple(true) },
+  ]);
 
   return (
     <View style={styles.container}>
