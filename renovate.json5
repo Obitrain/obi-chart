@@ -31,9 +31,10 @@
     // Build backbone — a bad bump breaks the package build; review by hand.
     { matchPackageNames: ["react-native-builder-bob"], automerge: false },
 
-    // Skia is the peer contract mirrored in devDeps — solo MR, manual.
+    // Peer contracts mirrored in devDeps (kept on the Expo SDK's bundled
+    // versions, not align-deps) — solo MR, manual.
     {
-      matchPackageNames: ["@shopify/react-native-*"],
+      matchPackageNames: ["@shopify/react-native-*", "react-native-gesture-handler"],
       automerge: false,
       addLabels: ["native"],
     },
@@ -49,7 +50,6 @@
         "@react-native-community/cli*",
         "react",
         "react-test-renderer",
-        "react-native-gesture-handler",
         "react-native-reanimated",
         "react-native-worklets",
         "jest",
