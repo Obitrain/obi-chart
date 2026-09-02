@@ -116,6 +116,16 @@ yarn gifs --device "iPhone 17 Pro"
 Requires Xcode with an iOS simulator, `ffmpeg` and `jq`. The script boots the simulator, freezes the
 status bar, drives each screen through its deep link and writes `static/<slug>.gif`.
 
+## Releasing
+
+Releases are automated from conventional commits. Every push to `main` updates a "Release" pull
+request (release-please) with the next version and changelog; merging it tags the release, creates the
+GitHub release and publishes `@obitrain/charts` to npm from CI via trusted publishing, so no npm token
+or one-time password is involved.
+
+One-time setup on npmjs.com, under the package's *Settings → Trusted publishing*: add a GitHub Actions
+publisher for `Obitrain/obi-chart` with workflow `release.yml`.
+
 ## Contributing
 
 See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.

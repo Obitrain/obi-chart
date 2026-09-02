@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write # npm trusted publishing (OIDC)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release PR / tag
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Checkout
+        if: steps.release.outputs.release_created
+        uses: actions/checkout@v4
+
+      - name: Setup
+        if: steps.release.outputs.release_created
+        uses: ./.github/actions/setup
+
+      - name: Build package
+        if: steps.release.outputs.release_created
+        run: yarn prepare
+
+      # Trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10.
+      - name: Publish to npm
+        if: steps.release.outputs.release_created
+        run: |
+          npm install -g npm@latest
+          npm publish --provenance --access public
