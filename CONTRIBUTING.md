@@ -89,19 +89,9 @@ We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint]
 
 Our pre-commit hooks verify that the linter and type checks pass when committing.
 
-### Publishing
+### Publishing to npm
 
-We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
-
-The package is published to the GitLab package registry (see `publishConfig` in `package.json`), and release-it also creates a GitHub release, which requires a `GITHUB_TOKEN`.
-
-To publish new versions, run the following:
-
-```sh
-yarn release
-```
-
-This runs `bin/release.sh`, which sources the `.env` file (created automatically via `yarn env:load` if missing) before calling release-it. `yarn env:load` requires the [Bitwarden Secrets CLI](https://bitwarden.com/help/secrets-manager-cli/) (`bws`) with access to the `Obitrain-prd` vault to fetch the GitLab registry and GitHub tokens.
+Releases are automated with [release-please](https://github.com/googleapis/release-please). Every push to `main` updates a "Release" pull request with the next version (derived from the conventional commits) and the changelog. Merging that pull request tags the release, creates the GitHub release and publishes the package to npm from CI (`.github/workflows/release.yml`, npm trusted publishing). There is nothing to run locally.
 
 ### Scripts
 

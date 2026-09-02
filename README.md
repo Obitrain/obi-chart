@@ -1,54 +1,41 @@
-# Obi-chart
+# @obitrain/charts
 
-React Native charts using react-native-skia
+React Native charting primitives built on [React Native Skia](https://shopify.github.io/react-native-skia/),
+[Reanimated](https://docs.swmansion.com/react-native-reanimated/) and
+[Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/): animated line charts, a
+zoomable/pannable variant, a scalable bottom axis and a cursor, all driven from the UI thread.
 
 ## Installation
 
-The package is published to the GitLab package registry, so first point the `@obitrain` scope to it in your `.npmrc`:
-
-```ini
-@obitrain:registry=https://gitlab.com/api/v4/projects/10478649/packages/npm/
-```
-
-Or, if you use Yarn Berry, in your `.yarnrc.yml`:
-
-```yaml
-npmScopes:
-  obitrain:
-    npmRegistryServer: 'https://gitlab.com/api/v4/projects/10478649/packages/npm/'
-```
-
-Then install the library:
-
 ```sh
 yarn add @obitrain/charts
+yarn add @shopify/react-native-skia react-native-reanimated react-native-worklets react-native-gesture-handler d3-scale d3-shape
 ```
 
-### Peer dependencies
+`react-native-worklets` is only needed with Reanimated 4 (it is an optional peer dependency).
 
-The library expects the following peer dependencies (see `package.json` for the exact ranges): `@shopify/react-native-skia` (>=2 <3), `d3-scale` (>=4 <5), `d3-shape` (>=3.2 <4), `react-native-gesture-handler` (^2.26), `react-native-reanimated` (^4) and `react-native-worklets` (>=0.5).
+## Requirements
 
-For Expo apps:
+| Peer dependency              | Supported versions                                    |
+| ---------------------------- | ----------------------------------------------------- |
+| `@shopify/react-native-skia` | `>=2.0.0 <3.0.0`                                       |
+| `react-native-reanimated`    | 3.x or 4.x                                             |
+| `react-native-worklets`      | `>=0.10.0` (optional, required with Reanimated 4)      |
+| `react-native-gesture-handler` | 2.x or 3.x                                           |
+| `d3-scale`                   | `>=4.0.2 <5.0.0`                                       |
+| `d3-shape`                   | `>=3.2.0 <4.0.0`                                       |
+| `react`                      | 18.x or 19.x                                           |
+| `react-native`               | 0.61.5 up to 0.87                                      |
 
-```sh
-npx expo install @shopify/react-native-skia react-native-gesture-handler react-native-reanimated react-native-worklets
-yarn add d3-scale d3-shape
-```
-
-## Animations
-
-
-
-### 1. Bottom Axis
-
-![Bottom Axis](./static/bottom-axis.gif)
-
+The exact ranges live in the `peerDependencies` of `package.json`. Development and tests run on
+Expo SDK 57 / React Native 0.86 / Node `>= 20.19.4`.
 
 ## Usage
 
 ### Static line chart
 
-`buildGraph` converts raw `[x, y][]` data into a `GraphData` object (Skia path, data points, d3 scales). `LineChart` renders one (`path`) or several (`paths`) paths on a Skia canvas:
+`buildGraph` converts raw `[x, y][]` data into a `GraphData` (Skia path, data points, d3 scales).
+`LineChart` renders one (`path`) or several (`paths`) paths on a Skia canvas:
 
 ```tsx
 import { buildGraph, LineChart } from '@obitrain/charts';
@@ -79,7 +66,8 @@ export function MyChart() {
 
 ### Zoomable line chart
 
-`useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan gestures to wire into a `GestureDetector`:
+`useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan
+gestures to wire into a `GestureDetector`:
 
 ```tsx
 import {
@@ -111,22 +99,101 @@ export function MyZoomableChart() {
 }
 ```
 
-### API overview
+## What's inside
 
-- `LineChart`: static line chart rendering one (`path`) or several (`paths`) Skia paths.
-- `ZoomableLineChart`: line chart driven by `scale` / `focalX` / `offsetX` shared values for pinch-to-zoom and pan.
-- `ScalablePath`: the zoomable path used by `ZoomableLineChart`, usable in your own `Canvas`.
-- `BottomAxis` / `AxisLine` / `Tick`: animated bottom axis that stays in sync with zoom/pan gestures.
-- `Cursor`: circle that follows the path at a given x position (tooltip cursor).
-- `useScalableGesture`: returns pinch/pan gestures, the `scale` / `focalX` / `offsetX` shared values and a `reset()` helper.
-- `useCursorGesture`: pan/tap gestures returning the cursor `xPosition` / `yPosition`, optionally snapping to data points.
-- `useUpdateAxis`: reacts to scale thresholds, e.g. to switch dataset granularity while zooming.
-- `useDotsTransition`: animates dots between graphs while keeping them glued to the path.
-- `buildGraph`: converts `[x, y][]` data into `GraphData` (`skiaPath`, `dataPoints`, d3 `scaleX` / `scaleY`, ...).
-- `getYForX` / `scaleCommands`: worklet helpers to compute y on a path and transform path commands during animations.
-- Date sampling utilities: `sampleDates`, `sampleDatesByRange`, `getDateBoundaries`, `getDateInterval`.
+**Components** — `BottomAxis`, `AxisLine`, `Tick`, `Cursor`, `LineChart`, `ZoomableLineChart`,
+`ScalablePath`.
 
-See the [example](example) app for full demos (cursor, dots, axis, advanced charts).
+**Hooks** — `useScalableGesture` (pinch/pan into a shared `scale`/`focalX`/`offsetX`),
+`useCursorGesture` (continuous or discrete cursor), `useUpdateAxis` (swap axis labels on scale
+thresholds), `useDotsTransition` (animate dots along a path), `useSharedNumberToStr`.
+
+**Graph helpers** — `buildGraph`, `scaleCommands`, `getClosestPoint`, `getPositionWl`,
+`defaultOpacityTransitionWl`, `defaultTranslateTransitionWl`.
+
+**Math helpers** — `commandsToBezier`, `cubicBezierYForX`, `getYForX`, `magnitude`, `normalize`,
+`selectCurve`.
+
+**Date helpers** — `getMonthInterval`, `getDateInterval`, `getDateBoundaries`, `sampleDates`,
+`sampleDatesByRange`.
+
+**Types** — `AnimatedDot`, `DataPoint`, `LineGraphType`, `GraphData`, `Config`, `LinePath`,
+`DateRange`, plus the component/hook prop types (`CursorProps`, `LineChartProps`,
+`ZoomableLineChartProps`, `UseCursorGestureProps`, `UseDotAnimationProps`).
+
+## Examples
+
+### Bottom axis
+
+![Bottom Axis](./static/bottom-axis.gif)
+
+`BottomAxis` with `useScalableGesture` and `useUpdateAxis`: zooming swaps the label set to match the
+current scale. From `example/src/screens/BottomAxisScreen.tsx`.
+
+### Line chart
+
+![Line chart](./static/line-chart.gif)
+
+`LineChart` interpolating between three paths, with animated dots and a `Cursor` — single path, then
+several paths at once. From `example/src/screens/LineChartScreen`.
+
+### Zoomable line chart
+
+![Zoomable line chart](./static/zoomable-line-chart.gif)
+
+`ZoomableLineChart` with pinch/pan and a programmatic zoom onto a period between two data points.
+From `example/src/screens/ZoomableLineChartScreen`.
+
+### Dots
+
+![Dots](./static/dots.gif)
+
+Dot transitions between data sets of different lengths, the primitive behind `useDotsTransition`.
+From `example/src/screens/DotsScreen`.
+
+### Advanced chart
+
+![Advanced chart](./static/advanced-chart.gif)
+
+`AxisLine` + `Tick` + a Y axis and dots composed in a single Skia canvas, with a shared scale driven
+by gestures or sliders. From `example/src/screens/AdvancedChartScreen`.
+
+## Example app
+
+```sh
+yarn
+yarn example ios     # or: yarn example android
+```
+
+Every demo screen is reachable through the `obichart://` scheme. Appending `?demo=1` replays a
+scripted sequence of interactions on that screen (used to record the GIFs above):
+
+```sh
+xcrun simctl openurl booted "obichart://line-chart?demo=1"
+```
+
+Slugs: `bottom-axis`, `line-chart`, `zoomable-line-chart`, `dots`, `advanced-chart`.
+
+## Regenerating the GIFs
+
+```sh
+yarn gifs                                  # all screens, builds the app in Release
+yarn gifs --skip-build dots line-chart     # reuse the installed app, only these screens
+yarn gifs --device "iPhone 17 Pro"
+```
+
+Requires Xcode with an iOS simulator, `ffmpeg` and `jq`. The script boots the simulator, freezes the
+status bar, drives each screen through its deep link and writes `static/<slug>.gif`.
+
+## Releasing
+
+Releases are automated from conventional commits. Every push to `main` updates a "Release" pull
+request (release-please) with the next version and changelog; merging it tags the release, creates the
+GitHub release and publishes `@obitrain/charts` to npm from CI via trusted publishing, so no npm token
+or one-time password is involved.
+
+One-time setup on npmjs.com, under the package's *Settings → Trusted publishing*: add a GitHub Actions
+publisher for `Obitrain/obi-chart` with workflow `release.yml`.
 
 ## Contributing
 
@@ -135,7 +202,3 @@ See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the 
 ## License
 
 MIT
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

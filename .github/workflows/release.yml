@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  # Manual re-publish of the version currently on main (e.g. after a failed publish step).
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write # npm trusted publishing (OIDC)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release PR / tag
+        id: release
+        if: github.event_name == 'push'
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Checkout
+        if: steps.release.outputs.release_created || github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+
+      - name: Setup
+        if: steps.release.outputs.release_created || github.event_name == 'workflow_dispatch'
+        uses: ./.github/actions/setup
+
+      - name: Build package
+        if: steps.release.outputs.release_created || github.event_name == 'workflow_dispatch'
+        run: yarn prepare
+
+      # Trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10.
+      - name: Publish to npm
+        if: steps.release.outputs.release_created || github.event_name == 'workflow_dispatch'
+        env:
+          NPM_CONFIG_LOGLEVEL: verbose
+        run: |
+          npm install -g npm@latest
+          npm --version
+          npm publish --provenance --access public

@@ -15,7 +15,7 @@ import {
 } from 'react-native-reanimated';
 import { scheduleOnUI } from 'react-native-worklets';
 import { Button, Colors } from '../../components';
-import { useDimensions } from '../../hooks';
+import { useDemo, useDimensions } from '../../hooks';
 import { Dot } from './Dot';
 import { useData, zoomPeriod } from './utils';
 
@@ -100,6 +100,13 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
   //   });
 
   const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
+
+  useDemo([
+    { at: 1000, run: _onChangeGraph },
+    { at: 2500, run: _onChangeGraph },
+    { at: 4000, run: _onPressZoom },
+    { at: 6000, run: resetChart },
+  ]);
 
   return (
     <View style={styles.container}>
