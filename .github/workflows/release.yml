@@ -39,8 +39,6 @@ jobs:
       # Trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10. No --provenance: private repo.
       - name: Publish to npm
         if: steps.release.outputs.release_created || github.event_name == 'workflow_dispatch'
-        env:
-          NPM_CONFIG_LOGLEVEL: verbose
         run: |
           npm install -g npm@latest
           npm --version
