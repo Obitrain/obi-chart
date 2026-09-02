@@ -1,0 +1,68 @@
+{
+  // obi-chart — Renovate config (inline; policy duplicated per-repo by choice).
+  // Library variant of the obiapp config: no Detox/[e2e] gate (CI runs jest),
+  // peerDependencies are left to the maintainer (they express RN compatibility).
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  extends: ["config:recommended", ":dependencyDashboard", ":semanticCommits"],
+
+  // npm only — never touch the example app's gradle / CocoaPods / bundler / nvm.
+  enabledManagers: ["npm"],
+
+  timezone: "Europe/Paris",
+  schedule: ["before 6am on monday"],
+  prConcurrentLimit: 5,
+  rangeStrategy: "bump",
+  labels: ["dependencies"],
+
+  // Rules apply top-to-bottom; later matches override earlier ones.
+  packageRules: [
+    // peerDependencies are the RN/react compatibility contract — bump by hand.
+    { matchDepTypes: ["peerDependencies"], enabled: false },
+
+    // Tier 1 — dev tooling: batch + automerge on green CI.
+    {
+      matchDepTypes: ["devDependencies"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "dev tooling",
+      automerge: true,
+    },
+
+    // Build backbone — a bad bump breaks the package build; review by hand.
+    { matchPackageNames: ["react-native-builder-bob"], automerge: false },
+
+    // Peer contracts mirrored in devDeps (kept on the Expo SDK's bundled
+    // versions, not align-deps) — solo MR, manual.
+    {
+      matchPackageNames: ["@shopify/react-native-*", "react-native-gesture-handler"],
+      automerge: false,
+      addLabels: ["native"],
+    },
+
+    // Owned by @rnx-kit/align-deps (see rnx-kit.alignDeps in package.json):
+    // routine updates move via `align-deps --write`, not Renovate. Majors still
+    // fall through to the rule below.
+    {
+      matchUpdateTypes: ["minor", "patch", "pin", "digest"],
+      matchPackageNames: [
+        "react-native",
+        "@react-native/*",
+        "@react-native-community/cli*",
+        "react",
+        "react-test-renderer",
+        "react-native-reanimated",
+        "react-native-worklets",
+        "jest",
+      ],
+      enabled: false,
+    },
+
+    // Majors — surfaced in the dashboard, created on manual approval only.
+    {
+      matchUpdateTypes: ["major"],
+      dependencyDashboardApproval: true,
+      automerge: false,
+      addLabels: ["major-bump"],
+    },
+  ],
+}

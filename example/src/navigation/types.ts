@@ -12,14 +12,17 @@ declare global {
   }
 }
 
+// `demo` is set by the obichart://<screen>?demo=1 deep links (see useDemo).
+type DemoParams = { demo?: string } | undefined;
+
 export type RootStackParamList = {
   Home: undefined;
-  BottomAxisScreen: undefined;
-  LineChartScreen: undefined;
-  ZoomableLineChartScreen: undefined;
+  BottomAxisScreen: DemoParams;
+  LineChartScreen: DemoParams;
+  ZoomableLineChartScreen: DemoParams;
   TestScreen: undefined;
-  DotsScreen: undefined;
-  AdvancedChartScreen: undefined;
+  DotsScreen: DemoParams;
+  AdvancedChartScreen: DemoParams;
 };
 
 export type RNFC<Screen extends keyof RootStackParamList> =

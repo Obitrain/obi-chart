@@ -9,6 +9,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { Button } from '../../components';
+import { useDemo } from '../../hooks';
 
 const DOTS_1 = [
   { x: 10, y: 10 },
@@ -65,6 +66,14 @@ function DotsScreen() {
       });
     }
   );
+
+  useDemo([
+    { at: 1000, run: _onChange },
+    { at: 2200, run: _onChange },
+    { at: 3400, run: _onChange },
+    { at: 4600, run: _onChange },
+    { at: 5800, run: _onChange },
+  ]);
 
   return (
     <View style={styles.container}>

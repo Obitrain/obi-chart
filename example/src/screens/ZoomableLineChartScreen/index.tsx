@@ -9,13 +9,13 @@ import { useCallback, useRef, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
-    runOnUI,
     useSharedValue,
     withTiming,
     type SharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnUI } from 'react-native-worklets';
 import { Button, Colors } from '../../components';
-import { useDimensions } from '../../hooks';
+import { useDemo, useDimensions } from '../../hooks';
 import { Dot } from './Dot';
 import { useData, zoomPeriod } from './utils';
 
@@ -81,7 +81,7 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
     console.info(`Zooming from ${_fromDot.x.value} to ${_toDot.x.value}`);
 
     _secondZoomDot.current = _secondZoomDot.current === 1 ? dots.length - 1 : 1;
-    runOnUI(zoomPeriod)(_fromDot, _toDot, scale, focalX, offsetX, _width);
+    scheduleOnUI(zoomPeriod, _fromDot, _toDot, scale, focalX, offsetX, _width);
   }, [dots, scale, focalX, offsetX, _width]);
 
   //   const _updateRange = useCallback(
@@ -100,6 +100,13 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
   //   });
 
   const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
+
+  useDemo([
+    { at: 1000, run: _onChangeGraph },
+    { at: 2500, run: _onChangeGraph },
+    { at: 4000, run: _onPressZoom },
+    { at: 6000, run: resetChart },
+  ]);
 
   return (
     <View style={styles.container}>
