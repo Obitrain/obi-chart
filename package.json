@@ -32,7 +32,6 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli lib",
     "prepare": "bob build",
-    "env:load": "./bin/load-env.sh",
     "release": "./bin/release.sh",
     "gifs": "./bin/capture-gifs.sh",
     "check-deps": "npx @rnx-kit/align-deps@latest --diff-mode allow-subset package.json"
@@ -42,15 +41,19 @@
     "ios",
     "android"
   ],
-  "repository": "https://github.com/Andarius/obi-chart",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Obitrain/obi-chart.git"
+  },
   "author": "Julien Brayere <julien.brayere@obitrain.com> (https://github.com/Andarius)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Andarius/obi-chart/issues"
+    "url": "https://github.com/Obitrain/obi-chart/issues"
   },
-  "homepage": "https://github.com/Andarius/obi-chart#readme",
+  "homepage": "https://github.com/Obitrain/obi-chart#readme",
   "publishConfig": {
-    "registry": "https://gitlab.com/api/v4/projects/10478649/packages/npm/"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",

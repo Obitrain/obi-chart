@@ -7,16 +7,6 @@ zoomable/pannable variant, a scalable bottom axis and a cursor, all driven from 
 
 ## Installation
 
-The package is published to a private GitLab npm registry. Add these two lines to the consuming
-project's `.npmrc` (`GITLAB_REGISTRY_TOKEN_DESIGN` must hold a token with `read_package_registry`):
-
-```
-@obitrain:registry=https://gitlab.com/api/v4/projects/10478649/packages/npm/
-//gitlab.com/api/v4/projects/10478649/packages/npm/:_authToken="${GITLAB_REGISTRY_TOKEN_DESIGN}"
-```
-
-Then:
-
 ```sh
 yarn add @obitrain/charts
 yarn add @shopify/react-native-skia react-native-reanimated react-native-worklets react-native-gesture-handler d3-scale d3-shape
