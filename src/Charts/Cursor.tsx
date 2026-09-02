@@ -1,6 +1,5 @@
 import { Circle, type PathCommand } from '@shopify/react-native-skia';
 import type { FC } from 'react';
-import React from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getYForX } from './maths';
 

@@ -1,5 +1,5 @@
 import { Line, vec, type Color } from '@shopify/react-native-skia';
-import React, { type FC } from 'react';
+import { type FC } from 'react';
 import { StyleSheet } from 'react-native';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from '../gesture';

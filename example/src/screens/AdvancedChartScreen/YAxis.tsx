@@ -6,7 +6,7 @@ import {
   type Color,
   type SkFont,
 } from '@shopify/react-native-skia';
-import React, { type FC } from 'react';
+import { type FC } from 'react';
 
 export type Props = {
   height: number;

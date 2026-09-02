@@ -12,7 +12,7 @@ import {
   Rect,
   usePathInterpolation,
 } from '@shopify/react-native-skia';
-import React, { useMemo, useState, type FC } from 'react';
+import { useMemo, useState, type FC } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   GestureDetector,

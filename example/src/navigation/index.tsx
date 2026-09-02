@@ -5,15 +5,60 @@ import {
 import {
   DarkTheme,
   DefaultTheme,
+  DrawerActions,
   NavigationContainer,
+  useNavigation,
   type LinkingOptions,
 } from '@react-navigation/native';
 import * as React from 'react';
-import { Platform, type ColorSchemeName } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+  type ColorSchemeName,
+} from 'react-native';
 import type { RootStackParamList } from './types';
 
 import { Colors } from '../components/theme';
 import * as Screens from '../screens';
+
+// Metro 0.83+ fails to resolve @react-navigation/drawer's platform-specific
+// toggle-drawer-icon@Nx.android.png variants, leaving the header with a
+// broken (invisible) image. Render our own hamburger until Metro fixes it.
+function HamburgerButton({ tintColor }: { tintColor?: string }) {
+  const navigation = useNavigation();
+  const color = tintColor ?? Colors.primary;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Show navigation menu"
+      hitSlop={8}
+      onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
+      style={hamburgerStyles.button}
+    >
+      <View style={[hamburgerStyles.bar, { backgroundColor: color }]} />
+      <View style={[hamburgerStyles.bar, { backgroundColor: color }]} />
+      <View style={[hamburgerStyles.bar, { backgroundColor: color }]} />
+    </Pressable>
+  );
+}
+
+const hamburgerStyles = StyleSheet.create({
+  button: {
+    width: 24,
+    height: 24,
+    marginVertical: 8,
+    marginHorizontal: 11,
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  bar: {
+    height: 2,
+    width: '100%',
+    borderRadius: 1,
+  },
+});
 
 const Drawer = createDrawerNavigator();
 
@@ -109,18 +154,21 @@ const SCREENS: ScreenType[] = [
   },
 ];
 
-const TOPBAR_DEFAULT_OPTIONS = Platform.select<DrawerNavigationOptions>({
-  ios: {
-    headerTintColor: Colors.primary,
-    // headerTitleStyle: getTitleFontStyle({
-    //   type: 'semi-bold',
-    //   size: 'medium',
-    // }),
-  },
-  default: {
-    headerTintColor: Colors.primary,
-  },
-});
+const TOPBAR_DEFAULT_OPTIONS: DrawerNavigationOptions = {
+  ...Platform.select<DrawerNavigationOptions>({
+    ios: {
+      headerTintColor: Colors.primary,
+      // headerTitleStyle: getTitleFontStyle({
+      //   type: 'semi-bold',
+      //   size: 'medium',
+      // }),
+    },
+    default: {
+      headerTintColor: Colors.primary,
+    },
+  }),
+  headerLeft: ({ tintColor }) => <HamburgerButton tintColor={tintColor} />,
+};
 
 function RootNavigator() {
   const initRoute: ScreenName = __DEV__ ? 'Home' : 'Home';
