@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/Obitrain/obi-chart/compare/v0.10.1...v0.10.2) (2026-09-02)
+
+
+### Bug Fixes
+
+* full-project review sweep (correctness, perf, packaging, docs) ([22cd6de](https://github.com/Obitrain/obi-chart/commit/22cd6de5fc8cf08b76acd27a5353f6bece4472a4))
+
 ## [0.10.1](https://github.com/Obitrain/obi-chart/compare/v0.10.0...v0.10.1) (2026-09-02)
 
 
