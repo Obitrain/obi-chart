@@ -91,13 +91,7 @@ Our pre-commit hooks verify that the linter and tests pass when committing.
 
 ### Publishing to npm
 
-We use [release-it](https://github.com/release-it/release-it) to make it easier to publish new versions. It handles common tasks like bumping version based on semver, creating tags and releases etc.
-
-To publish new versions, run the following:
-
-```sh
-yarn release
-```
+Releases are automated with [release-please](https://github.com/googleapis/release-please). Every push to `main` updates a "Release" pull request with the next version (derived from the conventional commits) and the changelog. Merging that pull request tags the release, creates the GitHub release and publishes the package to npm from CI (`.github/workflows/release.yml`, npm trusted publishing). There is nothing to run locally.
 
 ### Scripts
 
