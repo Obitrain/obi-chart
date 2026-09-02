@@ -25,6 +25,7 @@
     "!**/__mocks__",
     "!**/.*"
   ],
+  "sideEffects": false,
   "scripts": {
     "example": "yarn workspace obi-chart-example",
     "test": "jest",
