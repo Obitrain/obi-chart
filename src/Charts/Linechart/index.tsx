@@ -10,18 +10,22 @@ export type LinePath = {
   id?: string;
 };
 
-export type LineChartProps = {
-  path?: SkPath | SharedValue<SkPath>;
-  paths?: LinePath[];
+type LineChartBaseProps = {
   height: number;
   width: number;
   style?: StyleProp<ViewStyle>;
-  color?: string;
   offsetY?: number;
   offsetX?: number;
   background?: React.ReactNode;
   children?: React.ReactNode;
 };
+
+// Require at least one of `path` / `paths` at compile time
+export type LineChartProps = LineChartBaseProps &
+  (
+    | { path: SkPath | SharedValue<SkPath>; paths?: LinePath[]; color?: string }
+    | { paths: LinePath[]; path?: SkPath | SharedValue<SkPath>; color?: string }
+  );
 
 const LineChart: FC<LineChartProps> = function (props) {
   const {

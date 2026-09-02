@@ -87,7 +87,7 @@ Our pre-commit hooks verify that your commit message matches this format when co
 
 We use [TypeScript](https://www.typescriptlang.org/) for type checking, [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and formatting the code, and [Jest](https://jestjs.io/) for testing.
 
-Our pre-commit hooks verify that the linter and tests pass when committing.
+Our pre-commit hooks verify that the linter and type checks pass when committing.
 
 ### Publishing to npm
 
@@ -97,7 +97,7 @@ Releases are automated with [release-please](https://github.com/googleapis/relea
 
 The `package.json` file contains various scripts for common tasks:
 
-- `yarn`: setup project by installing dependencies and pods - run with `POD_INSTALL=0` to skip installing pods.
+- `yarn`: setup project by installing dependencies. The example app is Expo-based: `yarn example ios` / `yarn example android` handle the native builds (including CocoaPods) via Expo.
 - `yarn typecheck`: type-check files with TypeScript.
 - `yarn lint`: lint files with ESLint.
 - `yarn test`: run unit tests with Jest.

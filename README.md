@@ -30,6 +30,75 @@ yarn add @shopify/react-native-skia react-native-reanimated react-native-worklet
 The exact ranges live in the `peerDependencies` of `package.json`. Development and tests run on
 Expo SDK 57 / React Native 0.86 / Node `>= 20.19.4`.
 
+## Usage
+
+### Static line chart
+
+`buildGraph` converts raw `[x, y][]` data into a `GraphData` (Skia path, data points, d3 scales).
+`LineChart` renders one (`path`) or several (`paths`) paths on a Skia canvas:
+
+```tsx
+import { buildGraph, LineChart } from '@obitrain/charts';
+
+const WIDTH = 300;
+const HEIGHT = 140;
+
+const data: [number, number][] = [
+  [0, 10],
+  [1, 25],
+  [2, 18],
+  [3, 40],
+];
+
+const graph = buildGraph(data, WIDTH, HEIGHT);
+
+export function MyChart() {
+  return (
+    <LineChart
+      path={graph.skiaPath}
+      width={WIDTH}
+      height={HEIGHT}
+      color="dodgerblue"
+    />
+  );
+}
+```
+
+### Zoomable line chart
+
+`useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan
+gestures to wire into a `GestureDetector`:
+
+```tsx
+import {
+  buildGraph,
+  useScalableGesture,
+  ZoomableLineChart,
+} from '@obitrain/charts';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useSharedValue } from 'react-native-reanimated';
+
+export function MyZoomableChart() {
+  const graph = buildGraph(data, WIDTH, HEIGHT);
+  const path = useSharedValue(graph.skiaPath);
+
+  const { scale, focalX, offsetX, pinchGesture, panGesture } =
+    useScalableGesture({ width: WIDTH });
+
+  const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <ZoomableLineChart
+        width={WIDTH}
+        height={HEIGHT}
+        {...{ path, scale, focalX, offsetX }}
+      />
+    </GestureDetector>
+  );
+}
+```
+
 ## What's inside
 
 **Components** — `BottomAxis`, `AxisLine`, `Tick`, `Cursor`, `LineChart`, `ZoomableLineChart`,

@@ -1,4 +1,8 @@
-import type { PathCommand, Vector } from '@shopify/react-native-skia';
+import type {
+  PathCommand,
+  SkPoint,
+  Vector,
+} from '@shopify/react-native-skia';
 import { PathVerb, vec } from '@shopify/react-native-skia';
 
 // code from William Candillon
@@ -233,8 +237,6 @@ export const getYForX = (
 };
 
 // See Path/getPath2D
-
-import { type SkPoint } from '@shopify/react-native-skia';
 
 export const magnitude = (p: SkPoint): number =>
   Math.sqrt(p.x * p.x + p.y * p.y);
