@@ -18,6 +18,7 @@ import { useCallback, useMemo, useState, type FC } from 'react';
 import {
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -34,11 +35,13 @@ import { useDimensions } from '../../hooks';
 import {
   BANDS,
   BAND_SCALES,
+  DAY_MS,
   FAT,
   MAX_TS,
   MAX_Y,
   MIN_TS,
   MUSCLE,
+  TOTAL_DAYS,
   Y_TICKS,
   getDelta,
   useBodyCompositionData,
@@ -54,6 +57,26 @@ const DOT_RADIUS = 5;
 // Module-level: an inline array would be a new reference each render and
 // would defeat the memo on every Tick
 const TICK_DASH: [number, number] = [3, 4];
+
+// Visible-window presets, the Withings period selector. `days: null` is the
+// full range, which is what reset() already restores.
+const PRESETS: { label: string; days: number | null }[] = [
+  { label: 'Week', days: 7 },
+  { label: 'Month', days: 30 },
+  { label: 'Quarter', days: 91 },
+  { label: '6 months', days: 182 },
+  { label: 'Year', days: 365 },
+  { label: 'All', days: null },
+];
+
+/** Index of the preset whose window matches `days`, within 15%. */
+const matchPreset = function (days: number): number {
+  const i = PRESETS.findIndex(
+    (p) => p.days !== null && Math.abs(days - p.days) / p.days < 0.15
+  );
+  if (i !== -1) return i;
+  return days >= TOTAL_DAYS * 0.85 ? PRESETS.length - 1 : -1;
+};
 
 type Theme = {
   background: string;
@@ -189,6 +212,7 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
     title: formatRange(MIN_TS, MAX_TS, 'year'),
     muscle: getDelta(MUSCLE, MIN_TS, MAX_TS),
     fat: getDelta(FAT, MIN_TS, MAX_TS),
+    preset: PRESETS.length - 1,
   }));
 
   const updateTicks = useCallback(
@@ -212,6 +236,7 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
         title: formatRange(ts0, ts1, BANDS[band]?.data ?? 'year'),
         muscle: getDelta(MUSCLE, ts0, ts1),
         fat: getDelta(FAT, ts0, ts1),
+        preset: matchPreset((ts1 - ts0) / DAY_MS),
       });
     },
     [muscleGraphs, allBandTicks]
@@ -240,6 +265,22 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
       scheduleOnRN(updateTicks, cur.x0, cur.x1, cur.band);
     },
     [updateTicks, graphWidth]
+  );
+
+  // Pin the most recent `days` to the right edge, which is where the offset
+  // bounds already clamp a pan to, so this lands exactly on a reachable state
+  const applyPreset = useCallback(
+    (days: number | null) => {
+      if (days === null) {
+        reset();
+        return;
+      }
+      const nextScale = Math.max(1, TOTAL_DAYS / days);
+      focalX.value = 0;
+      scale.value = nextScale;
+      offsetX.value = graphWidth * (1 - nextScale);
+    },
+    [reset, focalX, scale, offsetX, graphWidth]
   );
 
   const gesture = useMemo(
@@ -373,14 +414,35 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
         </Canvas>
       </GestureDetector>
 
-      <Pressable
-        style={[styles.resetBtn, { backgroundColor: theme.accentBackground }]}
-        onPress={reset}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.presets}
       >
-        <Text style={[styles.resetLabel, { color: theme.accentText }]}>
-          Reset zoom
-        </Text>
-      </Pressable>
+        {PRESETS.map((preset, i) => {
+          const active = info.preset === i;
+          return (
+            <Pressable
+              key={preset.label}
+              accessibilityRole="button"
+              onPress={() => applyPreset(preset.days)}
+              style={[
+                styles.preset,
+                active && { backgroundColor: theme.accentBackground },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.presetLabel,
+                  { color: active ? theme.accentText : theme.label },
+                ]}
+              >
+                {preset.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 };
@@ -441,14 +503,18 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
   },
-  resetBtn: {
-    borderRadius: 24,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 16,
+  presets: {
+    gap: 8,
+    paddingVertical: 16,
+    paddingRight: 16,
   },
-  resetLabel: {
-    fontSize: 15,
+  preset: {
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  presetLabel: {
+    fontSize: 14,
     fontWeight: '600',
   },
 });
