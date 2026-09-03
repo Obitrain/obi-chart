@@ -134,7 +134,8 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
   const theme = scheme === 'dark' ? DARK : LIGHT;
 
   const graphWidth = width - 32;
-  const graphHeight = Math.max(240, height - 330);
+  // Leaves room for the header, legend and period row without stretching
+  const graphHeight = Math.min(Math.max(200, height - 430), 360);
   const canvasHeight = TOP_PAD + graphHeight + AXIS_PAD;
 
   // matchFont is not available on web: fall back to a bundled typeface there
@@ -213,6 +214,8 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
     muscle: getDelta(MUSCLE, MIN_TS, MAX_TS),
     fat: getDelta(FAT, MIN_TS, MAX_TS),
     preset: PRESETS.length - 1,
+    canPrev: false,
+    canNext: false,
   }));
 
   const updateTicks = useCallback(
@@ -237,9 +240,11 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
         muscle: getDelta(MUSCLE, ts0, ts1),
         fat: getDelta(FAT, ts0, ts1),
         preset: matchPreset((ts1 - ts0) / DAY_MS),
+        canPrev: x0 > 0.5,
+        canNext: x1 < graphWidth - 0.5,
       });
     },
-    [muscleGraphs, allBandTicks]
+    [muscleGraphs, allBandTicks, graphWidth]
   );
 
   // Regenerate the ticks when the zoom band changes or the visible
@@ -283,6 +288,24 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
     [reset, focalX, scale, offsetX, graphWidth]
   );
 
+  /** Page the visible window by its own width, the way the Withings arrows do. */
+  const shiftWindow = useCallback(
+    (direction: 1 | -1) => {
+      const s = scale.value;
+      const f = focalX.value;
+      const x0 = (0 - f - offsetX.value) / s + f;
+      const x1 = (graphWidth - f - offsetX.value) / s + f;
+      const window = x1 - x0;
+      const next = Math.max(
+        0,
+        Math.min(x0 + direction * window, graphWidth - window)
+      );
+      focalX.value = 0;
+      offsetX.value = -next * s;
+    },
+    [scale, focalX, offsetX, graphWidth]
+  );
+
   const gesture = useMemo(
     () => Gesture.Simultaneous(pinchGesture, panGesture),
     [pinchGesture, panGesture]
@@ -323,9 +346,39 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
   return (
     <View style={container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>
-          ‹ {info.title} ›
-        </Text>
+        <Pressable
+          onPress={() => shiftWindow(-1)}
+          disabled={!info.canPrev}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Previous period"
+        >
+          <Text
+            style={[
+              styles.arrow,
+              { color: info.canPrev ? theme.text : theme.grid },
+            ]}
+          >
+            ‹
+          </Text>
+        </Pressable>
+        <Text style={[styles.title, { color: theme.text }]}>{info.title}</Text>
+        <Pressable
+          onPress={() => shiftWindow(1)}
+          disabled={!info.canNext}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Next period"
+        >
+          <Text
+            style={[
+              styles.arrow,
+              { color: info.canNext ? theme.text : theme.grid },
+            ]}
+          >
+            ›
+          </Text>
+        </Pressable>
         <Pressable
           onPress={() => setScheme(scheme === 'dark' ? 'light' : 'dark')}
           hitSlop={12}
@@ -417,6 +470,7 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.presetsScroll}
         contentContainerStyle={styles.presets}
       >
         {PRESETS.map((preset, i) => {
@@ -464,6 +518,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
+  arrow: {
+    fontSize: 22,
+    lineHeight: 26,
+    paddingHorizontal: 10,
+  },
   schemeToggle: {
     fontSize: 18,
     position: 'absolute',
@@ -503,18 +562,26 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
   },
+  presetsScroll: {
+    flexGrow: 0,
+  },
   presets: {
     gap: 8,
+    // Without this the row stretches each pill and the label rides the top
+    alignItems: 'center',
     paddingVertical: 16,
     paddingRight: 16,
   },
   preset: {
     borderRadius: 18,
-    paddingVertical: 8,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 14,
   },
   presetLabel: {
     fontSize: 14,
+    lineHeight: 18,
     fontWeight: '600',
   },
 });
