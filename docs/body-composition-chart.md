@@ -124,8 +124,8 @@ Skia works in retained mode: re-rendering React components is the expensive path
 | `YAxis` | Horizontal gridlines with right-side labels (`values`/`nbTicks`, `formatLabel`) |
 | `getOffsetBoundsWl` | The pan/pinch offset bounds worklet |
 | `Tick` | Now themeable; a negative `tickLength` draws a full-height vertical gridline, `dash` makes it dashed and `labelAlign="left"` puts the label beside the tick instead of under it |
+| `BottomAxis` | Takes `ticks` at explicit positions (a time axis lands on month starts or Mondays, not on even fractions of the width) alongside the original evenly-spaced `labels`, forwards the tick styling props, and with `standalone={false}` renders into an existing `Canvas` instead of its own |
 | `YAxis` / `getPaddedTicks` | Horizontal gridlines with right-side labels; `getPaddedTicks` derives evenly spaced ticks from 0 up to a padded maximum (e.g. 0, 26, 52, 78, 104) |
-| `CursorLine` | Vertical line following a cursor position across the chart height |
 | `Cursor` | Optional `strokeColor` / `strokeWidth` draw a ring around the marker |
 
 ## Known limitation: the raw-measurement overlay
@@ -135,3 +135,19 @@ Withings' fullscreen view draws a faint grey line through every raw measurement 
 This was confirmed by a controlled comparison on a `sdk_gphone64_arm64` emulator (API 34, debug build): the pre-change code reset instantly, the change with the overlay ANR'd on every reset, and the same change with only the overlay removed reset instantly again.
 
 `ScalablePath` copies and transforms its whole path on every frame, so two extra long paths land on the UI thread exactly when a band change is already animating every dot. The overlay is therefore not implemented yet. The likely fix is to give the raw line the same band treatment as the aggregate paths — build a decimated version per band and swap it in `onScaleChange` — rather than drawing one full-resolution path at every zoom level.
+
+## Measured: what a zoom actually costs
+
+Profiled on an iOS simulator (debug build, so roughly 3x slower than release) over an 18.5s session: three band-crossing pinches, two pans and a reset.
+
+| | Before | After |
+| --- | --- | --- |
+| React commits over 16ms | 14 of 34 | 4 of 51 |
+| Fiber renders | 5527 | 2277 |
+| `Tick` renders / cost | 826 / 165.9ms | drops out of the top table |
+
+Panning and pinching inside a band cost nothing in React — the screen component rendered 3 times in the whole session, because zoom and pan only move shared values.
+
+The first profile showed every hot commit blaming `Tick` with "props: dash". The screen passed `dash={[3, 4]}` as an inline array, and since `Tick` is memoized a fresh array reference on each render defeated the memo and re-rendered all 74 ticks. `BottomAxis` now memoizes the dash pair on its values, so a caller writing the array inline (the natural way to write JSX) no longer breaks the memo.
+
+What remains is **mount** cost, not re-render cost: a band change or a pan that pulls new ticks into the window mounts 17–74 `Tick` components, and the worst such commit spent 142ms inside `runOnUISync`. Each `Tick` owns a `useDerivedValue`, so mounting N ticks registers N shared values on the UI thread. This is the same problem `Dots` already solved by collapsing a whole series into one path and one worklet; the gridlines could be collapsed the same way, leaving only the labels as per-tick components.

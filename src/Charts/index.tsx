@@ -1,13 +1,12 @@
 export { AxisLine, BottomAxis, Tick } from './BottomAxis';
 export type {
   AxisLineProps,
+  AxisTick,
   BottomAxisProps,
   TickProps,
 } from './BottomAxis';
 export { Cursor } from './Cursor';
 export type { CursorProps } from './Cursor';
-export { CursorLine } from './CursorLine';
-export type { CursorLineProps } from './CursorLine';
 export { Dot } from './Dot';
 export type { DotProps } from './Dot';
 export { Dots } from './Dots';

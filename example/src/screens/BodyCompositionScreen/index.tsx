@@ -1,8 +1,7 @@
 import {
-  AxisLine,
+  BottomAxis,
   Dots,
   ScalablePath,
-  Tick,
   YAxis,
   useDotsTransition,
   useScalableGesture,
@@ -52,6 +51,9 @@ const TOP_PAD = 24;
 const AXIS_PAD = 34;
 const LINE_WIDTH = 3;
 const DOT_RADIUS = 5;
+// Module-level: an inline array would be a new reference each render and
+// would defeat the memo on every Tick
+const TICK_DASH: [number, number] = [3, 4];
 
 type Theme = {
   background: string;
@@ -341,25 +343,17 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
               color={theme.grid}
               labelColor={theme.label}
             />
-            {ticks.map((tick) => (
-              <Tick
-                key={tick.x}
-                initPosition={tick.x}
-                label={tick.label}
-                font={font}
-                offsetY={graphHeight}
-                tickLength={-graphHeight}
-                dash={[3, 4]}
-                labelAlign="left"
-                color={theme.grid}
-                labelColor={theme.label}
-                {...{ scale, focalX, offsetX }}
-              />
-            ))}
-            <AxisLine
+            <BottomAxis
+              standalone={false}
+              ticks={ticks}
               width={graphWidth}
+              font={font}
               offsetY={graphHeight}
+              tickLength={-graphHeight}
+              dash={TICK_DASH}
+              labelAlign="left"
               color={theme.grid}
+              labelColor={theme.label}
               {...{ scale, focalX, offsetX }}
             />
             <ScalablePath
