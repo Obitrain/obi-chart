@@ -18,7 +18,6 @@ import { useCallback, useMemo, useState, type FC } from 'react';
 import {
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -60,12 +59,13 @@ const TICK_DASH: [number, number] = [3, 4];
 
 // Visible-window presets, the Withings period selector. `days: null` is the
 // full range, which is what reset() already restores.
+// Abbreviated so all six share the row width without scrolling
 const PRESETS: { label: string; days: number | null }[] = [
-  { label: 'Week', days: 7 },
-  { label: 'Month', days: 30 },
-  { label: 'Quarter', days: 91 },
-  { label: '6 months', days: 182 },
-  { label: 'Year', days: 365 },
+  { label: 'W', days: 7 },
+  { label: 'M', days: 30 },
+  { label: '3M', days: 91 },
+  { label: '6M', days: 182 },
+  { label: 'Y', days: 365 },
   { label: 'All', days: null },
 ];
 
@@ -379,17 +379,6 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
             ›
           </Text>
         </Pressable>
-        <Pressable
-          onPress={() => setScheme(scheme === 'dark' ? 'light' : 'dark')}
-          hitSlop={12}
-          accessible
-          accessibilityRole="button"
-          accessibilityLabel="Toggle theme"
-        >
-          <Text style={[styles.schemeToggle, { color: theme.label }]}>
-            {scheme === 'dark' ? '☀' : '☾'}
-          </Text>
-        </Pressable>
       </View>
 
       <View style={styles.legend}>
@@ -415,6 +404,18 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
             {formatDelta(info.fat)}
           </Text>
         </View>
+        <Pressable
+          onPress={() => setScheme(scheme === 'dark' ? 'light' : 'dark')}
+          hitSlop={12}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Toggle theme"
+          style={styles.schemeToggleBtn}
+        >
+          <Text style={[styles.schemeToggle, { color: theme.label }]}>
+            {scheme === 'dark' ? '☀' : '☾'}
+          </Text>
+        </Pressable>
       </View>
 
       <GestureDetector gesture={gesture}>
@@ -467,12 +468,7 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
         </Canvas>
       </GestureDetector>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.presetsScroll}
-        contentContainerStyle={styles.presets}
-      >
+      <View style={styles.presets}>
         {PRESETS.map((preset, i) => {
           const active = info.preset === i;
           return (
@@ -496,7 +492,7 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -523,13 +519,17 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     paddingHorizontal: 10,
   },
+  schemeToggleBtn: {
+    // Pushed to the far end of the legend row: in the title row it sat on top
+    // of the next-period arrow
+    marginLeft: 'auto',
+  },
   schemeToggle: {
     fontSize: 18,
-    position: 'absolute',
-    right: 0,
   },
   legend: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 28,
     marginBottom: 4,
   },
@@ -562,27 +562,25 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
   },
-  presetsScroll: {
-    flexGrow: 0,
-  },
   presets: {
-    gap: 8,
-    // Without this the row stretches each pill and the label rides the top
+    flexDirection: 'row',
+    gap: 6,
     alignItems: 'center',
     paddingVertical: 16,
-    paddingRight: 16,
   },
   preset: {
+    // Equal shares of the row so every period stays reachable without scrolling
+    flex: 1,
     borderRadius: 18,
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 14,
   },
   presetLabel: {
     fontSize: 14,
     lineHeight: 18,
     fontWeight: '600',
+    textAlign: 'center',
   },
 });
 
