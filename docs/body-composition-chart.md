@@ -1,6 +1,6 @@
 # Body Composition chart (Withings-style)
 
-The `BodyCompositionScreen` example ([example/src/screens/BodyCompositionScreen](../example/src/screens/BodyCompositionScreen)) reproduces the Withings body-composition chart: two series with hollow dot markers on a dark theme, a percentage grid, and a pinch-to-zoom interaction where the time axis adapts its granularity (years → months → weeks → days) to the visible window.
+The `BodyCompositionScreen` example ([example/src/screens/BodyCompositionScreen](../example/src/screens/BodyCompositionScreen)) reproduces the Withings body-composition chart: two series with hollow markers (a ring for muscle, a diamond for body fat), a percentage grid, and a pinch-to-zoom interaction where both the data bucketing and the axis labels adapt to the visible window. Colours come from a `Theme` object with a light and a dark palette, picked from the system scheme and switchable from the header.
 
 ![Body composition chart](../static/body-composition.png)
 
@@ -8,12 +8,12 @@ It is built entirely from library primitives; this document explains how the pie
 
 ## Architecture
 
-Raw data is sampled at several densities (one per zoom band) and turned into Skia paths by `buildGraph`. Gestures only write three shared values — `scale`, `focalX`, `offsetX` — and everything drawn on the canvas derives its position from them on the UI thread, frame by frame. React state is only involved when the zoom band or the visible window changes.
+Raw data is bucketed at several granularities (one per zoom band) and turned into Skia paths by `buildGraph`. Each band plots the **mean per bucket** at the mean timestamp of its measurements, so markers land on period boundaries rather than on arbitrary samples. Gestures only write three shared values — `scale`, `focalX`, `offsetX` — and everything drawn on the canvas derives its position from them on the UI thread, frame by frame. React state is only involved when the zoom band or the visible window changes.
 
 ```mermaid
 flowchart LR
     subgraph Data ["Build time (per band)"]
-        D["[ts, value][]"] --> S["sampleEvenly<br/>14 / 40 / 90 / 120 pts"]
+        D["[ts, value][]"] --> S["aggregate<br/>year / month / week / day"]
         S --> G["buildGraph<br/>(shared x/y domain)"]
     end
 
@@ -90,12 +90,12 @@ The pan is restricted to `maxPointers(1)`: two fingers belong to the pinch, whos
 
 Band thresholds are expressed in *visible window duration*, converted to scale values once (`BAND_SCALES` in [data.ts](../example/src/screens/BodyCompositionScreen/data.ts)):
 
-| Band | Visible window | Axis ticks | Sample size |
+| Band | Visible window | Data bucket | Axis ticks |
 | --- | --- | --- | --- |
-| years | > 2 years | Jan 1st, year label | 14 pts |
-| months | 3 months – 2 years | 1st of month, narrow month (year on Jan) | 40 pts |
-| weeks | 3 weeks – 3 months | Mondays, day of month | 90 pts |
-| days | < 3 weeks | every day, day of month | 120 pts |
+| years | > 2 years | one point per year | Jan 1st, year label |
+| months | 4 months – 2 years | one point per month | 1st of month, narrow month (year on Jan) |
+| weeks | 6 weeks – 4 months | one point per week | 1st of month, full month name |
+| days | < 6 weeks | every measurement | Mondays, short weekday + day |
 
 `useUpdateAxis` watches `scale` on the UI thread and fires once per band crossing; the screen swaps the band's pre-built paths into the rendered shared values and `useDotsTransition` animates the dot set to the new sampling.
 
@@ -110,6 +110,7 @@ Tick labels for all four granularities are **precomputed once** at mount (Date/I
 
 Skia works in retained mode: re-rendering React components is the expensive path, while animating values through worklets is nearly free. The screen therefore keeps everything gesture-driven on the UI thread and minimizes what React re-renders:
 
+- **One Skia call per marker.** A diamond built from four `moveTo`/`lineTo` calls costs four JSI hops per dot per frame; `addPoly` does it in one. The worklet rebuilds every visible dot on every frame of a gesture, so this multiplies quickly.
 - **`Dots` over per-dot components.** 240 `Dot` components each run a worklet and update ~2 Skia nodes per frame; on a OnePlus Nord this held zoomed pans at an 18 ms median frame (74% janky on the 90 Hz panel). [`Dots`](../src/Charts/Dots.tsx) rebuilds one `SkPath` per series in a single worklet (with off-screen culling), bringing the median to 5 ms (2.3% janky). The trade-off: per-dot opacity is binary (the 200 ms fade of individual dots becomes a snap).
 - **Stable gesture instances.** `useScalableGesture` memoizes its `Pan`/`Pinch` objects: handing new instances to `GestureDetector` mid-gesture resets the active pan.
 - **Stable reactions.** `useDotsTransition` and `useUpdateAxis` take explicit dependencies (and a ref-based dispatcher for the latter), so mid-pan re-renders don't tear down and re-fire UI-thread reactions.
@@ -118,8 +119,19 @@ Skia works in retained mode: re-rendering React components is the expensive path
 
 | Export | Purpose |
 | --- | --- |
-| `Dots` | A whole dot series as one Skia path (two with `fillColor` for the hollow-ring look) |
+| `Dots` | A whole dot series as one Skia path (two with `fillColor` for the hollow-ring look); `shape` selects `circle` or `diamond` |
 | `Dot` | Single marker, zoom-aware, true per-dot opacity animation |
 | `YAxis` | Horizontal gridlines with right-side labels (`values`/`nbTicks`, `formatLabel`) |
 | `getOffsetBoundsWl` | The pan/pinch offset bounds worklet |
-| `Tick` | Now themeable; a negative `tickLength` draws a full-height vertical gridline |
+| `Tick` | Now themeable; a negative `tickLength` draws a full-height vertical gridline, `dash` makes it dashed and `labelAlign="left"` puts the label beside the tick instead of under it |
+| `YAxis` / `getPaddedTicks` | Horizontal gridlines with right-side labels; `getPaddedTicks` derives evenly spaced ticks from 0 up to a padded maximum (e.g. 0, 26, 52, 78, 104) |
+| `CursorLine` | Vertical line following a cursor position across the chart height |
+| `Cursor` | Optional `strokeColor` / `strokeWidth` draw a ring around the marker |
+
+## Known limitation: the raw-measurement overlay
+
+Withings' fullscreen view draws a faint grey line through every raw measurement behind the bucketed line. Adding it as two more `ScalablePath` layers (a `curveBasis` path over all 156 points per series) made the app ANR reliably on Android whenever the zoom was reset from the deepest band back to years.
+
+This was confirmed by a controlled comparison on a `sdk_gphone64_arm64` emulator (API 34, debug build): the pre-change code reset instantly, the change with the overlay ANR'd on every reset, and the same change with only the overlay removed reset instantly again.
+
+`ScalablePath` copies and transforms its whole path on every frame, so two extra long paths land on the UI thread exactly when a band change is already animating every dot. The overlay is therefore not implemented yet. The likely fix is to give the raw line the same band treatment as the aggregate paths — build a decimated version per band and swap it in `onScaleChange` — rather than drawing one full-resolution path at every zoom level.

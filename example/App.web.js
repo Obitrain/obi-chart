@@ -9,7 +9,7 @@ export default function App() {
       getComponent={() => import('./src/App')}
       opts={{
         locateFile: (file) =>
-          `https://cdn.jsdelivr.net/npm/canvaskit-wasm@0.40.0/bin/full/${file}`,
+          `https://cdn.jsdelivr.net/npm/canvaskit-wasm@0.41.0/bin/full/${file}`,
       }}
     />
   );

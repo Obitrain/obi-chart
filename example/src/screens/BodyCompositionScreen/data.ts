@@ -1,8 +1,14 @@
-import { buildGraph, type AnimatedDot, type GraphData } from '@obitrain/charts';
+import {
+  buildGraph,
+  getPaddedTicks,
+  type AnimatedDot,
+  type GraphData,
+} from '@obitrain/charts';
 import * as shape from 'd3-shape';
 import { useMemo } from 'react';
 import { makeMutable } from 'react-native-reanimated';
 import { BODY_FAT } from '../../data';
+import type { DataGranularity, TickGranularity } from './ticks';
 
 export type Series = [ts: number, value: number][];
 
@@ -22,37 +28,80 @@ export const DAY_MS = 24 * 3600 * 1000;
 export const TOTAL_DAYS = (MAX_TS - MIN_TS) / DAY_MS;
 
 /**
- * Zoom bands: the axis granularity (and data sampling) switches when the
- * visible window crosses these durations.
+ * Zoom bands, from the widest visible window to the narrowest. Each band
+ * buckets the data and labels the axis like the matching Withings period.
  */
-export const GRANULARITIES = ['year', 'month', 'week', 'day'] as const;
-export const BAND_SCALES = [
-  TOTAL_DAYS / 730, // > 2 years visible -> years
-  TOTAL_DAYS / 90, // 3 months - 2 years -> months
-  TOTAL_DAYS / 21, // 3 weeks - 3 months -> weeks
-  Infinity, // < 3 weeks -> days
-];
-const BAND_SAMPLES = [14, 40, 90, 120];
-
-const sampleEvenly = function <T>(arr: T[], max: number): T[] {
-  if (arr.length <= max) return arr;
-  return Array.from(
-    { length: max },
-    (_, i) => arr[Math.round((i * (arr.length - 1)) / (max - 1))]!
-  );
+export type Band = {
+  data: DataGranularity;
+  ticks: TickGranularity;
+  /** The band applies while the visible window is longer than this. */
+  minDays: number;
 };
+export const BANDS: Band[] = [
+  { data: 'year', ticks: 'year', minDays: 730 },
+  { data: 'month', ticks: 'month', minDays: 120 },
+  { data: 'week', ticks: 'monthLong', minDays: 42 },
+  { data: 'day', ticks: 'week', minDays: 0 },
+];
+export const BAND_SCALES = BANDS.map((band) =>
+  band.minDays === 0 ? Infinity : TOTAL_DAYS / band.minDays
+);
+
+/** Y domain shared by both series: evenly spaced ticks up to a padded max. */
+export const Y_TICKS = getPaddedTicks(
+  Math.max(...FAT.map((d) => d[1]), ...MUSCLE.map((d) => d[1]))
+);
+export const MAX_Y = Y_TICKS[Y_TICKS.length - 1]!;
+
+const bucketStart = function (ts: number, granularity: DataGranularity) {
+  const d = new Date(ts);
+  switch (granularity) {
+    case 'year':
+      return new Date(d.getFullYear(), 0, 1).getTime();
+    case 'month':
+      return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+    case 'week': {
+      const sinceMonday = (d.getDay() + 6) % 7;
+      return new Date(
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate() - sinceMonday
+      ).getTime();
+    }
+    case 'day':
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  }
+};
+
+/** Mean value per bucket, placed at the mean timestamp of its measurements. */
+export const aggregate = function (
+  series: Series,
+  granularity: DataGranularity
+): Series {
+  const buckets = new Map<number, { ts: number; value: number; n: number }>();
+  for (const [ts, value] of series) {
+    const key = bucketStart(ts, granularity);
+    const bucket = buckets.get(key);
+    if (bucket === undefined) buckets.set(key, { ts, value, n: 1 });
+    else {
+      bucket.ts += ts;
+      bucket.value += value;
+      bucket.n += 1;
+    }
+  }
+  return [...buckets.values()].map((b) => [b.ts / b.n, b.value / b.n]);
+};
+
+const GRAPH_CONFIG = { minX: MIN_TS, maxX: MAX_TS, minY: 0, maxY: MAX_Y };
 
 const buildBandGraphs = function (
   series: Series,
   width: number,
   height: number
 ): GraphData[] {
-  return BAND_SAMPLES.map((nbPoints) =>
-    buildGraph(sampleEvenly(series, nbPoints), width, height, {
-      minX: MIN_TS,
-      maxX: MAX_TS,
-      minY: 0,
-      maxY: 100,
+  return BANDS.map((band) =>
+    buildGraph(aggregate(series, band.data), width, height, {
+      ...GRAPH_CONFIG,
       curve: shape.curveLinear,
     })
   );
@@ -78,8 +127,8 @@ export const useBodyCompositionData = function (
     () => buildBandGraphs(FAT, width, height),
     [width, height]
   );
-
-  const maxNbPoints = Math.max(...BAND_SAMPLES.map((n) => Math.min(n, FAT.length)));
+  // The densest band (raw days) bounds the dot pool shared by every band
+  const maxNbPoints = Math.max(...fatGraphs.map((g) => g.dataPoints.length));
   const muscleDots = useMemo(
     () => makeDots(muscleGraphs[0]!, maxNbPoints),
     [muscleGraphs, maxNbPoints]

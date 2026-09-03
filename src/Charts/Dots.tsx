@@ -4,9 +4,12 @@ import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from './gesture';
 import type { AnimatedDot } from './types';
 
+export type DotShape = 'circle' | 'diamond';
+
 export type DotsProps = {
   dots: AnimatedDot[];
   r?: number;
+  shape?: DotShape;
   color?: Color;
   /** When set, dots are drawn as rings: `fillColor` inside, `color` as the stroke. */
   fillColor?: Color;
@@ -29,6 +32,7 @@ const Dots: FC<DotsProps> = function (props) {
   const {
     dots,
     r = 4,
+    shape = 'circle',
     color = 'black',
     fillColor,
     strokeWidth = 2,
@@ -53,7 +57,22 @@ const Dots: FC<DotsProps> = function (props) {
               offsetX.value
             );
       if (width !== undefined && (x < -margin || x > width + margin)) continue;
-      p.addCircle(x, dot.y.value, r);
+      const y = dot.y.value;
+      if (shape === 'diamond') {
+        // One addPoly beats four moveTo/lineTo calls: each is a JSI hop, and
+        // this worklet rebuilds every dot on every frame of a gesture
+        p.addPoly(
+          [
+            { x, y: y - r },
+            { x: x + r, y },
+            { x, y: y + r },
+            { x: x - r, y },
+          ],
+          true
+        );
+      } else {
+        p.addCircle(x, y, r);
+      }
     }
     return p;
   });
@@ -67,6 +86,7 @@ const Dots: FC<DotsProps> = function (props) {
           style="stroke"
           color={color}
           strokeWidth={strokeWidth}
+          strokeJoin="round"
         />
       ) : null}
     </>

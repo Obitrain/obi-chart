@@ -27,6 +27,16 @@ export type YAxisProps = {
 
 const defaultFormatLabel = (value: number) => `${Math.round(value)}`;
 
+/** Evenly spaced integer ticks from 0 to a padded maximum, e.g. 0, 26, 52, 78, 104. */
+export const getPaddedTicks = function (
+  maxValue: number,
+  nbTicks = 4,
+  padding = 1.15
+): number[] {
+  const step = Math.max(1, Math.ceil((maxValue * padding) / nbTicks));
+  return Array.from({ length: nbTicks + 1 }, (_, i) => i * step);
+};
+
 const YAxis: FC<YAxisProps> = function (props) {
   const {
     width,

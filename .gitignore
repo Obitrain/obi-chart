@@ -87,4 +87,6 @@ AGENTS.md
 
 # Other
 .env
+
+# Local scratch artifacts
 .scratch/

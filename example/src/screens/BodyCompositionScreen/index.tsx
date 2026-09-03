@@ -11,11 +11,19 @@ import {
 import {
   Canvas,
   Group,
+  matchFont,
   useFont,
   Text as SkiaText,
 } from '@shopify/react-native-skia';
 import { useCallback, useMemo, useState, type FC } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
   useAnimatedReaction,
@@ -25,12 +33,14 @@ import {
 import { scheduleOnRN } from 'react-native-worklets';
 import { useDimensions } from '../../hooks';
 import {
+  BANDS,
   BAND_SCALES,
   FAT,
-  GRANULARITIES,
   MAX_TS,
+  MAX_Y,
   MIN_TS,
   MUSCLE,
+  Y_TICKS,
   getDelta,
   useBodyCompositionData,
 } from './data';
@@ -38,20 +48,42 @@ import { formatRange, getTicksForWindow } from './ticks';
 
 export type Props = {};
 
-const GRAPH_HEIGHT = 240;
 const TOP_PAD = 24;
 const AXIS_PAD = 34;
-const CANVAS_HEIGHT = TOP_PAD + GRAPH_HEIGHT + AXIS_PAD;
+const LINE_WIDTH = 3;
+const DOT_RADIUS = 5;
 
-const Colors = {
-  background: '#101013',
-  card: '#1D1D21',
-  muscle: '#4FD8C2',
+type Theme = {
+  background: string;
+  muscle: string;
+  fat: string;
+  grid: string;
+  label: string;
+  text: string;
+  accentBackground: string;
+  accentText: string;
+};
+
+const DARK: Theme = {
+  background: '#1E1E1E',
+  muscle: '#5CD6BF',
   fat: '#A78BFA',
-  grid: 'rgba(255, 255, 255, 0.12)',
-  label: '#9B9BA1',
-  text: '#F2F2F5',
-  accent: '#3D4FC4',
+  grid: 'rgba(255, 255, 255, 0.2)',
+  label: '#A5A5A8',
+  text: '#F5F5F7',
+  accentBackground: '#233366',
+  accentText: '#C3D0FF',
+};
+
+const LIGHT: Theme = {
+  background: '#FFFFFF',
+  muscle: '#17A88F',
+  fat: '#7C5CE6',
+  grid: 'rgba(0, 0, 0, 0.14)',
+  label: '#6B6B70',
+  text: '#141416',
+  accentBackground: '#E4E9FF',
+  accentText: '#2B3F9E',
 };
 
 const translateWl = function (position: number) {
@@ -61,20 +93,43 @@ const translateWl = function (position: number) {
 
 const formatDelta = function (delta: number | null) {
   if (delta === null) return '—';
-  return `${delta >= 0 ? '+' : '−'}${Math.abs(delta).toFixed(1)}%`;
+  const abs = Math.abs(delta).toLocaleString(undefined, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return `${delta >= 0 ? '+' : '−'}${abs}%`;
 };
 
 const BodyCompositionScreen: FC<Props> = function ({}) {
-  const { width } = useDimensions();
+  const { width, height } = useDimensions();
+  const systemScheme = useColorScheme();
+  const [scheme, setScheme] = useState<'light' | 'dark'>(
+    systemScheme === 'light' ? 'light' : 'dark'
+  );
+  const theme = scheme === 'dark' ? DARK : LIGHT;
+
   const graphWidth = width - 32;
-  // matchFont is not available on web: load a bundled typeface instead
-  const font = useFont(
+  const graphHeight = Math.max(240, height - 330);
+  const canvasHeight = TOP_PAD + graphHeight + AXIS_PAD;
+
+  // matchFont is not available on web: fall back to a bundled typeface there
+  const webFont = useFont(
     require('../../../assets/fonts/SpaceMono-Regular.ttf'),
     11
   );
+  const font = useMemo(
+    () =>
+      Platform.OS === 'web'
+        ? webFont
+        : matchFont({
+            fontFamily: Platform.OS === 'ios' ? 'Helvetica' : 'sans-serif',
+            fontSize: 11,
+          }),
+    [webFont]
+  );
 
   const { muscleGraphs, fatGraphs, muscleDots, fatDots } =
-    useBodyCompositionData(graphWidth, GRAPH_HEIGHT);
+    useBodyCompositionData(graphWidth, graphHeight);
 
   const { scale, focalX, offsetX, pinchGesture, panGesture, reset } =
     useScalableGesture({ width: graphWidth });
@@ -82,7 +137,7 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
   const musclePath = useSharedValue(muscleGraphs[0]!.skiaPath);
   const fatPath = useSharedValue(fatGraphs[0]!.skiaPath);
 
-  // Swap to denser data when zooming in (years -> months -> weeks -> days)
+  // Swap to finer buckets when zooming in (years -> months -> weeks -> days)
   const { currentIndex } = useUpdateAxis({
     scale,
     scales: BAND_SCALES,
@@ -119,8 +174,8 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
   // (Date + Intl calls) costs 10-50ms on the JS thread and reads as jank
   const allBandTicks = useMemo(() => {
     const scaleX = muscleGraphs[0]!.scaleX;
-    return GRANULARITIES.map((granularity) =>
-      getTicksForWindow(MIN_TS, MAX_TS, granularity).map((t) => ({
+    return BANDS.map((band) =>
+      getTicksForWindow(MIN_TS, MAX_TS, band.ticks).map((t) => ({
         x: scaleX(t.ts),
         label: t.label,
       }))
@@ -137,14 +192,13 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
   const updateTicks = useCallback(
     (x0: number, x1: number, band: number) => {
       const scaleX = muscleGraphs[0]!.scaleX;
-      const granularity = GRANULARITIES[band] ?? 'year';
       const all = allBandTicks[band]!;
-      if (band <= 1) {
-        // Years/months are few enough to always render in full: a stable
-        // array identity means no re-render at all while panning
+      if (band < BANDS.length - 1) {
+        // Year and month ticks are few enough to always render in full: a
+        // stable array identity means no re-render at all while panning
         setTicks(all);
       } else {
-        // Slice one window beyond each side so panning stays covered
+        // Weekly ticks: slice one window beyond each side so panning stays covered
         const buffer = x1 - x0;
         setTicks(
           all.filter((t) => t.x >= x0 - buffer && t.x <= x1 + buffer)
@@ -153,7 +207,7 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
       const ts0 = Math.max(scaleX.invert(x0), MIN_TS);
       const ts1 = Math.min(scaleX.invert(x1), MAX_TS);
       setInfo({
-        title: formatRange(ts0, ts1, granularity),
+        title: formatRange(ts0, ts1, BANDS[band]?.data ?? 'year'),
         muscle: getDelta(MUSCLE, ts0, ts1),
         fat: getDelta(FAT, ts0, ts1),
       });
@@ -198,58 +252,94 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
       <>
         <Dots
           dots={fatDots}
-          r={3.5}
-          color={Colors.fat}
-          fillColor={Colors.background}
-          strokeWidth={1.5}
+          r={DOT_RADIUS + 1}
+          shape="diamond"
+          color={theme.fat}
+          fillColor={theme.background}
+          strokeWidth={2}
           width={graphWidth}
           {...{ scale, focalX, offsetX }}
         />
         <Dots
           dots={muscleDots}
-          r={3.5}
-          color={Colors.muscle}
-          fillColor={Colors.background}
-          strokeWidth={1.5}
+          r={DOT_RADIUS}
+          color={theme.muscle}
+          fillColor={theme.background}
+          strokeWidth={2}
           width={graphWidth}
           {...{ scale, focalX, offsetX }}
         />
       </>
     ),
-    [fatDots, muscleDots, graphWidth, scale, focalX, offsetX]
+    [fatDots, muscleDots, graphWidth, scale, focalX, offsetX, theme]
   );
 
-  if (font === null) return <View style={styles.container} />;
+  const container = [styles.container, { backgroundColor: theme.background }];
+  if (font === null) return <View style={container} />;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>‹ {info.title} ›</Text>
+    <View style={container}>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: theme.text }]}>
+          ‹ {info.title} ›
+        </Text>
+        <Pressable
+          onPress={() => setScheme(scheme === 'dark' ? 'light' : 'dark')}
+          hitSlop={12}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Toggle theme"
+        >
+          <Text style={[styles.schemeToggle, { color: theme.label }]}>
+            {scheme === 'dark' ? '☀' : '☾'}
+          </Text>
+        </Pressable>
+      </View>
+
       <View style={styles.legend}>
-        <View style={[styles.legendDot, { borderColor: Colors.muscle }]} />
-        <Text style={styles.legendLabel}>Muscle</Text>
-        <View style={[styles.legendDot, { borderColor: Colors.fat }]} />
-        <Text style={styles.legendLabel}>Body fat</Text>
+        <View style={styles.legendItem}>
+          <View style={styles.legendHead}>
+            <View style={[styles.legendRing, { borderColor: theme.muscle }]} />
+            <Text style={[styles.legendLabel, { color: theme.label }]}>
+              MUSCLE
+            </Text>
+          </View>
+          <Text style={[styles.legendValue, { color: theme.text }]}>
+            {formatDelta(info.muscle)}
+          </Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={styles.legendHead}>
+            <View style={[styles.legendDiamond, { borderColor: theme.fat }]} />
+            <Text style={[styles.legendLabel, { color: theme.label }]}>
+              BODY FAT
+            </Text>
+          </View>
+          <Text style={[styles.legendValue, { color: theme.text }]}>
+            {formatDelta(info.fat)}
+          </Text>
+        </View>
       </View>
 
       <GestureDetector gesture={gesture}>
-        <Canvas style={{ width: graphWidth, height: CANVAS_HEIGHT }}>
+        <Canvas style={{ width: graphWidth, height: canvasHeight }}>
           <Group transform={[{ translateY: TOP_PAD }]}>
             <SkiaText
               text="%"
               x={graphWidth - 10}
               y={-10}
               font={font}
-              color={Colors.label}
+              color={theme.label}
             />
             <YAxis
               width={graphWidth}
-              height={GRAPH_HEIGHT}
+              height={graphHeight}
               font={font}
               minY={0}
-              maxY={100}
-              values={[20, 40, 60, 80, 100]}
-              color={Colors.grid}
-              labelColor={Colors.label}
+              maxY={MAX_Y}
+              values={Y_TICKS}
+              color={theme.grid}
+              labelColor={theme.label}
             />
             {ticks.map((tick) => (
               <Tick
@@ -257,27 +347,31 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
                 initPosition={tick.x}
                 label={tick.label}
                 font={font}
-                offsetY={GRAPH_HEIGHT}
-                tickLength={-GRAPH_HEIGHT}
-                color={Colors.grid}
-                labelColor={Colors.label}
+                offsetY={graphHeight}
+                tickLength={-graphHeight}
+                dash={[3, 4]}
+                labelAlign="left"
+                color={theme.grid}
+                labelColor={theme.label}
                 {...{ scale, focalX, offsetX }}
               />
             ))}
             <AxisLine
               width={graphWidth}
-              offsetY={GRAPH_HEIGHT}
-              color={Colors.grid}
+              offsetY={graphHeight}
+              color={theme.grid}
               {...{ scale, focalX, offsetX }}
             />
             <ScalablePath
               path={fatPath}
-              color={Colors.fat}
+              color={theme.fat}
+              pathProps={{ strokeWidth: LINE_WIDTH }}
               {...{ scale, focalX, offsetX }}
             />
             <ScalablePath
               path={musclePath}
-              color={Colors.muscle}
+              color={theme.muscle}
+              pathProps={{ strokeWidth: LINE_WIDTH }}
               {...{ scale, focalX, offsetX }}
             />
             {dotElements}
@@ -285,22 +379,13 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
         </Canvas>
       </GestureDetector>
 
-      <View style={styles.cards}>
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Muscle</Text>
-          <Text style={styles.cardValue}>{formatDelta(info.muscle)}</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Body fat</Text>
-          <Text style={styles.cardValue}>{formatDelta(info.fat)}</Text>
-        </View>
-      </View>
-
-      <Text style={styles.hint}>
-        Pinch to zoom: the axis switches years → months → weeks → days
-      </Text>
-      <Pressable style={styles.resetBtn} onPress={reset}>
-        <Text style={styles.resetLabel}>Reset zoom</Text>
+      <Pressable
+        style={[styles.resetBtn, { backgroundColor: theme.accentBackground }]}
+        onPress={reset}
+      >
+        <Text style={[styles.resetLabel, { color: theme.accentText }]}>
+          Reset zoom
+        </Text>
       </Pressable>
     </View>
   );
@@ -309,71 +394,66 @@ const BodyCompositionScreen: FC<Props> = function ({}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
     paddingHorizontal: 16,
     paddingTop: 16,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
   title: {
-    color: Colors.text,
+    flex: 1,
     textAlign: 'center',
-    fontSize: 15,
-    marginBottom: 12,
+    fontSize: 16,
+  },
+  schemeToggle: {
+    fontSize: 18,
+    position: 'absolute',
+    right: 0,
   },
   legend: {
     flexDirection: 'row',
+    gap: 28,
+    marginBottom: 4,
+  },
+  legendItem: {
+    gap: 2,
+  },
+  legendHead: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 8,
   },
-  legendDot: {
+  legendRing: {
     width: 10,
     height: 10,
     borderRadius: 5,
     borderWidth: 2,
-    backgroundColor: Colors.background,
+  },
+  legendDiamond: {
+    width: 9,
+    height: 9,
+    borderWidth: 2,
+    transform: [{ rotate: '45deg' }],
   },
   legendLabel: {
-    color: Colors.label,
-    fontSize: 13,
-    marginRight: 12,
-  },
-  cards: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: Colors.card,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  cardLabel: {
-    color: Colors.label,
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  cardValue: {
-    color: Colors.text,
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  hint: {
-    color: Colors.label,
     fontSize: 12,
-    textAlign: 'center',
-    marginTop: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  legendValue: {
+    fontSize: 22,
+    fontWeight: '700',
   },
   resetBtn: {
-    backgroundColor: Colors.accent,
     borderRadius: 24,
     paddingVertical: 12,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 16,
   },
   resetLabel: {
-    color: Colors.text,
     fontSize: 15,
     fontWeight: '600',
   },

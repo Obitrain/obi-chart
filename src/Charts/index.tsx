@@ -6,11 +6,13 @@ export type {
 } from './BottomAxis';
 export { Cursor } from './Cursor';
 export type { CursorProps } from './Cursor';
+export { CursorLine } from './CursorLine';
+export type { CursorLineProps } from './CursorLine';
 export { Dot } from './Dot';
 export type { DotProps } from './Dot';
 export { Dots } from './Dots';
-export type { DotsProps } from './Dots';
-export { YAxis } from './YAxis';
+export type { DotShape, DotsProps } from './Dots';
+export { YAxis, getPaddedTicks } from './YAxis';
 export type { YAxisProps } from './YAxis';
 export { LineChart } from './Linechart';
 export type { LineChartProps, LinePath } from './Linechart';
