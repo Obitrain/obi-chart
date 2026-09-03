@@ -1,6 +1,6 @@
-# Body Composition chart (Withings-style)
+# Advanced Chart (body composition)
 
-The `BodyCompositionScreen` example ([example/src/screens/BodyCompositionScreen](../example/src/screens/BodyCompositionScreen)) reproduces the Withings body-composition chart: two series with hollow markers (a ring for muscle, a diamond for body fat), a percentage grid, and a pinch-to-zoom interaction where both the data bucketing and the axis labels adapt to the visible window. Colours come from a `Theme` object with a light and a dark palette, picked from the system scheme and switchable from the header.
+The `AdvancedChartScreen` example ([example/src/screens/AdvancedChartScreen](../example/src/screens/AdvancedChartScreen)) is a body-composition chart: two series with hollow markers (a ring for muscle, a diamond for body fat), a percentage grid, and a pinch-to-zoom interaction where both the data bucketing and the axis labels adapt to the visible window. Colours come from a `Theme` object with a light and a dark palette, picked from the system scheme and switchable from the header.
 
 ![Body composition chart](../static/body-composition.png)
 
@@ -88,7 +88,7 @@ The pan is restricted to `maxPointers(1)`: two fingers belong to the pinch, whos
 
 ## Adaptive axis (zoom bands)
 
-Band thresholds are expressed in *visible window duration*, converted to scale values once (`BAND_SCALES` in [data.ts](../example/src/screens/BodyCompositionScreen/data.ts)):
+Band thresholds are expressed in *visible window duration*, converted to scale values once (`BAND_SCALES` in [data.ts](../example/src/screens/AdvancedChartScreen/data.ts)):
 
 | Band | Visible window | Data bucket | Axis ticks |
 | --- | --- | --- | --- |
@@ -130,7 +130,7 @@ Skia works in retained mode: re-rendering React components is the expensive path
 
 ## Known limitation: the raw-measurement overlay
 
-Withings' fullscreen view draws a faint grey line through every raw measurement behind the bucketed line. Adding it as two more `ScalablePath` layers (a `curveBasis` path over all 156 points per series) made the app ANR reliably on Android whenever the zoom was reset from the deepest band back to years.
+A fullscreen variant could draw a faint grey line through every raw measurement behind the bucketed line. Adding it as two more `ScalablePath` layers (a `curveBasis` path over all 156 points per series) made the app ANR reliably on Android whenever the zoom was reset from the deepest band back to years.
 
 This was confirmed by a controlled comparison on a `sdk_gphone64_arm64` emulator (API 34, debug build): the pre-change code reset instantly, the change with the overlay ANR'd on every reset, and the same change with only the overlay removed reset instantly again.
 

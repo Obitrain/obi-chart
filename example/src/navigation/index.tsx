@@ -149,14 +149,7 @@ const SCREENS: ScreenType[] = [
     name: 'AdvancedChartScreen',
     component: Screens.AdvancedChartScreen,
     options: {
-      title: 'Advanced Chart',
-    },
-  },
-  {
-    name: 'BodyCompositionScreen',
-    component: Screens.BodyCompositionScreen,
-    options: {
-      title: 'Body Composition (Withings)',
+      title: 'Advanced Charts',
     },
   },
 ];

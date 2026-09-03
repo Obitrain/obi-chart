@@ -64,7 +64,7 @@ export const getTicksForWindow = function (
   return ticks;
 };
 
-/** Withings-style range title: "22 Dec 2025 – 1 Jul", years only when they differ. */
+/** Range title: "22 Dec 2025 – 1 Jul", years only when they differ. */
 export const formatRange = function (
   ts0: number,
   ts1: number,

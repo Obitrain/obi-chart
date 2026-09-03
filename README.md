@@ -30,13 +30,6 @@ yarn add @shopify/react-native-skia react-native-reanimated react-native-worklet
 The exact ranges live in the `peerDependencies` of `package.json`. Development and tests run on
 Expo SDK 57 / React Native 0.86 / Node `>= 20.19.4`.
 
-### 2. Body Composition (Withings-style)
-
-Two series with hollow markers (ring and diamond), a pinch-to-zoom interaction with live-clamped panning, and a light/dark themed time axis whose data bucketing and labels adapt to the visible window (years → months → weeks → days). See the [implementation notes](./docs/body-composition-chart.md) and the `BodyCompositionScreen` example.
-
-![Body Composition](./static/body-composition.png)
-
-
 ## Usage
 
 ### Static line chart
@@ -162,8 +155,10 @@ From `example/src/screens/DotsScreen`.
 
 ![Advanced chart](./static/advanced-chart.gif)
 
-`AxisLine` + `Tick` + a Y axis and dots composed in a single Skia canvas, with a shared scale driven
-by gestures or sliders. From `example/src/screens/AdvancedChartScreen`.
+Two series with hollow markers (ring and diamond), pinch-to-zoom with live-clamped panning, period
+presets, and a light/dark themed time axis whose bucketing and labels adapt to the visible window
+(years → months → weeks → days). See the [implementation notes](./docs/advanced-chart.md).
+From `example/src/screens/AdvancedChartScreen`.
 
 ## Example app
 
