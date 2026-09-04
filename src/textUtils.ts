@@ -15,7 +15,7 @@ export const useSharedNumberToStr = function (
   const value = useSharedValue<number>(initValue);
   const valueStr = useDerivedValue(() => {
     return textToString(value.value);
-  }, [value]);
+  });
 
   return [value, valueStr];
 };
