@@ -10718,7 +10718,7 @@ __metadata:
     react-native-gesture-handler: ~2.32.0
     react-native-monorepo-config: ^0.4.0
     react-native-reanimated: 4.5.1
-    react-native-safe-area-context: ~5.7.0
+    react-native-safe-area-context: ~5.9.1
     react-native-screens: ~4.26.0
     react-native-web: ^0.21.2
     react-native-worklets: 0.10.1
@@ -11610,13 +11610,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-safe-area-context@npm:~5.7.0":
-  version: 5.7.0
-  resolution: "react-native-safe-area-context@npm:5.7.0"
+"react-native-safe-area-context@npm:~5.9.1":
+  version: 5.9.1
+  resolution: "react-native-safe-area-context@npm:5.9.1"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 0d831f4dc64e8453c67c095fe02d68ccf21b808c6338ef6a4db1cfacf3167956b682db40308a3f3152e59e9a5203b025f4bf28c2968c95e3afa22d9f52062ee0
+  checksum: ef708ab0b4480750552aa1947910bdfa26fd8e2864146342317e7713c00960c5da1d8dab72307f1e9da7dec3f7aff5c97d2eda349a1120dd3d14aa935331ae66
   languageName: node
   linkType: hard
 
