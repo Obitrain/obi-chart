@@ -127,7 +127,7 @@
   },
   "packageManager": "yarn@3.6.1",
   "engines": {
-    "node": ">= 20.19.4"
+    "node": ">= 24.20.0"
   },
   "jest": {
     "preset": "@react-native/jest-preset",
