@@ -102,7 +102,7 @@
     "react": "^16.9.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
     "react-native": "^0.86.0",
     "react-native-builder-bob": "^0.43.0",
-    "react-native-gesture-handler": "~2.32.0",
+    "react-native-gesture-handler": "~3.2.1",
     "react-native-reanimated": "~4.5.1",
     "react-native-worklets": "^0.10.1",
     "react-test-renderer": "19.2.3",
