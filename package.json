@@ -91,7 +91,7 @@
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
     "del-cli": "^7.0.0",
-    "eslint": "^8.57.1",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-ft-flow": "^3.0.11",
