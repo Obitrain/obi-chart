@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/Obitrain/obi-chart/compare/v0.10.2...v0.10.3) (2026-09-07)
+
+
+### Bug Fixes
+
+* bundle the Expo example with its app preset ([#34](https://github.com/Obitrain/obi-chart/issues/34)) ([6cdbdb5](https://github.com/Obitrain/obi-chart/commit/6cdbdb5866e89eb35cceece0f65f604d2f92a427))
+
 ## [0.10.2](https://github.com/Obitrain/obi-chart/compare/v0.10.1...v0.10.2) (2026-09-02)
 
 
