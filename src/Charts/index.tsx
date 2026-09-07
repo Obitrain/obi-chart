@@ -35,7 +35,7 @@ export {
 } from './graphUtils';
 export type {
   BuildGraphConfig,
-  // eslint-disable-next-line deprecation/deprecation
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   Config,
   GraphData,
   UseDotAnimationProps,

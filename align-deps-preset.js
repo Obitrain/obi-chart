@@ -21,4 +21,5 @@ module.exports['0.86'] = {
   react,
   animation: { name: 'react-native-reanimated', version: '~4.5.1' },
   gestures: { name: 'react-native-gesture-handler', version: '~2.32.0' },
+  jest: { name: 'jest', version: '^30.0.0' },
 };
