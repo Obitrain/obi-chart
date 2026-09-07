@@ -85,7 +85,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core7@npm:@babel/core@^7.29.7, @babel/core@npm:^7.24.4, @babel/core@npm:^7.27.4, @babel/core@npm:^7.29.0":
+"@babel/core7@npm:@babel/core@^7.29.7, @babel/core@npm:^7.24.4, @babel/core@npm:^7.27.4, @babel/core@npm:^7.29.0, @babel/core@npm:^7.29.7":
   version: 7.29.7
   resolution: "@babel/core@npm:7.29.7"
   dependencies:
@@ -11753,7 +11753,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "obi-chart-example@workspace:example"
   dependencies:
-    "@babel/core": "npm:^8.0.1"
+    "@babel/core": "npm:^7.29.7"
     "@expo/vector-icons": "npm:^15.1.1"
     "@react-native-community/slider": "npm:5.2.0"
     "@react-navigation/drawer": "npm:^7.13.10"
