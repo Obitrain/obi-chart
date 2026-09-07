@@ -20,6 +20,12 @@
 
   // Rules apply top-to-bottom; later matches override earlier ones.
   packageRules: [
+    // Expo SDK 57 requires Babel 7 in the example.
+    {
+      matchFileNames: ["example/package.json"],
+      matchPackageNames: ["@babel/core"],
+      allowedVersions: "<8",
+    },
     // Upgrade these together with the Expo SDK.
     {
       matchPackageNames: [
