@@ -64,3 +64,9 @@ jobs:
         run: npx --yes expo-doctor@1.20.4 --verbose
         env:
           CI: '1'
+
+      - name: Bundle Expo example
+        working-directory: example
+        run: yarn expo export --platform android --platform ios --output-dir "$RUNNER_TEMP/expo-export"
+        env:
+          CI: '1'
