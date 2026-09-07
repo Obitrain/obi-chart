@@ -87,6 +87,7 @@
     "@shopify/react-native-skia": "2.6.2",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.2.18",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "commitlint": "^21.2.2",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
@@ -106,7 +107,7 @@
     "react-native-reanimated": "~4.5.1",
     "react-native-worklets": "^0.10.1",
     "react-test-renderer": "19.2.3",
-    "typescript": "^5.9.3"
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   },
   "peerDependencies": {
     "@shopify/react-native-skia": ">=2.0.0 <3.0.0",
