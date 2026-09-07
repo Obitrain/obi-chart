@@ -67,6 +67,6 @@ jobs:
 
       - name: Bundle Expo example
         working-directory: example
-        run: yarn expo export --platform android --platform ios --output-dir "$RUNNER_TEMP/expo-export"
+        run: yarn expo export --clear --platform android --platform ios --output-dir "$RUNNER_TEMP/expo-export"
         env:
           CI: '1'
