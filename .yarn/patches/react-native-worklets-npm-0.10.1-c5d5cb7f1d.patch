@@ -1,0 +1,40 @@
+diff --git a/plugin/index.js b/plugin/index.js
+index 7080b1ba47ba02e7d934c2cd5f7af0b67071d283..3d2f170f3550bd26e3f3667b443960d9250a9e3e 100644
+--- a/plugin/index.js
++++ b/plugin/index.js
+@@ -603,7 +603,7 @@ var require_imports = __commonJS({
+     exports2.canForwardModuleImport = canForwardModuleImport;
+     exports2.canForwardRelativeImport = canForwardRelativeImport;
+     exports2.createImportPathLiteral = createImportPathLiteral;
+-    var core_1 = require("@babel/core");
++    var core_1 = require("@babel/core7");
+     var types_12 = require("@babel/types");
+     var path_1 = require("path");
+     var types_2 = require_types();
+@@ -745,7 +745,7 @@ var require_generate = __commonJS({
+     };
+     Object.defineProperty(exports2, "__esModule", { value: true });
+     exports2.generateWorkletFile = generateWorkletFile;
+-    var core_1 = require("@babel/core");
++    var core_1 = require("@babel/core7");
+     var types_12 = require("@babel/types");
+     var assert_1 = __importDefault(require("assert"));
+     var fs_1 = require("fs");
+@@ -807,7 +807,7 @@ var require_transform = __commonJS({
+     };
+     Object.defineProperty(exports2, "__esModule", { value: true });
+     exports2.workletTransformSync = workletTransformSync;
+-    var core_1 = require("@babel/core");
++    var core_1 = require("@babel/core7");
+     function workletTransformSync(code, opts) {
+       const { extraPlugins = [], extraPresets = [] } = opts, rest = __rest(opts, ["extraPlugins", "extraPresets"]);
+       return (0, core_1.transformSync)(code, Object.assign(Object.assign({}, rest), { plugins: [...defaultPlugins, ...extraPlugins], presets: [...defaultPresets, ...extraPresets] }));
+@@ -865,7 +865,7 @@ var require_workletStringCode = __commonJS({
+     };
+     Object.defineProperty(exports2, "__esModule", { value: true });
+     exports2.buildWorkletString = buildWorkletString;
+-    var core_1 = require("@babel/core");
++    var core_1 = require("@babel/core7");
+     var generator_1 = __importDefault(require("@babel/generator"));
+     var types_12 = require("@babel/types");
+     var assert_1 = require("assert");

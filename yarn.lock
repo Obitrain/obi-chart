@@ -85,6 +85,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/core7@npm:@babel/core@^7.29.7, @babel/core@npm:^7.24.4, @babel/core@npm:^7.27.4, @babel/core@npm:^7.29.0, @babel/core@npm:^7.29.7":
+  version: 7.29.7
+  resolution: "@babel/core@npm:7.29.7"
+  dependencies:
+    "@babel/code-frame": "npm:^7.29.7"
+    "@babel/generator": "npm:^7.29.7"
+    "@babel/helper-compilation-targets": "npm:^7.29.7"
+    "@babel/helper-module-transforms": "npm:^7.29.7"
+    "@babel/helpers": "npm:^7.29.7"
+    "@babel/parser": "npm:^7.29.7"
+    "@babel/template": "npm:^7.29.7"
+    "@babel/traverse": "npm:^7.29.7"
+    "@babel/types": "npm:^7.29.7"
+    "@jridgewell/remapping": "npm:^2.3.5"
+    convert-source-map: "npm:^2.0.0"
+    debug: "npm:^4.1.0"
+    gensync: "npm:^1.0.0-beta.2"
+    json5: "npm:^2.2.3"
+    semver: "npm:^6.3.1"
+  checksum: 10/38e71cf81db790b0bb2a3a0c8140c2b1c87576b61dc6be676de4fab8c3be871af590a739e8c489fe8e8f9a8e5899fa11e35e59e9e09d40b259c6a675f2f98928
+  languageName: node
+  linkType: hard
+
 "@babel/core@npm:^7.11.6, @babel/core@npm:^7.12.3, @babel/core@npm:^7.20.0, @babel/core@npm:^7.23.9, @babel/core@npm:^7.25.2":
   version: 7.28.5
   resolution: "@babel/core@npm:7.28.5"
@@ -105,29 +128,6 @@ __metadata:
     json5: "npm:^2.2.3"
     semver: "npm:^6.3.1"
   checksum: 10/2f1e224125179f423f4300d605a0c5a3ef315003281a63b1744405b2605ee2a2ffc5b1a8349aa4f262c72eca31c7e1802377ee04ad2b852a2c88f8ace6cac324
-  languageName: node
-  linkType: hard
-
-"@babel/core@npm:^7.24.4, @babel/core@npm:^7.27.4, @babel/core@npm:^7.29.0":
-  version: 7.29.7
-  resolution: "@babel/core@npm:7.29.7"
-  dependencies:
-    "@babel/code-frame": "npm:^7.29.7"
-    "@babel/generator": "npm:^7.29.7"
-    "@babel/helper-compilation-targets": "npm:^7.29.7"
-    "@babel/helper-module-transforms": "npm:^7.29.7"
-    "@babel/helpers": "npm:^7.29.7"
-    "@babel/parser": "npm:^7.29.7"
-    "@babel/template": "npm:^7.29.7"
-    "@babel/traverse": "npm:^7.29.7"
-    "@babel/types": "npm:^7.29.7"
-    "@jridgewell/remapping": "npm:^2.3.5"
-    convert-source-map: "npm:^2.0.0"
-    debug: "npm:^4.1.0"
-    gensync: "npm:^1.0.0-beta.2"
-    json5: "npm:^2.2.3"
-    semver: "npm:^6.3.1"
-  checksum: 10/38e71cf81db790b0bb2a3a0c8140c2b1c87576b61dc6be676de4fab8c3be871af590a739e8c489fe8e8f9a8e5899fa11e35e59e9e09d40b259c6a675f2f98928
   languageName: node
   linkType: hard
 
@@ -4010,6 +4010,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@obitrain/charts@workspace:."
   dependencies:
+    "@babel/core": "npm:^8.0.1"
     "@commitlint/config-conventional": "npm:^21.2.2"
     "@evilmartians/lefthook": "npm:^2.1.12"
     "@react-native-community/cli": "npm:^20.2.0"
@@ -11752,7 +11753,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "obi-chart-example@workspace:example"
   dependencies:
-    "@babel/core": "npm:^8.0.1"
+    "@babel/core": "npm:^7.29.7"
     "@expo/vector-icons": "npm:^15.1.1"
     "@react-native-community/slider": "npm:5.2.0"
     "@react-navigation/drawer": "npm:^7.13.10"
@@ -12766,9 +12767,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-worklets@npm:^0.10.1":
-  version: 0.10.4
-  resolution: "react-native-worklets@npm:0.10.4"
+"react-native-worklets@patch:react-native-worklets@npm%3A0.10.1#~/.yarn/patches/react-native-worklets-npm-0.10.1-c5d5cb7f1d.patch":
+  version: 0.10.1
+  resolution: "react-native-worklets@patch:react-native-worklets@npm%3A0.10.1#~/.yarn/patches/react-native-worklets-npm-0.10.1-c5d5cb7f1d.patch::version=0.10.1&hash=57c9ed"
   dependencies:
     "@babel/plugin-transform-arrow-functions": "npm:^7.27.1"
     "@babel/plugin-transform-class-properties": "npm:^7.28.6"
@@ -12787,7 +12788,7 @@ __metadata:
     "@react-native/metro-config": "*"
     react: "*"
     react-native: 0.83 - 0.86
-  checksum: 10/57090076467c4c9ffd46ba753b3a74b971b5ba9e0d139e684623a12e4459eb0c55acc191dcd6e4df3f8b106529b983c1a6601baf3201d30c041789fc18e92b6b
+  checksum: 10/ef812bfd80e9f084fb6a084b7a474d9e9aa8753cd063f191db7124b816bc544c2b808cfa0b10b6b3c28f2dbb4708d967bf12740f26d923f2f9df59ac066e749d
   languageName: node
   linkType: hard
 
