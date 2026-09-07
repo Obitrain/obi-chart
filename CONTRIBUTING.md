@@ -25,6 +25,13 @@ It is configured to use the local version of the library, so any changes you mak
 
 You can use various commands from the root directory to work with the project.
 
+The example uses Expo Prebuild: `example/android` and `example/ios` are generated and ignored by Git. Keep native settings in `example/app.json` or config plugins. The first `yarn example android` or `yarn example ios` generates the native project. After changing native dependencies or app config, regenerate it with:
+
+```sh
+cd example
+yarn expo prebuild --clean
+```
+
 To start the packager:
 
 ```sh
