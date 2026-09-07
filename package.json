@@ -92,9 +92,8 @@
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
     "del-cli": "^7.0.0",
-    "eslint": "^8.57.1",
+    "eslint": "^9.39.5",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-ft-flow": "^3.0.11",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
@@ -153,30 +152,6 @@
       "@commitlint/config-conventional"
     ]
   },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "@react-native",
-      "prettier"
-    ],
-    "rules": {
-      "react/react-in-jsx-scope": "off",
-      "prettier/prettier": [
-        "error",
-        {
-          "quoteProps": "consistent",
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "useTabs": false
-        }
-      ]
-    }
-  },
-  "eslintIgnore": [
-    "node_modules/",
-    "lib/"
-  ],
   "prettier": {
     "quoteProps": "consistent",
     "singleQuote": true,

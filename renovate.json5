@@ -20,6 +20,31 @@
 
   // Rules apply top-to-bottom; later matches override earlier ones.
   packageRules: [
+    // Upgrade these together with the Expo SDK.
+    {
+      matchPackageNames: [
+        "expo",
+        "@expo/vector-icons",
+        "@react-native-community/slider",
+        "@shopify/react-native-skia",
+        "expo-font",
+        "expo-splash-screen",
+        "expo-status-bar",
+        "expo-system-ui",
+        "react",
+        "react-dom",
+        "react-native",
+        "react-native-gesture-handler",
+        "react-native-reanimated",
+        "react-native-safe-area-context",
+        "react-native-screens",
+        "react-native-web",
+        "react-native-worklets",
+      ],
+      enabled: false,
+    },
+    // The React Native lint preset supports ESLint 8 and 9.
+    { matchPackageNames: ["eslint"], allowedVersions: "<10" },
     // peerDependencies are the RN/react compatibility contract — bump by hand.
     { matchDepTypes: ["peerDependencies"], enabled: false },
 
