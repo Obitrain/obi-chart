@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.4](https://github.com/Obitrain/obi-chart/compare/v0.10.3...v0.10.4) (2026-09-07)
+
+
+### Bug Fixes
+
+* keep Babel 8 tooling compatible with Expo and Worklets ([20ddc03](https://github.com/Obitrain/obi-chart/commit/20ddc032be2c853a5547484d441dc17d7825a5fd))
+
 ## [0.10.3](https://github.com/Obitrain/obi-chart/compare/v0.10.2...v0.10.3) (2026-09-07)
 
 
