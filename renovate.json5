@@ -7,11 +7,44 @@
 
   extends: ["github>Obitrain/renovate-config"],
 
+  // Renovate checks CI itself because native GitHub auto-merge is unavailable.
+  automerge: true,
+  automergeType: "pr",
+  automergeStrategy: "squash",
+  platformAutomerge: false,
+  rebaseWhen: "behind-base-branch",
+  ignoreTests: false,
+
   // weekly, not nightly — low-churn repo
   schedule: ["before 6am on monday"],
 
   // Rules apply top-to-bottom; later matches override earlier ones.
   packageRules: [
+    // Upgrade these together with the Expo SDK.
+    {
+      matchPackageNames: [
+        "expo",
+        "@expo/vector-icons",
+        "@react-native-community/slider",
+        "@shopify/react-native-skia",
+        "expo-font",
+        "expo-splash-screen",
+        "expo-status-bar",
+        "expo-system-ui",
+        "react",
+        "react-dom",
+        "react-native",
+        "react-native-gesture-handler",
+        "react-native-reanimated",
+        "react-native-safe-area-context",
+        "react-native-screens",
+        "react-native-web",
+        "react-native-worklets",
+      ],
+      enabled: false,
+    },
+    // The React Native lint preset supports ESLint 8 and 9.
+    { matchPackageNames: ["eslint"], allowedVersions: "<10" },
     // peerDependencies are the RN/react compatibility contract — bump by hand.
     { matchDepTypes: ["peerDependencies"], enabled: false },
 
@@ -20,17 +53,12 @@
       matchDepTypes: ["devDependencies"],
       matchUpdateTypes: ["minor", "patch"],
       groupName: "dev tooling",
-      automerge: true,
     },
 
-    // Build backbone — a bad bump breaks the package build; review by hand.
-    { matchPackageNames: ["react-native-builder-bob"], automerge: false },
-
     // Peer contracts mirrored in devDeps (kept on the Expo SDK's bundled
-    // versions, not align-deps) — solo MR, manual.
+    // versions, not align-deps) — separate PRs.
     {
       matchPackageNames: ["@shopify/react-native-*", "react-native-gesture-handler"],
-      automerge: false,
       addLabels: ["native"],
     },
 
@@ -56,7 +84,6 @@
     {
       matchUpdateTypes: ["major"],
       dependencyDashboardApproval: true,
-      automerge: false,
       addLabels: ["major-bump"],
     },
   ],
