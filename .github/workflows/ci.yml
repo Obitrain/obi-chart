@@ -38,6 +38,9 @@ jobs:
       - name: Run unit tests
         run: yarn test --maxWorkers=2 --coverage
 
+      - name: Check Babel worklet transformation
+        run: node .github/scripts/check-worklets.cjs
+
   build-library:
     runs-on: ubuntu-latest
     steps:
