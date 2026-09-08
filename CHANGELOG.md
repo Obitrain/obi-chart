@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.11.0](https://github.com/Obitrain/obi-chart/compare/v0.10.4...v0.11.0) (2026-09-08)
+
+
+### Features
+
+* **charts:** add Dot, Dots and YAxis components, themeable Tick ([92b813c](https://github.com/Obitrain/obi-chart/commit/92b813cbf6cb916dd84d5413b7cfdcbeb387ba68))
+* **charts:** advanced body-composition chart example with adaptive zoom bands ([8075e47](https://github.com/Obitrain/obi-chart/commit/8075e479d4f0bc95653a17cd204e1b1c01ea45b1))
+* **charts:** live-clamp pan/pinch and keep the pinch focal glued to the fingers ([181d53c](https://github.com/Obitrain/obi-chart/commit/181d53c1ae2727e2b19ab04d1e7af0de01b10368))
+* **charts:** refine the body composition chart styling ([419523d](https://github.com/Obitrain/obi-chart/commit/419523ddcf7dd97aa982b6c073aa58cafd4863b8))
+* **example:** add a body composition example screen ([73892ba](https://github.com/Obitrain/obi-chart/commit/73892ba46ee9bb421cc20d64b9fdb7777b13337e))
+* **example:** add period presets to the body composition screen ([b87dcb4](https://github.com/Obitrain/obi-chart/commit/b87dcb4a152ac7d68db3f92a8648d18fdad423c5))
+
+
+### Bug Fixes
+
+* **example:** centre the period labels, shrink the graph, wire up the arrows ([dc9047c](https://github.com/Obitrain/obi-chart/commit/dc9047ca9640c7b357ab0d0e7d472cde20ce5497))
+* **example:** fit every period button on screen and unstack the theme toggle ([b09c1bb](https://github.com/Obitrain/obi-chart/commit/b09c1bb7c1614cf121048477e66fb39c1d99fca5))
+* **example:** make the example app run on web ([cb3021e](https://github.com/Obitrain/obi-chart/commit/cb3021e58656a1c3a6a1436a3f3261cfc4131f63))
+
 ## [0.10.4](https://github.com/Obitrain/obi-chart/compare/v0.10.3...v0.10.4) (2026-09-07)
 
 
