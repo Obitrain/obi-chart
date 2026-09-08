@@ -6,10 +6,10 @@
 #   obichart://<slug>?demo=1 deep link, which replays a scripted demo (useDemo).
 #
 # USAGE
-#   bin/capture-gifs.sh [--skip-build] [--device "<simulator name>"] [<slug>...]
+#   bin/capture-gifs.sh [--skip-build] [--device "<name|udid>"] [<slug>...]
 #
 #     --skip-build          Reuse the app already installed on the simulator.
-#     --device <name>       Simulator to use (default: "iPhone 15 Pro").
+#     --device <name|udid>  Simulator to use (default: "iPhone 15 Pro").
 #     <slug>...             Screens to capture (default: all of them).
 #
 #   Requires Xcode with an iOS simulator, ffmpeg and jq.
@@ -47,7 +47,7 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         --device)
-            DEVICE_NAME="${2:?--device requires a simulator name}"
+            DEVICE_NAME="${2:?--device requires a simulator name or UDID}"
             shift 2
             ;;
         -h | --help)
@@ -87,10 +87,11 @@ BUNDLE_ID=$(node -p "require('./example/app.json').expo.ios.bundleIdentifier")
 readonly BUNDLE_ID
 readonly UDID=$(xcrun simctl list devices available -j |
     jq --raw-output --arg name "$DEVICE_NAME" \
-        '[.devices[][] | select(.name == $name)] | first | .udid // empty')
+        '[.devices[][] | select(.name == $name or .udid == $name)] |
+         sort_by(.state != "Booted") | first | .udid // empty')
 
 if [ -z "$UDID" ]; then
-    echo "No available simulator named \"$DEVICE_NAME\"" >&2
+    echo "No available simulator matching \"$DEVICE_NAME\"" >&2
     echo "Available: $(xcrun simctl list devices available -j | jq -r '[.devices[][].name] | unique | join(", ")')" >&2
     exit 1
 fi
