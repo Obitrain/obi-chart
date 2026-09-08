@@ -5,7 +5,7 @@ import {
 } from '@obitrain/charts';
 import { matchFont } from '@shopify/react-native-skia';
 import { useCallback, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Button } from '../components';
 import { useDemo, useDimensions } from '../hooks';
@@ -28,7 +28,9 @@ const TEST_ZOOM = 2;
 const TEST_FOCAL = 200;
 
 const fontFamily = Platform.select({ ios: 'Helvetica', default: 'serif' });
-const font = matchFont({ fontFamily, fontSize: 14 });
+// matchFont relies on the system font manager, which is not implemented on web
+const font =
+  Platform.OS === 'web' ? null : matchFont({ fontFamily, fontSize: 14 });
 
 export function BottomAxisScreen() {
   const [currentRange, setCurrentRange] = useState(0);
@@ -70,6 +72,13 @@ export function BottomAxisScreen() {
     { at: 5500, run: () => _updateRange() },
     { at: 7000, run: resetChart },
   ]);
+
+  if (font === null)
+    return (
+      <View style={styles.container}>
+        <Text>This screen is not supported on web (matchFont)</Text>
+      </View>
+    );
 
   return (
     <View style={styles.container}>

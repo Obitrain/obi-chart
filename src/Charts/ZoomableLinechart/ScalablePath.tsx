@@ -8,7 +8,7 @@ export type ScalablePathProps = {
   focalX: SharedValue<number>;
   offsetX: SharedValue<number>;
   color?: string;
-  pathProps?: Omit<React.ComponentProps<typeof Path>, 'color'>;
+  pathProps?: Omit<React.ComponentProps<typeof Path>, 'color' | 'path'>;
 };
 
 const ScalablePath: FC<ScalablePathProps> = function (props) {

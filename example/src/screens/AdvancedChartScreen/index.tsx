@@ -1,311 +1,595 @@
 import {
-    AxisLine,
-    ScalablePath,
-    useScalableGesture,
-    type AnimatedDot,
+  BottomAxis,
+  Dots,
+  ScalablePath,
+  YAxis,
+  useDotsTransition,
+  useScalableGesture,
+  useUpdateAxis,
 } from '@obitrain/charts';
-import Slider from '@react-native-community/slider';
-import { Canvas, Group, matchFont } from '@shopify/react-native-skia';
-import { useCallback, useRef, useState, type FC } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import {
+  Canvas,
+  Group,
+  matchFont,
+  useFont,
+  Text as SkiaText,
+} from '@shopify/react-native-skia';
+import { useCallback, useMemo, useState, type FC } from 'react';
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
-    useDerivedValue,
-    useSharedValue,
-    type SharedValue,
+  useAnimatedReaction,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
-import { Button, Colors, ReText } from '../../components';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useDemo, useDimensions } from '../../hooks';
-import { Dot } from './Dot';
-import { Tick } from './Tick';
-import { YAxis } from './YAxis';
-import { useData, type AnimatedTick } from './data';
+import {
+  BANDS,
+  BAND_SCALES,
+  DAY_MS,
+  FAT,
+  MAX_TS,
+  MAX_Y,
+  MIN_TS,
+  MUSCLE,
+  TOTAL_DAYS,
+  Y_TICKS,
+  getDelta,
+  useAdvancedChartData,
+} from './data';
+import { formatRange, getTicksForWindow } from './ticks';
 
 export type Props = {};
 
-const GRAPH_HEIGHT = 140;
-const CANVAS_HEIGHT = GRAPH_HEIGHT * 2;
-// const PADDING_HORIZONTAL = 20;
-const OFFSET_AXIS = GRAPH_HEIGHT + 50;
+const TOP_PAD = 24;
+const AXIS_PAD = 34;
+const LINE_WIDTH = 3;
+const DOT_RADIUS = 5;
+// Module-level: an inline array would be a new reference each render and
+// would defeat the memo on every Tick
+const TICK_DASH: [number, number] = [3, 4];
 
-const fontFamily = Platform.select({ ios: 'Helvetica', default: 'serif' });
+// Visible-window presets. `days: null` is the
+// full range, which is what reset() already restores.
+// Abbreviated so all six share the row width without scrolling
+const PRESETS: { label: string; days: number | null }[] = [
+  { label: 'W', days: 7 },
+  { label: 'M', days: 30 },
+  { label: '3M', days: 91 },
+  { label: '6M', days: 182 },
+  { label: 'Y', days: 365 },
+  { label: 'All', days: null },
+];
 
-const font = matchFont({ fontFamily, fontSize: 14 });
+/** Index of the preset whose window matches `days`, within 15%. */
+const matchPreset = function (days: number): number {
+  const i = PRESETS.findIndex(
+    (p) => p.days !== null && Math.abs(days - p.days) / p.days < 0.15
+  );
+  if (i !== -1) return i;
+  return days >= TOTAL_DAYS * 0.85 ? PRESETS.length - 1 : -1;
+};
+
+type Theme = {
+  background: string;
+  muscle: string;
+  fat: string;
+  grid: string;
+  label: string;
+  text: string;
+  accentBackground: string;
+  accentText: string;
+};
+
+const DARK: Theme = {
+  background: '#1E1E1E',
+  muscle: '#5CD6BF',
+  fat: '#A78BFA',
+  grid: 'rgba(255, 255, 255, 0.2)',
+  label: '#A5A5A8',
+  text: '#F5F5F7',
+  accentBackground: '#233366',
+  accentText: '#C3D0FF',
+};
+
+const LIGHT: Theme = {
+  background: '#FFFFFF',
+  muscle: '#17A88F',
+  fat: '#7C5CE6',
+  grid: 'rgba(0, 0, 0, 0.14)',
+  label: '#6B6B70',
+  text: '#141416',
+  accentBackground: '#E4E9FF',
+  accentText: '#2B3F9E',
+};
+
+const translateWl = function (position: number) {
+  'worklet';
+  return withTiming(position, { duration: 350 });
+};
+
+const formatDelta = function (delta: number | null) {
+  if (delta === null) return '—';
+  const abs = Math.abs(delta).toLocaleString(undefined, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return `${delta >= 0 ? '+' : '−'}${abs}%`;
+};
 
 const AdvancedChartScreen: FC<Props> = function ({}) {
-  const { width } = useDimensions();
-  const [hideAxis, setHideAxis] = useState(false);
-  const [hideDots, setHideDots] = useState(false);
-  const [hideSettings, setHideSettings] = useState(false);
-  const [hideYAxis, setHideYAxis] = useState(false);
-  const [currentChart, setCurrentChart] = useState(0);
+  const { width, height } = useDimensions();
+  const systemScheme = useColorScheme();
+  const [scheme, setScheme] = useState<'light' | 'dark'>(
+    systemScheme === 'light' ? 'light' : 'dark'
+  );
+  const theme = scheme === 'dark' ? DARK : LIGHT;
 
-  const graphWidth = width - 40;
+  const graphWidth = width - 32;
+  // Leaves room for the header, legend and period row without stretching
+  const graphHeight = Math.min(Math.max(200, height - 430), 360);
+  const canvasHeight = TOP_PAD + graphHeight + AXIS_PAD;
 
-  const { graphs, dots, axesX, yDomains } = useData(graphWidth, GRAPH_HEIGHT);
-
-  const { scale, focalX, offsetX, pinchGesture, panGesture, reset } =
-    useScalableGesture({
-      width: graphWidth,
-      startOffset: 0,
-    });
-
-  //   console.log(dots[0]!.y.value, 'dots[0]!.y.value');
-
-  const resetChart = () => {
-    reset();
-  };
-
-  //   const progress = useSharedValue(0);
-  //   const path = usePathInterpolation(
-  //     progress,
-  //     [0, 1, 2],
-  //     [
-  //       graphs[0]!.skiaPath,
-  //       //graphs[1]!.skiaPath, graphs[2]!.skiaPath
-  //     ]
-  //   );
-  const path = useSharedValue(graphs[currentChart]!.skiaPath);
-  const yDomain = useRef(yDomains[currentChart]!);
-  const axisTicks = useRef(axesX[currentChart]!);
-
-  const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
-
-  const scaleStr = useDerivedValue(() => {
-    return scale.value.toFixed(2);
-  }, [scale]);
-
-  const offsetXStr = useDerivedValue(() => {
-    return offsetX.value.toFixed(2);
-  }, [offsetX]);
-
-  const _changeChart = useCallback(
-    (newChartIdx: number) => {
-      const newGraph = graphs[newChartIdx]!;
-      path.value = newGraph.skiaPath;
-      yDomain.current = yDomains[newChartIdx]!;
-      axisTicks.current = axesX[newChartIdx]!;
-      //   console.log(axisTicks.current.length / 12);
-
-      scale.value =
-        // all
-        newChartIdx === 0
-          ? 1
-          : // yearly
-            axisTicks.current.length / 12;
-
-      dots.map((dot, i) => {
-        dot.x.value = newGraph.dataPoints[i]?.x ?? 0;
-        dot.y.value = newGraph.dataPoints[i]?.y ?? 0;
-        dot.opacity.value = newGraph.dataPoints[i] !== undefined ? 1 : 0;
-      });
-    },
-    [axesX, dots, graphs, path, scale, yDomains]
+  // matchFont is not available on web: fall back to a bundled typeface there
+  const webFont = useFont(
+    require('../../../assets/fonts/SpaceMono-Regular.ttf'),
+    11
+  );
+  const font = useMemo(
+    () =>
+      Platform.OS === 'web'
+        ? webFont
+        : matchFont({
+            fontFamily: Platform.OS === 'ios' ? 'Helvetica' : 'sans-serif',
+            fontSize: 11,
+          }),
+    [webFont]
   );
 
-  const _nextChart = useCallback(() => {
-    setCurrentChart((old) => {
-      const _newChartIdx = (old + 1) % graphs.length;
-      _changeChart(_newChartIdx);
-      return _newChartIdx;
-    });
-  }, [_changeChart, graphs.length]);
+  const { muscleGraphs, fatGraphs, muscleDots, fatDots } =
+    useAdvancedChartData(graphWidth, graphHeight);
+
+  const { scale, focalX, offsetX, pinchGesture, panGesture, reset } =
+    useScalableGesture({ width: graphWidth });
+
+  const musclePath = useSharedValue(muscleGraphs[0]!.skiaPath);
+  const fatPath = useSharedValue(fatGraphs[0]!.skiaPath);
+
+  // Swap to finer buckets when zooming in (years -> months -> weeks -> days)
+  const { currentIndex } = useUpdateAxis({
+    scale,
+    scales: BAND_SCALES,
+    onScaleChange: (i) => {
+      musclePath.value = muscleGraphs[i]!.skiaPath;
+      fatPath.value = fatGraphs[i]!.skiaPath;
+    },
+  });
+
+  const muscleDataPoints = useMemo(
+    () => muscleGraphs.map((g) => g.dataPoints),
+    [muscleGraphs]
+  );
+  const fatDataPoints = useMemo(
+    () => fatGraphs.map((g) => g.dataPoints),
+    [fatGraphs]
+  );
+  useDotsTransition({
+    currentGraph: currentIndex,
+    path: musclePath,
+    dataPoints: muscleDataPoints,
+    dots: muscleDots,
+    translateWl,
+  });
+  useDotsTransition({
+    currentGraph: currentIndex,
+    path: fatPath,
+    dataPoints: fatDataPoints,
+    dots: fatDots,
+    translateWl,
+  });
+
+  // Precompute every band's full tick set once: regenerating labels mid-pan
+  // (Date + Intl calls) costs 10-50ms on the JS thread and reads as jank
+  const allBandTicks = useMemo(() => {
+    const scaleX = muscleGraphs[0]!.scaleX;
+    return BANDS.map((band) =>
+      getTicksForWindow(MIN_TS, MAX_TS, band.ticks).map((t) => ({
+        x: scaleX(t.ts),
+        label: t.label,
+      }))
+    );
+  }, [muscleGraphs]);
+
+  const [ticks, setTicks] = useState(() => allBandTicks[0]!);
+  const [info, setInfo] = useState(() => ({
+    title: formatRange(MIN_TS, MAX_TS, 'year'),
+    muscle: getDelta(MUSCLE, MIN_TS, MAX_TS),
+    fat: getDelta(FAT, MIN_TS, MAX_TS),
+    preset: PRESETS.length - 1,
+    canPrev: false,
+    canNext: false,
+  }));
+
+  const updateTicks = useCallback(
+    (x0: number, x1: number, band: number) => {
+      const scaleX = muscleGraphs[0]!.scaleX;
+      const all = allBandTicks[band]!;
+      if (band < BANDS.length - 1) {
+        // Year and month ticks are few enough to always render in full: a
+        // stable array identity means no re-render at all while panning
+        setTicks(all);
+      } else {
+        // Weekly ticks: slice one window beyond each side so panning stays covered
+        const buffer = x1 - x0;
+        setTicks(
+          all.filter((t) => t.x >= x0 - buffer && t.x <= x1 + buffer)
+        );
+      }
+      const ts0 = Math.max(scaleX.invert(x0), MIN_TS);
+      const ts1 = Math.min(scaleX.invert(x1), MAX_TS);
+      setInfo({
+        title: formatRange(ts0, ts1, BANDS[band]?.data ?? 'year'),
+        muscle: getDelta(MUSCLE, ts0, ts1),
+        fat: getDelta(FAT, ts0, ts1),
+        preset: matchPreset((ts1 - ts0) / DAY_MS),
+        canPrev: x0 > 0.5,
+        canNext: x1 < graphWidth - 0.5,
+      });
+    },
+    [muscleGraphs, allBandTicks, graphWidth]
+  );
+
+  // Regenerate the ticks when the zoom band changes or the visible
+  // window moved by more than half its width
+  const lastTickKey = useSharedValue(Number.NaN);
+  useAnimatedReaction(
+    () => {
+      const s = scale.value;
+      const x0 = (0 - focalX.value - offsetX.value) / s + focalX.value;
+      const x1 =
+        (graphWidth - focalX.value - offsetX.value) / s + focalX.value;
+      const win = Math.max(x1 - x0, 1e-6);
+      return {
+        x0,
+        x1,
+        band: currentIndex.value,
+        key: currentIndex.value * 1e6 + Math.round((2 * x0) / win),
+      };
+    },
+    (cur) => {
+      if (cur.key === lastTickKey.value) return;
+      lastTickKey.value = cur.key;
+      scheduleOnRN(updateTicks, cur.x0, cur.x1, cur.band);
+    },
+    [updateTicks, graphWidth]
+  );
+
+  // Pin the most recent `days` to the right edge, which is where the offset
+  // bounds already clamp a pan to, so this lands exactly on a reachable state
+  const applyPreset = useCallback(
+    (days: number | null) => {
+      if (days === null) {
+        reset();
+        return;
+      }
+      const nextScale = Math.max(1, TOTAL_DAYS / days);
+      focalX.value = 0;
+      scale.value = nextScale;
+      offsetX.value = graphWidth * (1 - nextScale);
+    },
+    [reset, focalX, scale, offsetX, graphWidth]
+  );
+
+  /** Page the visible window by its own width. */
+  const shiftWindow = useCallback(
+    (direction: 1 | -1) => {
+      const s = scale.value;
+      const f = focalX.value;
+      const x0 = (0 - f - offsetX.value) / s + f;
+      const x1 = (graphWidth - f - offsetX.value) / s + f;
+      const window = x1 - x0;
+      const next = Math.max(
+        0,
+        Math.min(x0 + direction * window, graphWidth - window)
+      );
+      focalX.value = 0;
+      offsetX.value = -next * s;
+    },
+    [scale, focalX, offsetX, graphWidth]
+  );
+
+  const gesture = useMemo(
+    () => Gesture.Simultaneous(pinchGesture, panGesture),
+    [pinchGesture, panGesture]
+  );
 
   useDemo([
-    { at: 1000, run: _nextChart },
-    { at: 2500, run: _nextChart },
-    { at: 4000, run: () => setHideDots(true) },
-    { at: 5200, run: () => setHideDots(false) },
-    { at: 6500, run: resetChart },
+    { at: 1000, run: () => applyPreset(365) },
+    { at: 2500, run: () => applyPreset(30) },
+    { at: 4000, run: () => shiftWindow(-1) },
+    { at: 5200, run: () => shiftWindow(-1) },
+    { at: 6500, run: () => setScheme((s) => (s === 'dark' ? 'light' : 'dark')) },
+    { at: 8000, run: () => applyPreset(null) },
   ]);
 
+  // One path per series (instead of one component per dot) keeps the
+  // UI-thread frame cost low while panning
+  const dotElements = useMemo(
+    () => (
+      <>
+        <Dots
+          dots={fatDots}
+          r={DOT_RADIUS + 1}
+          shape="diamond"
+          color={theme.fat}
+          fillColor={theme.background}
+          strokeWidth={2}
+          width={graphWidth}
+          {...{ scale, focalX, offsetX }}
+        />
+        <Dots
+          dots={muscleDots}
+          r={DOT_RADIUS}
+          color={theme.muscle}
+          fillColor={theme.background}
+          strokeWidth={2}
+          width={graphWidth}
+          {...{ scale, focalX, offsetX }}
+        />
+      </>
+    ),
+    [fatDots, muscleDots, graphWidth, scale, focalX, offsetX, theme]
+  );
+
+  const container = [styles.container, { backgroundColor: theme.background }];
+  if (font === null) return <View style={container} />;
+
   return (
-    <View style={styles.container}>
-      <View style={styles.btnsContainer}>
-        <Button
-          label={hideAxis ? 'Show Axis' : 'Hide axis'}
-          onPress={() => setHideAxis((old) => !old)}
-        />
-        <Button
-          label={hideYAxis ? 'Show Y Axis' : 'Hide Y axis'}
-          onPress={() => setHideYAxis((old) => !old)}
-        />
-        <Button
-          label={hideDots ? 'Show Dots' : 'Hide Dots'}
-          onPress={() => setHideDots((old) => !old)}
-        />
-        <Button
-          label={hideSettings ? 'Show Settings' : 'Hide Settings'}
-          onPress={() => setHideSettings((old) => !old)}
-        />
-        <Button label={'Change chart'} onPress={_nextChart} />
-        <Button label="Reset Chart" small onPress={resetChart} />
-      </View>
-      {false && (
-        <View style={styles.periodBtns}>
-          <Button small label="Week" />
-          <Button small label="Month" />
-          <Button small label="Trimester" />
-          <Button small label="Year" />
-          <Button small label="All" />
-        </View>
-      )}
-      <GestureDetector gesture={gesture}>
-        <Canvas style={[styles.canvas, { width, height: CANVAS_HEIGHT }]}>
-          <Group
-            transform={[{ translateY: (CANVAS_HEIGHT - OFFSET_AXIS) / 2 }]}
+    <View style={container}>
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => shiftWindow(-1)}
+          disabled={!info.canPrev}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Previous period"
+        >
+          <Text
+            style={[
+              styles.arrow,
+              { color: info.canPrev ? theme.text : theme.grid },
+            ]}
           >
-            {false && (
-              <ScalablePath
-                {...{ focalX, offsetX, scale, path }}
-                color={Colors.primary}
-              />
-            )}
-            {!hideDots ? renderDots(dots, scale, focalX, offsetX) : null}
-            {!hideAxis ? (
-              <>
-                <AxisLine
-                  {...{ focalX, scale, offsetX }}
-                  width={graphWidth}
-                  offsetY={OFFSET_AXIS}
-                />
-                {renderTicks(
-                  axisTicks.current,
-                  scale,
-                  focalX,
-                  offsetX,
-                  graphWidth
-                )}
-              </>
-            ) : null}
-            {!hideYAxis ? (
-              <YAxis
-                minY={yDomain.current[0]!}
-                maxY={yDomain.current[1]!}
-                height={OFFSET_AXIS}
-                width={width}
-                font={font}
-              />
-            ) : null}
+            ‹
+          </Text>
+        </Pressable>
+        <Text style={[styles.title, { color: theme.text }]}>{info.title}</Text>
+        <Pressable
+          onPress={() => shiftWindow(1)}
+          disabled={!info.canNext}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Next period"
+        >
+          <Text
+            style={[
+              styles.arrow,
+              { color: info.canNext ? theme.text : theme.grid },
+            ]}
+          >
+            ›
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.legend}>
+        <View style={styles.legendItem}>
+          <View style={styles.legendHead}>
+            <View style={[styles.legendRing, { borderColor: theme.muscle }]} />
+            <Text style={[styles.legendLabel, { color: theme.label }]}>
+              MUSCLE
+            </Text>
+          </View>
+          <Text style={[styles.legendValue, { color: theme.text }]}>
+            {formatDelta(info.muscle)}
+          </Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={styles.legendHead}>
+            <View style={[styles.legendDiamond, { borderColor: theme.fat }]} />
+            <Text style={[styles.legendLabel, { color: theme.label }]}>
+              BODY FAT
+            </Text>
+          </View>
+          <Text style={[styles.legendValue, { color: theme.text }]}>
+            {formatDelta(info.fat)}
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => setScheme(scheme === 'dark' ? 'light' : 'dark')}
+          hitSlop={12}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="Toggle theme"
+          style={styles.schemeToggleBtn}
+        >
+          <Text style={[styles.schemeToggle, { color: theme.label }]}>
+            {scheme === 'dark' ? '☀' : '☾'}
+          </Text>
+        </Pressable>
+      </View>
+
+      <GestureDetector gesture={gesture}>
+        <Canvas style={{ width: graphWidth, height: canvasHeight }}>
+          <Group transform={[{ translateY: TOP_PAD }]}>
+            <SkiaText
+              text="%"
+              x={graphWidth - 10}
+              y={-10}
+              font={font}
+              color={theme.label}
+            />
+            <YAxis
+              width={graphWidth}
+              height={graphHeight}
+              font={font}
+              minY={0}
+              maxY={MAX_Y}
+              values={Y_TICKS}
+              color={theme.grid}
+              labelColor={theme.label}
+            />
+            <BottomAxis
+              standalone={false}
+              ticks={ticks}
+              width={graphWidth}
+              font={font}
+              offsetY={graphHeight}
+              tickLength={-graphHeight}
+              dash={TICK_DASH}
+              labelAlign="left"
+              color={theme.grid}
+              labelColor={theme.label}
+              {...{ scale, focalX, offsetX }}
+            />
+            <ScalablePath
+              path={fatPath}
+              color={theme.fat}
+              pathProps={{ strokeWidth: LINE_WIDTH }}
+              {...{ scale, focalX, offsetX }}
+            />
+            <ScalablePath
+              path={musclePath}
+              color={theme.muscle}
+              pathProps={{ strokeWidth: LINE_WIDTH }}
+              {...{ scale, focalX, offsetX }}
+            />
+            {dotElements}
           </Group>
         </Canvas>
       </GestureDetector>
 
-      {/* Settings */}
-
-      {!hideSettings ? (
-        <>
-          <View style={styles.sliderContainer}>
-            <View style={styles.textContainer}>
-              <Text style={styles.value}>Scale: </Text>
-              <ReText style={styles.value} text={scaleStr} />
-            </View>
-            <Slider
-              style={{ width: width / 1.5 }}
-              minimumValue={1}
-              maximumValue={10}
-              step={0.2}
-              value={scale.value}
-              onValueChange={(value) => {
-                scale.value = value;
-              }}
-              minimumTrackTintColor="#FFFFFF"
-              maximumTrackTintColor="#000000"
-            />
-          </View>
-          <View style={styles.sliderContainer}>
-            <View style={styles.textContainer}>
-              <Text style={styles.value}>OffsetX: </Text>
-              <ReText style={styles.value} text={offsetXStr} />
-            </View>
-            <Slider
-              style={{ width: width / 1.5 }}
-              minimumValue={0}
-              maximumValue={width}
-              step={10}
-              value={offsetX.value}
-              onValueChange={(value) => {
-                offsetX.value = value;
-              }}
-              minimumTrackTintColor="#FFFFFF"
-              maximumTrackTintColor="#000000"
-            />
-          </View>
-        </>
-      ) : null}
+      <View style={styles.presets}>
+        {PRESETS.map((preset, i) => {
+          const active = info.preset === i;
+          return (
+            <Pressable
+              key={preset.label}
+              accessibilityRole="button"
+              onPress={() => applyPreset(preset.days)}
+              style={[
+                styles.preset,
+                active && { backgroundColor: theme.accentBackground },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.presetLabel,
+                  { color: active ? theme.accentText : theme.label },
+                ]}
+              >
+                {preset.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
-};
-
-export const renderDots = function (
-  dots: AnimatedDot[],
-  scale: SharedValue<number>,
-  focalX: SharedValue<number>,
-  offsetX: SharedValue<number>
-) {
-  return (
-    <Group style="stroke" strokeWidth={4} color={Colors.primary}>
-      {dots.map((dot, i) => (
-        <Dot key={i} {...dot} {...{ scale, focalX, offsetX }} />
-      ))}
-    </Group>
-  );
-};
-
-export const renderTicks = function (
-  ticks: AnimatedTick[],
-  scale: SharedValue<number>,
-  focalX: SharedValue<number>,
-  offsetX: SharedValue<number>,
-  maxWidth?: number
-) {
-  //   <Group style="stroke" strokeWidth={4} color={Colors.primary}>
-
-  return (
-    <>
-      {ticks.map((tick, i) => (
-        <Tick
-          key={i}
-          initPosition={tick.x}
-          label={tick.label}
-          font={font}
-          offsetY={OFFSET_AXIS + 10}
-          {...{ scale, focalX, offsetX, maxWidth }}
-        />
-      ))}
-    </>
-  );
-  //   </Group>;
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
-  canvas: {
-    backgroundColor: 'white',
-    marginTop: 30,
-  },
-  btnsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    flexWrap: 'wrap',
-    marginVertical: 20,
-  },
-  periodBtns: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  value: {},
-  textContainer: {
-    width: 100,
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
-  sliderContainer: {
+  title: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  arrow: {
+    fontSize: 22,
+    lineHeight: 26,
+    paddingHorizontal: 10,
+  },
+  schemeToggleBtn: {
+    // Pushed to the far end of the legend row: in the title row it sat on top
+    // of the next-period arrow
+    marginLeft: 'auto',
+  },
+  schemeToggle: {
+    fontSize: 18,
+  },
+  legend: {
     flexDirection: 'row',
-    height: 60,
-    marginLeft: 20,
+    alignItems: 'center',
+    gap: 28,
+    marginBottom: 4,
+  },
+  legendItem: {
+    gap: 2,
+  },
+  legendHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendRing: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+  },
+  legendDiamond: {
+    width: 9,
+    height: 9,
+    borderWidth: 2,
+    transform: [{ rotate: '45deg' }],
+  },
+  legendLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  legendValue: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  presets: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  preset: {
+    // Equal shares of the row so every period stays reachable without scrolling
+    flex: 1,
+    borderRadius: 18,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  presetLabel: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

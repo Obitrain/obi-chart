@@ -149,7 +149,7 @@ const SCREENS: ScreenType[] = [
     name: 'AdvancedChartScreen',
     component: Screens.AdvancedChartScreen,
     options: {
-      title: 'Advanced Chart',
+      title: 'Advanced Charts',
     },
   },
 ];

@@ -10,6 +10,9 @@ export type CursorProps = {
   positionX: SharedValue<number>;
   size?: number;
   color?: string;
+  /** When set, draws a ring of this color around the cursor. */
+  strokeColor?: string;
+  strokeWidth?: number;
   currentValue?: SharedValue<number> | SharedValue<number | undefined>;
   translateY?: SharedValue<number | undefined>;
 };
@@ -18,6 +21,8 @@ const Cursor: FC<CursorProps> = function ({
   commands,
   positionX,
   color,
+  strokeColor,
+  strokeWidth = 2,
   currentValue,
   translateY,
   size = CURSOR_SIZE,
@@ -44,7 +49,22 @@ const Cursor: FC<CursorProps> = function ({
     { translateX: positionX.value },
     { translateY: _translateY.value ?? 0 },
   ]);
-  return <Circle transform={transform} cx={0} cy={0} r={size} color={color} />;
+  return (
+    <>
+      <Circle transform={transform} cx={0} cy={0} r={size} color={color} />
+      {strokeColor !== undefined ? (
+        <Circle
+          transform={transform}
+          cx={0}
+          cy={0}
+          r={size}
+          color={strokeColor}
+          style="stroke"
+          strokeWidth={strokeWidth}
+        />
+      ) : null}
+    </>
+  );
 };
 
 export { Cursor };

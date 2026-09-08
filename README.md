@@ -155,8 +155,10 @@ From `example/src/screens/DotsScreen`.
 
 ![Advanced chart](./static/advanced-chart.gif)
 
-`AxisLine` + `Tick` + a Y axis and dots composed in a single Skia canvas, with a shared scale driven
-by gestures or sliders. From `example/src/screens/AdvancedChartScreen`.
+Two series with hollow markers (ring and diamond), pinch-to-zoom with live-clamped panning, period
+presets, and a light/dark themed time axis whose bucketing and labels adapt to the visible window
+(years → months → weeks → days). See the [implementation notes](./docs/advanced-chart.md).
+From `example/src/screens/AdvancedChartScreen`.
 
 ## Example app
 

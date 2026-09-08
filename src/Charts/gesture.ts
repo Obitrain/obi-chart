@@ -1,10 +1,9 @@
 import { clamp } from '@shopify/react-native-skia';
-import { useCallback } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { Gesture, type PanGesture, type PinchGesture } from 'react-native-gesture-handler';
 import {
     useAnimatedReaction,
     useSharedValue,
-    withTiming,
     type SharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -22,6 +21,23 @@ export const getPositionWl = function (
 ) {
   'worklet';
   return (position - focalX) * scale + focalX + offsetX;
+};
+
+/**
+ * Offset range keeping the content edges pinned to the viewport:
+ * leftBound (position 0) <= startOffset and rightBound (position width)
+ * >= width + startOffset. Collapses to [startOffset, startOffset] at scale 1.
+ */
+export const getOffsetBoundsWl = function (
+  width: number,
+  startOffset: number,
+  focalX: number,
+  scale: number
+): [min: number, max: number] {
+  'worklet';
+  const maxOffset = startOffset + focalX * (scale - 1);
+  const minOffset = startOffset + (1 - scale) * (width - focalX);
+  return [minOffset, maxOffset];
 };
 
 export type AxisGestureProps = {
@@ -55,6 +71,8 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
   // For panning
   const offsetX = useSharedValue(startOffset);
   const lastOffsetX = useSharedValue(startOffset);
+  // Pinch pivot bookkeeping (see pinchGesture)
+  const needsPivot = useSharedValue(true);
 
   const reset = useCallback(() => {
     scale.value = startScale;
@@ -74,54 +92,85 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
     startScale,
   ]);
 
-  const panGesture = Gesture.Pan()
-    .onUpdate((event) => {
-      const newOffsetX = lastOffsetX.value + event.translationX;
-      offsetX.value = newOffsetX;
-    })
-    .onEnd(() => {
-      lastScale.value = scale.value;
-      lastFocalX.value = focalX.value;
+  // Memoized: handing a new gesture instance to GestureDetector mid-gesture
+  // resets the active pan and makes the chart jump
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        // Single-finger only: two fingers belong to the pinch, whose focal
+        // rebase would otherwise fight the pan over offsetX
+        .maxPointers(1)
+        // Incremental deltas (changeX) with a live clamp keep the content
+        // edges pinned: no overscroll, no snap-back to interrupt
+        .onChange((event) => {
+          const [minOffset, maxOffset] = getOffsetBoundsWl(
+            width,
+            startOffset,
+            focalX.value,
+            scale.value
+          );
+          offsetX.value = clamp(
+            offsetX.value + event.changeX,
+            minOffset,
+            maxOffset
+          );
+        })
+        .onEnd(() => {
+          lastScale.value = scale.value;
+          lastFocalX.value = focalX.value;
+          lastOffsetX.value = offsetX.value;
+        }),
+    [focalX, lastFocalX, lastOffsetX, lastScale, offsetX, scale, startOffset, width]
+  );
 
-      const leftBound = getPositionWl(
-        0,
-        focalX.value,
-        scale.value,
-        offsetX.value
-      );
-      const rightBound = getPositionWl(
-        width,
-        focalX.value,
-        scale.value,
-        offsetX.value
-      );
-
-      let newOffset;
-
-      if (leftBound > startOffset) {
-        newOffset = offsetX.value - leftBound + startOffset;
-      } else if (rightBound < width + startOffset) {
-        newOffset = offsetX.value + width - rightBound + startOffset;
-      } else {
-        newOffset = offsetX.value;
-      }
-
-      offsetX.value = withTiming(newOffset, { duration: 300 });
-      lastOffsetX.value = newOffset;
-    });
-
-  const pinchGesture = Gesture.Pinch()
-    .onUpdate((event) => {
-      // Rebase offsetX so moving the focal point doesn't shift the content
-      offsetX.value += (focalX.value - event.focalX) * (1 - scale.value);
-      focalX.value = event.focalX;
-      scale.value = clamp(lastScale.value * event.scale, 1, Infinity);
-    })
-    .onEnd(() => {
-      lastScale.value = scale.value;
-      lastFocalX.value = focalX.value;
-      lastOffsetX.value = offsetX.value;
-    });
+  const pinchGesture = useMemo(
+    () =>
+      Gesture.Pinch()
+        .onStart(() => {
+          needsPivot.value = true;
+        })
+        .onUpdate((event) => {
+          // The pinch can keep firing in the single-finger tail of the
+          // gesture, tracking the remaining finger as its focal: ignore it
+          // (numberOfPointers is missing on web — let those through)
+          if ((event.numberOfPointers ?? 2) < 2) {
+            needsPivot.value = true;
+            return;
+          }
+          const prevScale = scale.value;
+          const newScale = clamp(lastScale.value * event.scale, 1, Infinity);
+          if (needsPivot.value) {
+            // New pivot: rebase offsetX so re-anchoring under the fingers
+            // doesn't shift the content
+            const rebased =
+              offsetX.value + (focalX.value - event.focalX) * (1 - prevScale);
+            offsetX.value = (rebased * newScale) / prevScale;
+            needsPivot.value = false;
+          } else {
+            // Keep the content glued to both fingers: the offset follows the
+            // focal translation and rescales with the zoom
+            offsetX.value =
+              (event.focalX - focalX.value + offsetX.value / prevScale) *
+              newScale;
+          }
+          focalX.value = event.focalX;
+          scale.value = newScale;
+          // Zooming moves the bounds: keep the content edges pinned
+          const [minOffset, maxOffset] = getOffsetBoundsWl(
+            width,
+            startOffset,
+            focalX.value,
+            scale.value
+          );
+          offsetX.value = clamp(offsetX.value, minOffset, maxOffset);
+        })
+        .onEnd(() => {
+          lastScale.value = scale.value;
+          lastFocalX.value = focalX.value;
+          lastOffsetX.value = offsetX.value;
+        }),
+    [focalX, lastFocalX, lastOffsetX, lastScale, needsPivot, offsetX, scale, startOffset, width]
+  );
 
   return {
     scale,
@@ -143,6 +192,14 @@ export const useUpdateAxis = function (props: UpdateAxisProps) {
   const { scale, scales, onScaleChange } = props;
   const currentIndex = useSharedValue(0);
 
+  // Stable dispatcher so an inline onScaleChange doesn't re-register the
+  // reaction (and disturb the UI thread) on every render
+  const onScaleChangeRef = useRef(onScaleChange);
+  onScaleChangeRef.current = onScaleChange;
+  const dispatchScaleChange = useCallback((index: number) => {
+    onScaleChangeRef.current?.(index);
+  }, []);
+
   useAnimatedReaction(
     () => scale.value,
     (currentScale, _) => {
@@ -158,11 +215,12 @@ export const useUpdateAxis = function (props: UpdateAxisProps) {
           currentIndex.value !== i
         ) {
           currentIndex.value = i;
-          if (onScaleChange !== undefined) scheduleOnRN(onScaleChange, i);
+          scheduleOnRN(dispatchScaleChange, i);
           break;
         }
       }
-    }
+    },
+    [scales, dispatchScaleChange]
   );
 
   return { currentIndex };

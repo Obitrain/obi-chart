@@ -198,6 +198,9 @@ export const useDotsTransition = function (props: UseDotAnimationProps) {
         }
         _dot.opacity.value = opacityWl(1);
       });
-    }
+    },
+    // Explicit deps: without them the reaction re-registers and re-fires on
+    // every parent render, restarting every dot animation on the UI thread
+    [currentGraph, path, dataPoints, dots, opacityWl, translateWl]
   );
 };
