@@ -15,8 +15,8 @@
   rebaseWhen: "behind-base-branch",
   ignoreTests: false,
 
-  // weekly, not nightly — low-churn repo
-  schedule: ["before 6am on monday"],
+  // weekly, not nightly — day only: the shared runner fires ~10:00 Paris
+  schedule: ["on monday"],
 
   // Rules apply top-to-bottom; later matches override earlier ones.
   packageRules: [
