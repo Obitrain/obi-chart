@@ -5,7 +5,7 @@ import {
   vec,
   type Color,
   type SkFont,
-} from '@shopify/react-native-skia';
+} from 'react-native-skia';
 import { memo, useMemo, type FC } from 'react';
 import { StyleSheet } from 'react-native';
 

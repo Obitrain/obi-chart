@@ -1,4 +1,4 @@
-import { Circle, type PathCommand } from '@shopify/react-native-skia';
+import { Circle, type PathCommand } from 'react-native-skia';
 import { useEffect, type FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { commandsToBezier, getYForXOnBeziers } from './maths';
