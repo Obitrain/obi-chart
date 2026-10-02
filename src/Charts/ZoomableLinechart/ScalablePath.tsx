@@ -1,4 +1,4 @@
-import { Path, Skia, type SkPath } from '@shopify/react-native-skia';
+import { Path, Skia, type SkPath } from 'react-native-skia';
 import { type FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 
@@ -16,13 +16,13 @@ const ScalablePath: FC<ScalablePathProps> = function (props) {
 
   const animatedPath = useDerivedValue(() => {
     // Affine equivalent of getPositionWl: x' = scale * x + focalX * (1 - scale) + offsetX
-    const _path = path.value.copy();
-    _path.transform(
-      Skia.Matrix()
-        .translate(focalX.value * (1 - scale.value) + offsetX.value, 0)
-        .scale(scale.value, 1)
-    );
-    return _path;
+    return Skia.PathBuilder.MakeFromPath(path.value)
+      .transform(
+        Skia.Matrix()
+          .translate(focalX.value * (1 - scale.value) + offsetX.value, 0)
+          .scale(scale.value, 1)
+      )
+      .build();
   });
 
   return (

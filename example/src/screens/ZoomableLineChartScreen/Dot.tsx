@@ -1,5 +1,5 @@
 import { getPositionWl } from '@obitrain/charts';
-import { Circle, Paint } from '@shopify/react-native-skia';
+import { Circle, Paint } from 'react-native-skia';
 import { type FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 

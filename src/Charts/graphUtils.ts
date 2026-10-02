@@ -3,7 +3,7 @@ import {
   Skia,
   type PathCommand,
   type SkPath,
-} from '@shopify/react-native-skia';
+} from 'react-native-skia';
 import { scaleLinear, type ScaleLinear } from 'd3-scale';
 import * as shape from 'd3-shape';
 import {
