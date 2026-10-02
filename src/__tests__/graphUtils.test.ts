@@ -1,5 +1,5 @@
 import { beforeAll, describe, it } from '@jest/globals';
-import { PathVerb, type PathCommand } from '@shopify/react-native-skia';
+import { PathVerb, type PathCommand } from 'react-native-skia';
 import type { SharedValue } from 'react-native-reanimated';
 import type * as GraphUtils from '../Charts/graphUtils';
 

@@ -4,7 +4,7 @@ import {
     useScalableGesture,
     type AnimatedDot,
 } from '@obitrain/charts';
-import { Group, usePathInterpolation } from '@shopify/react-native-skia';
+import { Group, usePathInterpolation } from 'react-native-skia';
 import { useCallback, useRef, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';

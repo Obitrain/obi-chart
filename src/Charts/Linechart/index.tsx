@@ -1,4 +1,4 @@
-import { Canvas, Group, Path, type SkPath } from '@shopify/react-native-skia';
+import { Canvas, Group, Path, type SkPath } from 'react-native-skia';
 import type { FC } from 'react';
 import React from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';

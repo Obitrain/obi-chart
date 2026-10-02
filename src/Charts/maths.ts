@@ -2,8 +2,8 @@ import type {
   PathCommand,
   SkPoint,
   Vector,
-} from '@shopify/react-native-skia';
-import { PathVerb, vec } from '@shopify/react-native-skia';
+} from 'react-native-skia';
+import { PathVerb, vec } from 'react-native-skia';
 
 // code from William Candillon
 

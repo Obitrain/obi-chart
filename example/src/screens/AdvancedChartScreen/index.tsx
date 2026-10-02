@@ -13,7 +13,7 @@ import {
   matchFont,
   useFont,
   Text as SkiaText,
-} from '@shopify/react-native-skia';
+} from 'react-native-skia';
 import { useCallback, useMemo, useState, type FC } from 'react';
 import {
   Platform,

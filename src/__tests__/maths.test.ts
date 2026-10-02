@@ -3,7 +3,7 @@ import {
   PathVerb,
   vec,
   type PathCommand,
-} from '@shopify/react-native-skia';
+} from 'react-native-skia';
 import * as M from '../Charts/maths';
 
 describe('commandsToBezier', () => {

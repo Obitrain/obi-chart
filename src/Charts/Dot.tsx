@@ -1,4 +1,4 @@
-import { Circle, Group, type Color } from '@shopify/react-native-skia';
+import { Circle, Group, type Color } from 'react-native-skia';
 import { memo } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from './gesture';

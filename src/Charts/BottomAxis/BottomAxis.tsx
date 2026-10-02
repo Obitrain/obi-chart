@@ -2,7 +2,7 @@ import {
   Canvas,
   type Color,
   type SkFont,
-} from '@shopify/react-native-skia';
+} from 'react-native-skia';
 import { useMemo, type FC } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
