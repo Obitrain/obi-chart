@@ -18,7 +18,7 @@ yarn add react-native-skia react-native-reanimated react-native-worklets react-n
 
 | Peer dependency              | Supported versions                                    |
 | ---------------------------- | ----------------------------------------------------- |
-| `react-native-skia`          | `>=3.0.1` (Android minSdk 26)                          |
+| `react-native-skia`          | `>=3.0.2` (Android minSdk 26)                          |
 | `react-native-reanimated`    | 3.x or 4.x                                             |
 | `react-native-worklets`      | `>=0.10.0` (optional, required with Reanimated 4)      |
 | `react-native-gesture-handler` | 2.x or 3.x                                           |
