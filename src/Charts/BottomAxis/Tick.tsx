@@ -7,7 +7,7 @@ import {
   type Color,
   type SkFont,
 } from '@shopify/react-native-skia';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from '../gesture';
 
@@ -61,9 +61,11 @@ const TickComponent = function (props: TickProps) {
       ),
     },
   ]);
-  const width = font
-    .getGlyphWidths(font.getGlyphIDs(label))
-    .reduce((a, b) => a + b, 0);
+  const width = useMemo(
+    () =>
+      font.getGlyphWidths(font.getGlyphIDs(label)).reduce((a, b) => a + b, 0),
+    [font, label]
+  );
   const labelX = labelAlign === 'left' ? labelGap : -width / 2;
 
   return (

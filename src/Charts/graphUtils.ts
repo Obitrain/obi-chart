@@ -54,12 +54,23 @@ export const buildGraph = function (
   if (data.length === 0)
     throw new Error('buildGraph requires at least one data point');
 
-  const minX = config?.minX ?? Math.min(...data.map((d) => d[0]));
-  const maxX = config?.maxX ?? Math.max(...data.map((d) => d[0]));
+  // Loops rather than Math.min(...data): spreading a long series can exceed the engine's argument limit
+  let dataMinX = Infinity;
+  let dataMaxX = -Infinity;
+  let dataMinY = Infinity;
+  let dataMaxY = -Infinity;
+  for (const [x, y] of data) {
+    if (x < dataMinX) dataMinX = x;
+    if (x > dataMaxX) dataMaxX = x;
+    if (y < dataMinY) dataMinY = y;
+    if (y > dataMaxY) dataMaxY = y;
+  }
+  const minX = config?.minX ?? dataMinX;
+  const maxX = config?.maxX ?? dataMaxX;
   const scaleX = scaleLinear().domain([minX, maxX]).range([0, width]);
 
-  const minY = config?.minY ?? Math.min(...data.map((d) => d[1]));
-  const maxY = config?.maxY ?? Math.max(...data.map((d) => d[1]));
+  const minY = config?.minY ?? dataMinY;
+  const maxY = config?.maxY ?? dataMaxY;
   const scaleY = scaleLinear().domain([minY, maxY]).range([height, 0]);
 
   const path = shape

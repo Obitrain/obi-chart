@@ -6,7 +6,7 @@ import {
   type Color,
   type SkFont,
 } from '@shopify/react-native-skia';
-import { type FC } from 'react';
+import { memo, useMemo, type FC } from 'react';
 import { StyleSheet } from 'react-native';
 
 export type YAxisProps = {
@@ -52,45 +52,52 @@ const YAxis: FC<YAxisProps> = function (props) {
     formatLabel = defaultFormatLabel,
   } = props;
 
-  const values =
-    props.values ??
-    Array.from(
-      { length: nbTicks },
-      (_, i) => minY + ((i + 1) * (maxY - minY)) / nbTicks
-    );
+  // Measured once per input change: parents re-render while panning
+  const rows = useMemo(() => {
+    // A flat range would divide by zero
+    const span = maxY - minY || 1;
+    const values =
+      props.values ??
+      Array.from(
+        { length: nbTicks },
+        (_, i) => minY + ((i + 1) * (maxY - minY)) / nbTicks
+      );
+    return values.map((value) => {
+      const label = formatLabel(value);
+      const labelWidth = font
+        .getGlyphWidths(font.getGlyphIDs(label))
+        .reduce((a, b) => a + b, 0);
+      return {
+        label,
+        labelWidth,
+        transform: [{ translateY: height - ((value - minY) * height) / span }],
+        p1: vec(0, 0),
+        p2: vec(showLabels ? width - 10 - labelWidth : width, 0),
+      };
+    });
+  }, [props.values, nbTicks, minY, maxY, height, width, font, showLabels, formatLabel]);
 
   return (
     <Group>
-      {values.map((value, i) => {
-        const y = height - ((value - minY) * height) / (maxY - minY);
-        const label = formatLabel(value);
-        const labelWidth = font
-          .getGlyphWidths(font.getGlyphIDs(label))
-          .reduce((a, b) => a + b, 0);
-        const lineWidth = showLabels ? width - 10 - labelWidth : width;
-
-        return (
-          <Group key={`YTick-${i}`} transform={[{ translateY: y }]}>
-            <Line
-              p1={vec(0, 0)}
-              p2={vec(lineWidth, 0)}
-              color={color}
-              strokeWidth={strokeWidth}
+      {rows.map((row, i) => (
+        <Group key={`YTick-${i}`} transform={row.transform}>
+          <Line p1={row.p1} p2={row.p2} color={color} strokeWidth={strokeWidth} />
+          {showLabels ? (
+            <Text
+              text={row.label}
+              x={width - row.labelWidth}
+              y={font.getSize() / 2.5}
+              font={font}
+              color={labelColor ?? color}
             />
-            {showLabels ? (
-              <Text
-                text={label}
-                x={width - labelWidth}
-                y={font.getSize() / 2.5}
-                font={font}
-                color={labelColor ?? color}
-              />
-            ) : null}
-          </Group>
-        );
-      })}
+          ) : null}
+        </Group>
+      ))}
     </Group>
   );
 };
 
-export { YAxis };
+const MemoYAxis = memo(YAxis);
+MemoYAxis.displayName = 'YAxis';
+
+export { MemoYAxis as YAxis };
