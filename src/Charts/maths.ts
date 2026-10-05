@@ -300,6 +300,23 @@ export const getYOnBezier = (
   return undefined;
 };
 
+/**
+ * y of the path's start when `x` is left of it, of its end when right of it, else undefined.
+ * Endpoints are stored as float32, so a point's exact x can fall a hair outside the path.
+ */
+export const getYBeyondPathEnds = (
+  cmds: PathCommand[],
+  x: number
+): number | undefined => {
+  'worklet';
+  const first = cmds[0];
+  const last = cmds[cmds.length - 1];
+  if (first === undefined || last === undefined) return undefined;
+  if (x < first[1]!) return first[2];
+  if (x > last[last.length - 2]!) return last[last.length - 1];
+  return undefined;
+};
+
 /** Same as {@link getYForX} for commands already passed through {@link commandsToBezier}. */
 export const getYForXOnBeziers = (
   cmds: PathCommand[],

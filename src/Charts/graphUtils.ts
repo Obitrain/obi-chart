@@ -14,7 +14,12 @@ import {
   type SharedValue,
 } from 'react-native-reanimated';
 import { getPositionWl } from './gesture';
-import { commandsToBezier, findBezierIndex, getYOnBezier } from './maths';
+import {
+  commandsToBezier,
+  findBezierIndex,
+  getYBeyondPathEnds,
+  getYOnBezier,
+} from './maths';
 import type { AnimatedDot, DataPoint } from './types';
 
 export type BuildGraphConfig = {
@@ -234,9 +239,13 @@ export const useDotsTransition = function (props: UseDotAnimationProps) {
         const x = _xs[i]!;
         let index = findBezierIndex(_cmds, x, segment);
         if (index === -1 && segment > 1) index = findBezierIndex(_cmds, x);
-        if (index === -1) continue;
-        segment = index;
-        const newY = getYOnBezier(_cmds, index, x);
+        let newY: number | undefined;
+        if (index === -1) {
+          newY = getYBeyondPathEnds(_cmds, x);
+        } else {
+          segment = index;
+          newY = getYOnBezier(_cmds, index, x);
+        }
         if (newY !== undefined) dots[i]!.y.value = newY;
       }
     },

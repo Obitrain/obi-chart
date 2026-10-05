@@ -137,3 +137,19 @@ describe('findBezierIndex', () => {
     expect(M.findBezierIndex(cmds, x, start)).toBe(index);
   });
 });
+
+describe('getYBeyondPathEnds', () => {
+  // 17.921 as stored in a float32 path: the data point's exact x is just left of it
+  const cmds = M.commandsToBezier([
+    [PathVerb.Move, 17.920999527, 67],
+    [PathVerb.Line, 65.916, 70],
+  ]);
+
+  it.each([
+    { x: 17.920931613, y: 67, label: 'start y just left of the path' },
+    { x: 66, y: 70, label: 'end y right of the path' },
+    { x: 40, y: undefined, label: 'undefined inside the path' },
+  ])('$label', ({ x, y }) => {
+    expect(M.getYBeyondPathEnds(cmds, x)).toBe(y);
+  });
+});
