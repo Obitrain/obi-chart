@@ -86,3 +86,51 @@ describe('getYForX', () => {
     expect(M.getYForX(cmds, 20)).toBeUndefined();
   });
 });
+
+describe('getYForXOnBeziers', () => {
+  const curved = M.commandsToBezier([
+    [PathVerb.Move, 0, 0],
+    [PathVerb.Cubic, 2, 8, 6, 8, 10, 0],
+    [PathVerb.Cubic, 12, -5, 18, -5, 20, 0],
+  ]);
+  const straight = M.commandsToBezier([
+    [PathVerb.Move, 0, 0],
+    [PathVerb.Line, 3, 1],
+    [PathVerb.Line, 3, 4],
+    [PathVerb.Line, 9, 4],
+  ]);
+
+  it.each([
+    { x: 1, y: 1 / 3, label: 'exact on a sloped line' },
+    { x: 3, y: 1, label: 'first match on a vertical line' },
+    { x: 6, y: 4, label: 'flat line' },
+    { x: 12, y: undefined, label: 'outside the path' },
+  ])('$label (x = $x)', ({ x, y }) => {
+    const value = M.getYForXOnBeziers(straight, x);
+    if (y === undefined) expect(value).toBeUndefined();
+    else expect(value).toBeCloseTo(y, 10);
+  });
+
+  // getYForX rounds t to 2 decimals by default, which is what made dots wobble
+  it.each([1, 4.5, 9.9, 13, 19])('matches unrounded getYForX at x = %p', (x) => {
+    expect(M.getYForXOnBeziers(curved, x)).toBeCloseTo(M.getYForX(curved, x, 10)!, 6);
+  });
+});
+
+describe('findBezierIndex', () => {
+  const cmds = M.commandsToBezier([
+    [PathVerb.Move, 0, 0],
+    [PathVerb.Line, 10, 0],
+    [PathVerb.Line, 20, 0],
+  ]);
+
+  it.each([
+    { x: 5, start: 0, index: 1, label: 'first segment' },
+    { x: 15, start: 0, index: 2, label: 'second segment' },
+    { x: 15, start: 2, index: 2, label: 'resumes from a later segment' },
+    { x: 5, start: 2, index: -1, label: 'misses x before the start' },
+    { x: 25, start: 0, index: -1, label: 'outside the path' },
+  ])('$label', ({ x, start, index }) => {
+    expect(M.findBezierIndex(cmds, x, start)).toBe(index);
+  });
+});

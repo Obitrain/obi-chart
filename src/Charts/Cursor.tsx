@@ -1,7 +1,7 @@
 import { Circle, type PathCommand } from '@shopify/react-native-skia';
 import type { FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
-import { getYForX } from './maths';
+import { commandsToBezier, getYForXOnBeziers } from './maths';
 
 const CURSOR_SIZE = 10;
 
@@ -31,12 +31,18 @@ const Cursor: FC<CursorProps> = function ({
     console.warn('currentValue has no effect when translateY is set');
   }
 
-  const derivedTranslateY = useDerivedValue(() => {
+  // Normalized once per path change, not on every cursor move
+  const beziers = useDerivedValue(() => {
     const _commands = commands?.value;
-    if (_commands === undefined) {
+    return _commands === undefined ? undefined : commandsToBezier(_commands);
+  });
+
+  const derivedTranslateY = useDerivedValue(() => {
+    const _beziers = beziers.value;
+    if (_beziers === undefined) {
       return 0;
     }
-    const _value = getYForX(_commands, positionX.value) ?? 0;
+    const _value = getYForXOnBeziers(_beziers, positionX.value) ?? 0;
     if (translateY === undefined && currentValue !== undefined) {
       currentValue.value = _value;
     }
