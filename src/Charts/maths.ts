@@ -282,6 +282,8 @@ export const getYOnBezier = (
   if (x1 === x0 && y1 === y0 && x2 === x3 && y2 === y3) {
     return x3 === x0 ? y0 : y0 + ((y3 - y0) * (x - x0)) / (x3 - x0);
   }
+  // A vertical curve has no single y for x: use its start, like a vertical line
+  if (x0 === x1 && x1 === x2 && x2 === x3) return y0;
 
   const roots = solveCubic(
     -x0 + 3 * x1 - 3 * x2 + x3,

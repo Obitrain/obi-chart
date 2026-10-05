@@ -98,12 +98,15 @@ describe('getYForXOnBeziers', () => {
     [PathVerb.Line, 3, 1],
     [PathVerb.Line, 3, 4],
     [PathVerb.Line, 9, 4],
+    [PathVerb.Move, 15, 2],
+    [PathVerb.Cubic, 15, 5, 15, 8, 15, 6],
   ]);
 
   it.each([
     { x: 1, y: 1 / 3, label: 'exact on a sloped line' },
     { x: 3, y: 1, label: 'first match on a vertical line' },
     { x: 6, y: 4, label: 'flat line' },
+    { x: 15, y: 2, label: 'start of a vertical curve' },
     { x: 12, y: undefined, label: 'outside the path' },
   ])('$label (x = $x)', ({ x, y }) => {
     const value = M.getYForXOnBeziers(straight, x);
