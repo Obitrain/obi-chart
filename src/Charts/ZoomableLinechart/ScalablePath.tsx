@@ -1,4 +1,4 @@
-import { Path, type SkPath } from '@shopify/react-native-skia';
+import { Path, Skia, type SkPath } from 'react-native-skia';
 import { type FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 
@@ -19,9 +19,9 @@ const ScalablePath: FC<ScalablePathProps> = function (props) {
     // Plain 3x3 matrix: a Skia.Matrix() would allocate a native object per frame
     const s = scale.value;
     const tx = focalX.value * (1 - s) + offsetX.value;
-    const _path = path.value.copy();
-    _path.transform([s, 0, tx, 0, 1, 0, 0, 0, 1]);
-    return _path;
+    return Skia.PathBuilder.MakeFromPath(path.value)
+      .transform([s, 0, tx, 0, 1, 0, 0, 0, 1])
+      .build();
   });
 
   return (

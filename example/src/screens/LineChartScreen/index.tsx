@@ -11,7 +11,7 @@ import {
   Paint,
   Rect,
   usePathInterpolation,
-} from '@shopify/react-native-skia';
+} from 'react-native-skia';
 import { useMemo, useState, type FC } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {

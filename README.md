@@ -9,7 +9,7 @@ zoomable/pannable variant, a scalable bottom axis and a cursor, all driven from 
 
 ```sh
 yarn add @obitrain/charts
-yarn add @shopify/react-native-skia react-native-reanimated react-native-worklets react-native-gesture-handler d3-scale d3-shape
+yarn add react-native-skia react-native-reanimated react-native-worklets react-native-gesture-handler d3-scale d3-shape
 ```
 
 `react-native-worklets` is only needed with Reanimated 4 (it is an optional peer dependency).
@@ -18,7 +18,7 @@ yarn add @shopify/react-native-skia react-native-reanimated react-native-worklet
 
 | Peer dependency              | Supported versions                                    |
 | ---------------------------- | ----------------------------------------------------- |
-| `@shopify/react-native-skia` | `>=2.0.0 <3.0.0`                                       |
+| `react-native-skia`          | `>=3.0.4` (Android minSdk 26)                          |
 | `react-native-reanimated`    | 3.x or 4.x                                             |
 | `react-native-worklets`      | `>=0.10.0` (optional, required with Reanimated 4)      |
 | `react-native-gesture-handler` | 2.x or 3.x                                           |

@@ -3,7 +3,7 @@ import {
   useScalableGesture,
   useUpdateAxis,
 } from '@obitrain/charts';
-import { matchFont } from '@shopify/react-native-skia';
+import { matchFont } from 'react-native-skia';
 import { useCallback, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';

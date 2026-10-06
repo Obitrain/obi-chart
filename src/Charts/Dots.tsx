@@ -1,4 +1,4 @@
-import { Path, Skia, type Color } from '@shopify/react-native-skia';
+import { Path, Skia, type Color } from 'react-native-skia';
 import { type FC } from 'react';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 import { getPositionWl } from './gesture';
@@ -43,7 +43,7 @@ const Dots: FC<DotsProps> = function (props) {
   } = props;
 
   const path = useDerivedValue(() => {
-    const p = Skia.Path.Make();
+    const p = Skia.PathBuilder.Make();
     const margin = r + strokeWidth;
     for (const dot of dots) {
       if (dot.opacity.value < 0.5) continue;
@@ -74,7 +74,7 @@ const Dots: FC<DotsProps> = function (props) {
         p.addCircle(x, y, r);
       }
     }
-    return p;
+    return p.build();
   });
 
   return (

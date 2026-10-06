@@ -1,4 +1,4 @@
-import { Line, vec, type Color } from '@shopify/react-native-skia';
+import { Line, vec, type Color } from 'react-native-skia';
 import { type FC } from 'react';
 import { StyleSheet } from 'react-native';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';

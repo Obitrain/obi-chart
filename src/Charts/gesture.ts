@@ -1,4 +1,4 @@
-import { clamp } from '@shopify/react-native-skia';
+import { clamp } from 'react-native-skia';
 import { useCallback, useMemo, useRef } from 'react';
 import { Gesture, type PanGesture, type PinchGesture } from 'react-native-gesture-handler';
 import {
