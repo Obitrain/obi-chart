@@ -104,7 +104,7 @@
     "react-native-builder-bob": "^0.43.0",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "~4.5.1",
-    "react-native-skia": "3.0.2",
+    "react-native-skia": "3.0.4",
     "react-native-worklets": "^0.10.1",
     "react-test-renderer": "19.2.3",
     "typescript": "npm:@typescript/typescript6@^6.0.2"
@@ -116,7 +116,7 @@
     "react-native": "^0.79.0 || ^0.80.0 || ^0.81.6 || ^0.82.0 || ^0.83.0 || ^0.84.0 || ^0.85.0 || ^0.86.0 || ^0.87.0",
     "react-native-gesture-handler": "^2.26.0 || ^2.28.0 || ^2.29.1 || ^2.30.0 || ^2.31.1 || ~2.32.0 || ^3.1.0",
     "react-native-reanimated": "^4.0.0 || ~4.5.1",
-    "react-native-skia": ">=3.0.2",
+    "react-native-skia": ">=3.0.4",
     "react-native-worklets": ">=0.5.0"
   },
   "workspaces": [

@@ -4111,7 +4111,7 @@ __metadata:
     react-native-builder-bob: "npm:^0.43.0"
     react-native-gesture-handler: "npm:~2.32.0"
     react-native-reanimated: "npm:~4.5.1"
-    react-native-skia: "npm:3.0.2"
+    react-native-skia: "npm:3.0.4"
     react-native-worklets: "npm:^0.10.1"
     react-test-renderer: "npm:19.2.3"
     typescript: "npm:@typescript/typescript6@^6.0.2"
@@ -4122,7 +4122,7 @@ __metadata:
     react-native: ^0.79.0 || ^0.80.0 || ^0.81.6 || ^0.82.0 || ^0.83.0 || ^0.84.0 || ^0.85.0 || ^0.86.0 || ^0.87.0
     react-native-gesture-handler: ^2.26.0 || ^2.28.0 || ^2.29.1 || ^2.30.0 || ^2.31.1 || ~2.32.0 || ^3.1.0
     react-native-reanimated: ^4.0.0 || ~4.5.1
-    react-native-skia: ">=3.0.2"
+    react-native-skia: ">=3.0.4"
     react-native-worklets: ">=0.5.0"
   languageName: unknown
   linkType: soft
@@ -11833,7 +11833,7 @@ __metadata:
     react-native-reanimated: "npm:4.5.1"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-screens: "npm:~4.26.0"
-    react-native-skia: "npm:3.0.2"
+    react-native-skia: "npm:3.0.4"
     react-native-web: "npm:^0.21.2"
     react-native-worklets: "npm:0.10.1"
   languageName: unknown
@@ -12773,9 +12773,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-skia@npm:3.0.2":
-  version: 3.0.2
-  resolution: "react-native-skia@npm:3.0.2"
+"react-native-skia@npm:3.0.4":
+  version: 3.0.4
+  resolution: "react-native-skia@npm:3.0.4"
   dependencies:
     canvaskit-wasm: "npm:0.41.0"
     react-native-skia-graphite-android: "npm:154.0.1"
@@ -12796,7 +12796,7 @@ __metadata:
       optional: true
   bin:
     setup-skia-web: scripts/setup-canvaskit.js
-  checksum: 10/00da34c29296328cb56bb4a64aed38ce32b5af6bcc157a078e8a548ecbd6ad7eb9836eaf348a692928cafe9aff6138bdef6d34bf7172c04f2c09bf88ad980747
+  checksum: 10/08a1d6243185183ddf0be7eb734fb571d24a2fcdb4c7ef38c33c5de065fa0e806571e4c16017f5a38f4a96d7676ab7a926ae1a3d7504e549f22892a89c6549eb
   languageName: node
   linkType: hard
 
