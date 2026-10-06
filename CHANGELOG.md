@@ -5,7 +5,7 @@
 
 ### ⚠ BREAKING CHANGES
 
-* peer dependency is now react-native-skia >=3.0.0 instead of @shopify/react-native-skia 2.x; Android apps need minSdk 26.
+* peer dependency is now react-native-skia >=3.0.4 instead of @shopify/react-native-skia 2.x; Android apps need minSdk 26.
 
 ### Features
 
