@@ -86,3 +86,70 @@ describe('getYForX', () => {
     expect(M.getYForX(cmds, 20)).toBeUndefined();
   });
 });
+
+describe('getYForXOnBeziers', () => {
+  const curved = M.commandsToBezier([
+    [PathVerb.Move, 0, 0],
+    [PathVerb.Cubic, 2, 8, 6, 8, 10, 0],
+    [PathVerb.Cubic, 12, -5, 18, -5, 20, 0],
+  ]);
+  const straight = M.commandsToBezier([
+    [PathVerb.Move, 0, 0],
+    [PathVerb.Line, 3, 1],
+    [PathVerb.Line, 3, 4],
+    [PathVerb.Line, 9, 4],
+    [PathVerb.Move, 15, 2],
+    [PathVerb.Cubic, 15, 5, 15, 8, 15, 6],
+  ]);
+
+  it.each([
+    { x: 1, y: 1 / 3, label: 'exact on a sloped line' },
+    { x: 3, y: 1, label: 'first match on a vertical line' },
+    { x: 6, y: 4, label: 'flat line' },
+    { x: 15, y: 2, label: 'start of a vertical curve' },
+    { x: 12, y: undefined, label: 'outside the path' },
+  ])('$label (x = $x)', ({ x, y }) => {
+    const value = M.getYForXOnBeziers(straight, x);
+    if (y === undefined) expect(value).toBeUndefined();
+    else expect(value).toBeCloseTo(y, 10);
+  });
+
+  // getYForX rounds t to 2 decimals by default, which is what made dots wobble
+  it.each([1, 4.5, 9.9, 13, 19])('matches unrounded getYForX at x = %p', (x) => {
+    expect(M.getYForXOnBeziers(curved, x)).toBeCloseTo(M.getYForX(curved, x, 10)!, 6);
+  });
+});
+
+describe('findBezierIndex', () => {
+  const cmds = M.commandsToBezier([
+    [PathVerb.Move, 0, 0],
+    [PathVerb.Line, 10, 0],
+    [PathVerb.Line, 20, 0],
+  ]);
+
+  it.each([
+    { x: 5, start: 0, index: 1, label: 'first segment' },
+    { x: 15, start: 0, index: 2, label: 'second segment' },
+    { x: 15, start: 2, index: 2, label: 'resumes from a later segment' },
+    { x: 5, start: 2, index: -1, label: 'misses x before the start' },
+    { x: 25, start: 0, index: -1, label: 'outside the path' },
+  ])('$label', ({ x, start, index }) => {
+    expect(M.findBezierIndex(cmds, x, start)).toBe(index);
+  });
+});
+
+describe('getYBeyondPathEnds', () => {
+  // 17.921 as stored in a float32 path: the data point's exact x is just left of it
+  const cmds = M.commandsToBezier([
+    [PathVerb.Move, 17.920999527, 67],
+    [PathVerb.Line, 65.916, 70],
+  ]);
+
+  it.each([
+    { x: 17.920931613, y: 67, label: 'start y just left of the path' },
+    { x: 66, y: 70, label: 'end y right of the path' },
+    { x: 40, y: undefined, label: 'undefined inside the path' },
+  ])('$label', ({ x, y }) => {
+    expect(M.getYBeyondPathEnds(cmds, x)).toBe(y);
+  });
+});

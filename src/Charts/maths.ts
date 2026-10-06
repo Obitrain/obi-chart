@@ -3,7 +3,7 @@ import type {
   SkPoint,
   Vector,
 } from '@shopify/react-native-skia';
-import { PathVerb, vec } from '@shopify/react-native-skia';
+import { PathVerb } from '@shopify/react-native-skia';
 
 // code from William Candillon
 
@@ -155,7 +155,10 @@ export const selectCurve = (
 ): Cubic | undefined => {
   'worklet';
 
-  let from: Vector = vec(0, 0);
+  // Plain numbers while scanning: vec() allocates a JSI host object, which
+  // dominated the UI thread when called per dot per frame
+  let fromX = 0;
+  let fromY = 0;
   for (let i = 0; i < cmds.length; i++) {
     const cmd = cmds[i];
     if (cmd == null) {
@@ -163,20 +166,21 @@ export const selectCurve = (
     }
 
     if (cmd[0] === PathVerb.Move) {
-      from = vec(cmd[1], cmd[2]);
+      fromX = cmd[1]!;
+      fromY = cmd[2]!;
     } else if (cmd[0] === PathVerb.Cubic) {
-      const c1 = vec(cmd[1], cmd[2]);
-      const c2 = vec(cmd[3], cmd[4]);
-      const to = vec(cmd[5], cmd[6]);
-      if (x >= from.x && x <= to.x) {
+      const toX = cmd[5]!;
+      const toY = cmd[6]!;
+      if (x >= fromX && x <= toX) {
         return {
-          from,
-          c1,
-          c2,
-          to,
+          from: { x: fromX, y: fromY },
+          c1: { x: cmd[1]!, y: cmd[2]! },
+          c2: { x: cmd[3]!, y: cmd[4]! },
+          to: { x: toX, y: toY },
         };
       }
-      from = to;
+      fromX = toX;
+      fromY = toY;
     }
   }
 
@@ -229,11 +233,98 @@ export const getYForX = (
   precision = 2
 ): number | undefined => {
   'worklet';
-  const cmdsNorm = commandsToBezier(cmds);
-  const c = selectCurve(cmdsNorm, x);
+  const c = selectCurve(commandsToBezier(cmds), x);
   if (c == null) return undefined;
-
   return cubicBezierYForX(x, c.from, c.c1, c.c2, c.to, precision);
+};
+
+/**
+ * Index of the cubic whose x range contains `x`, scanning from `start`; -1 if none.
+ * `cmds` must come from {@link commandsToBezier}.
+ */
+export const findBezierIndex = (
+  cmds: PathCommand[],
+  x: number,
+  start = 0
+): number => {
+  'worklet';
+  for (let i = Math.max(start, 1); i < cmds.length; i++) {
+    const cmd = cmds[i]!;
+    if (cmd[0] !== PathVerb.Cubic) continue;
+    const prev = cmds[i - 1]!;
+    const fromX = prev[prev.length - 2]!;
+    if (x >= fromX && x <= cmd[5]!) return i;
+  }
+  return -1;
+};
+
+const EPSILON = 1e-6;
+
+/** y of the cubic at `cmds[index]` for `x`, without allocating; undefined when x has no t in [0, 1]. */
+export const getYOnBezier = (
+  cmds: PathCommand[],
+  index: number,
+  x: number
+): number | undefined => {
+  'worklet';
+  const prev = cmds[index - 1]!;
+  const cmd = cmds[index]!;
+  const x0 = prev[prev.length - 2]!;
+  const y0 = prev[prev.length - 1]!;
+  const x1 = cmd[1]!;
+  const y1 = cmd[2]!;
+  const x2 = cmd[3]!;
+  const y2 = cmd[4]!;
+  const x3 = cmd[5]!;
+  const y3 = cmd[6]!;
+
+  // commandsToBezier turns lines into cubics with c1 = from and c2 = to
+  if (x1 === x0 && y1 === y0 && x2 === x3 && y2 === y3) {
+    return x3 === x0 ? y0 : y0 + ((y3 - y0) * (x - x0)) / (x3 - x0);
+  }
+  // A vertical curve has no single y for x: use its start, like a vertical line
+  if (x0 === x1 && x1 === x2 && x2 === x3) return y0;
+
+  const roots = solveCubic(
+    -x0 + 3 * x1 - 3 * x2 + x3,
+    3 * x0 - 6 * x1 + 3 * x2,
+    -3 * x0 + 3 * x1,
+    x0 - x
+  );
+  for (let i = 0; i < roots.length; i++) {
+    const t = roots[i]!;
+    if (t >= -EPSILON && t <= 1 + EPSILON) {
+      return cubicSolve(Math.min(1, Math.max(0, t)), y0, y1, y2, y3);
+    }
+  }
+  return undefined;
+};
+
+/**
+ * y of the path's start when `x` is left of it, of its end when right of it, else undefined.
+ * Endpoints are stored as float32, so a point's exact x can fall a hair outside the path.
+ */
+export const getYBeyondPathEnds = (
+  cmds: PathCommand[],
+  x: number
+): number | undefined => {
+  'worklet';
+  const first = cmds[0];
+  const last = cmds[cmds.length - 1];
+  if (first === undefined || last === undefined) return undefined;
+  if (x < first[1]!) return first[2];
+  if (x > last[last.length - 2]!) return last[last.length - 1];
+  return undefined;
+};
+
+/** Same as {@link getYForX} for commands already passed through {@link commandsToBezier}. */
+export const getYForXOnBeziers = (
+  cmds: PathCommand[],
+  x: number
+): number | undefined => {
+  'worklet';
+  const index = findBezierIndex(cmds, x);
+  return index === -1 ? undefined : getYOnBezier(cmds, index, x);
 };
 
 // See Path/getPath2D

@@ -4,15 +4,22 @@ import {
   type PathCommand,
   type SkPath,
 } from '@shopify/react-native-skia';
+import { useMemo, useRef } from 'react';
 import { scaleLinear, type ScaleLinear } from 'd3-scale';
 import * as shape from 'd3-shape';
 import {
   useAnimatedReaction,
+  useSharedValue,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 import { getPositionWl } from './gesture';
-import { getYForX } from './maths';
+import {
+  commandsToBezier,
+  findBezierIndex,
+  getYBeyondPathEnds,
+  getYOnBezier,
+} from './maths';
 import type { AnimatedDot, DataPoint } from './types';
 
 export type BuildGraphConfig = {
@@ -173,18 +180,39 @@ export const useDotsTransition = function (props: UseDotAnimationProps) {
     translateWl = defaultTranslateTransitionWl,
   } = props;
 
+  // Normalized once per path change, not per dot per frame
+  const commands = useSharedValue<PathCommand[]>([]);
+  const visibleCount = useSharedValue(0);
+  // Bumped when the data or the dots are replaced, so they get retargeted
+  // even if the graph index is unchanged
+  const generationRef = useRef(0);
+  const generation = useMemo(
+    () => (generationRef.current += 1),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dataPoints, dots]
+  );
+
+  // Retarget on graph or data change only: re-assigning x while it animates
+  // would restart the animation every frame
   useAnimatedReaction(
     () => ({
       _currentGraph: currentGraph.value,
-      _currentCommands: path.value.toCmds(),
-      // Track the animating x values so y stays glued to the curve
-      // even when the path is swapped instantly or tweens on another duration
-      _xs: dots.map((d) => d.x.value),
+      _path: path.value,
+      _generation: generation,
     }),
-    ({ _currentGraph, _currentCommands }) => {
+    ({ _currentGraph, _path, _generation }, previous) => {
+      commands.value = commandsToBezier(_path.toCmds());
+      if (
+        previous !== null &&
+        previous._currentGraph === _currentGraph &&
+        previous._generation === _generation
+      )
+        return;
+
       const newDataPoints = dataPoints[_currentGraph];
       if (newDataPoints === undefined)
         throw new Error('Data points cannot be undefined');
+      visibleCount.value = newDataPoints.length;
       dots.forEach((_dot, i) => {
         const _newDot = newDataPoints[i];
         if (!_newDot) {
@@ -192,15 +220,35 @@ export const useDotsTransition = function (props: UseDotAnimationProps) {
           return;
         }
         _dot.x.value = translateWl(_newDot.x);
-        const newY = getYForX(_currentCommands, _dot.x.value);
-        if (newY !== undefined) {
-          _dot.y.value = newY;
-        }
         _dot.opacity.value = opacityWl(1);
       });
     },
     // Explicit deps: without them the reaction re-registers and re-fires on
     // every parent render, restarting every dot animation on the UI thread
-    [currentGraph, path, dataPoints, dots, opacityWl, translateWl]
+    [currentGraph, path, dataPoints, dots, opacityWl, translateWl, generation]
+  );
+
+  // Keep y glued to the curve while x animates or the path tweens
+  useAnimatedReaction(
+    () => ({ _cmds: commands.value, _xs: dots.map((d) => d.x.value) }),
+    ({ _cmds, _xs }) => {
+      const count = Math.min(visibleCount.value, dots.length);
+      // Dots are in x order, so one forward walk over the segments serves them all
+      let segment = 0;
+      for (let i = 0; i < count; i++) {
+        const x = _xs[i]!;
+        let index = findBezierIndex(_cmds, x, segment);
+        if (index === -1 && segment > 1) index = findBezierIndex(_cmds, x);
+        let newY: number | undefined;
+        if (index === -1) {
+          newY = getYBeyondPathEnds(_cmds, x);
+        } else {
+          segment = index;
+          newY = getYOnBezier(_cmds, index, x);
+        }
+        if (newY !== undefined) dots[i]!.y.value = newY;
+      }
+    },
+    [dots]
   );
 };

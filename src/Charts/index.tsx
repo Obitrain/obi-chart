@@ -52,6 +52,7 @@ export {
   commandsToBezier,
   cubicBezierYForX,
   getYForX,
+  getYForXOnBeziers,
   magnitude,
   normalize,
   selectCurve,
