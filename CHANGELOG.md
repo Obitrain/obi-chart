@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.12.0](https://github.com/Obitrain/obi-chart/compare/v0.11.0...v0.12.0) (2026-10-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* peer dependency is now react-native-skia >=3.0.0 instead of @shopify/react-native-skia 2.x; Android apps need minSdk 26.
+
+### Features
+
+* migrate to react-native-skia 3 ([#41](https://github.com/Obitrain/obi-chart/issues/41)) ([c84a13a](https://github.com/Obitrain/obi-chart/commit/c84a13a4df236b7a275906a028b6b99c1833a801))
+
+
+### Performance Improvements
+
+* **charts:** memoize axis and cursor gestures, drop per-frame matrix objects ([#43](https://github.com/Obitrain/obi-chart/issues/43)) ([f4b6244](https://github.com/Obitrain/obi-chart/commit/f4b6244641e5c7257016fe126e38cebfabf02e75))
+* **charts:** stop restarting the dots transition every frame ([#42](https://github.com/Obitrain/obi-chart/issues/42)) ([4b232d8](https://github.com/Obitrain/obi-chart/commit/4b232d83de1c403a8eb3e13a7a346ef18e0aa8d8))
+
 ## [0.11.0](https://github.com/Obitrain/obi-chart/compare/v0.10.4...v0.11.0) (2026-09-23)
 
 
