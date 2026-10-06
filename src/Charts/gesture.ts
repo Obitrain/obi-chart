@@ -277,25 +277,28 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
   const xPosition = useSharedValue(0);
   const yPosition = useSharedValue(height);
 
-  const setPosition = (x: number, y: number) => {
-    'worklet';
-    yPosition.value = clamp(y, 0, height);
-    if (isContinuous || points === undefined) {
-      xPosition.value = clamp(x, 0, width);
-      return;
-    }
-    const _closestDot = getClosestPoint(clamp(x, 0, width), points.value);
-    if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
-    xPosition.value = _closestDot.x;
-  };
-
-  const panGesture = Gesture.Pan()
-    .onBegin((event) => setPosition(event.x, event.y))
-    .onUpdate((event) => setPosition(event.x, event.y));
-
-  const tapGesture = Gesture.Tap().onBegin((event) =>
-    setPosition(event.x, event.y)
-  );
+  // Memoized: a new gesture instance on every render can reset an active pan
+  const { panGesture, tapGesture } = useMemo(() => {
+    const setPosition = (x: number, y: number) => {
+      'worklet';
+      yPosition.value = clamp(y, 0, height);
+      if (isContinuous || points === undefined) {
+        xPosition.value = clamp(x, 0, width);
+        return;
+      }
+      const _closestDot = getClosestPoint(clamp(x, 0, width), points.value);
+      if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
+      xPosition.value = _closestDot.x;
+    };
+    return {
+      panGesture: Gesture.Pan()
+        .onBegin((event) => setPosition(event.x, event.y))
+        .onUpdate((event) => setPosition(event.x, event.y)),
+      tapGesture: Gesture.Tap().onBegin((event) =>
+        setPosition(event.x, event.y)
+      ),
+    };
+  }, [width, height, isContinuous, points, closestDataPoint, xPosition, yPosition]);
 
   // Re-snap the cursor when the data points change (e.g. switching graphs)
   useAnimatedReaction(
