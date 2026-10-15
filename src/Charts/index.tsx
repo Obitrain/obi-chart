@@ -13,8 +13,8 @@ export { Dots } from './Dots';
 export type { DotShape, DotsProps } from './Dots';
 export { YAxis, getPaddedTicks } from './YAxis';
 export type { YAxisProps } from './YAxis';
-export { LineChart } from './Linechart';
-export type { LineChartProps, LinePath } from './Linechart';
+export { LineChart, LinePlot } from './Linechart';
+export type { LineChartProps, LinePath, LinePlotProps } from './Linechart';
 export { ScalablePath, ZoomableLineChart } from './ZoomableLinechart';
 export type {
   ScalablePathProps,

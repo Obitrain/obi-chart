@@ -64,6 +64,20 @@ export function MyChart() {
 }
 ```
 
+Pass `opaque` when the chart covers its own background: on Android the canvas is then a `SurfaceView`,
+the fastest path.
+
+To draw the plot inside a bigger canvas (with your own axes, legends, ...), use `LinePlot`, which renders
+the same paths without a `Canvas`:
+
+```tsx
+<Canvas style={{ width, height }}>
+  <Group transform={[{ translateX: 40 }, { translateY: 20 }]}>
+    <LinePlot paths={[{ path: graph.skiaPath, color: 'dodgerblue' }]} strokeWidth={1.5} />
+  </Group>
+</Canvas>
+```
+
 ### Zoomable line chart
 
 `useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan
