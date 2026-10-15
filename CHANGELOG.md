@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/Obitrain/obi-chart/compare/v0.12.0...v0.13.0) (2026-10-15)
+
+
+### Features
+
+* export LinePlot and add opaque/strokeWidth to LineChart ([#46](https://github.com/Obitrain/obi-chart/issues/46)) ([d430fb6](https://github.com/Obitrain/obi-chart/commit/d430fb62a0a08fd5a54df3de72139fd0b4961d7a))
+
 ## [0.12.0](https://github.com/Obitrain/obi-chart/compare/v0.11.0...v0.12.0) (2026-10-06)
 
 
