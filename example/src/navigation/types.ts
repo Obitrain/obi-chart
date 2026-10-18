@@ -24,6 +24,7 @@ export type RootStackParamList = {
   DotsScreen: DemoParams;
   AdvancedChartScreen: DemoParams;
   HeatStripScreen: DemoParams;
+  DualAxisScreen: DemoParams;
   RingScreen: DemoParams;
 };
 
