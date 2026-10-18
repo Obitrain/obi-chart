@@ -1,19 +1,26 @@
 import {
   Cursor,
-  LineChart,
+  LinePlot,
+  YAxis,
+  getBandStops,
   useCursorGesture,
   useDotsTransition,
   type AnimatedDot,
+  type LinePath,
+  type ValueBand,
 } from '@obitrain/charts';
 import {
+  Canvas,
   Circle,
   Group,
   Paint,
   Rect,
+  matchFont,
+  useFont,
   usePathInterpolation,
 } from 'react-native-skia';
 import { useMemo, useState, type FC } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   GestureDetector,
   type GestureType,
@@ -24,15 +31,31 @@ import {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { Button, Colors } from '../../components';
+import { Chip, Colors } from '../../components';
 import { ReTextInt } from '../../components/AnimatedText';
 import { useDemo, useDimensions } from '../../hooks';
 import { useData } from './utils';
 
 export type Props = {};
 
-const GRAPH_HEIGHT = 140;
+const GRAPH_HEIGHT = 180;
 const PADDING_HORIZONTAL = 20;
+// Room above the plot for the top tick label
+const TOP_PAD = 16;
+const GRAPH_COLORS = [Colors.primary, Colors.secondary, Colors.warning];
+
+/** Low / mid / high thirds of the plot, coloured by `getBandStops`. */
+const getBands = function (minY: number, maxY: number): ValueBand[] {
+  const span = maxY - minY;
+  return [
+    { to: minY + span * 0.4, color: Colors.primary },
+    { from: minY + span * 0.4, to: minY + span * 0.7, color: Colors.secondary },
+    { from: minY + span * 0.7, color: Colors.error },
+  ];
+};
+
+// Ticks are already rounded to their step: print them as is
+const formatTick = (value: number) => `${value}`;
 
 const LineChartScreen: FC<Props> = function ({}) {
   const { width } = useDimensions();
@@ -42,10 +65,30 @@ const LineChartScreen: FC<Props> = function ({}) {
   const { data: graphs, dots } = useData(_width, _height);
 
   const currentGraph = useSharedValue(0);
+  const [graphIndex, setGraphIndex] = useState(0);
   const progress = useSharedValue(0);
   const [isContinuous, setContinous] = useState(true);
   const [showMultiple, setShowMultiple] = useState(false);
   const [showBackground, setShowBackground] = useState(false);
+  const [showAxis, setShowAxis] = useState(true);
+  const [showFill, setShowFill] = useState(false);
+  const [showBands, setShowBands] = useState(false);
+  const [scrollable, setScrollable] = useState(true);
+
+  const webFont = useFont(
+    require('../../../assets/fonts/SpaceMono-Regular.ttf'),
+    10
+  );
+  const font = useMemo(
+    () =>
+      Platform.OS === 'web'
+        ? webFont
+        : matchFont({
+            fontFamily: Platform.OS === 'ios' ? 'Helvetica' : 'sans-serif',
+            fontSize: 10,
+          }),
+    [webFont]
+  );
 
   const cursorY = useSharedValue(0);
   const path = usePathInterpolation(
@@ -54,29 +97,13 @@ const LineChartScreen: FC<Props> = function ({}) {
     [graphs[0]!.skiaPath, graphs[1]!.skiaPath, graphs[2]!.skiaPath]
   );
   const paths = useMemo(() => {
-    return [
-      {
-        id: 'graph1',
-        path: graphs[0]!.skiaPath,
-        commands: makeMutable(graphs[0]!.skiaPath.toCmds()),
-        color: Colors.primary,
-        value: makeMutable(0),
-      },
-      {
-        id: 'graph2',
-        path: graphs[1]!.skiaPath,
-        commands: makeMutable(graphs[1]!.skiaPath.toCmds()),
-        color: Colors.secondary,
-        value: makeMutable(0),
-      },
-      {
-        id: 'graph3',
-        path: graphs[2]!.skiaPath,
-        commands: makeMutable(graphs[2]!.skiaPath.toCmds()),
-        color: Colors.success,
-        value: makeMutable(0),
-      },
-    ];
+    return graphs.map((graph, i) => ({
+      id: `graph${i + 1}`,
+      path: graph.skiaPath,
+      commands: makeMutable(graph.skiaPath.toCmds()),
+      color: GRAPH_COLORS[i]!,
+      value: makeMutable(0),
+    }));
   }, [graphs]);
 
   const commands = useDerivedValue(() => {
@@ -98,6 +125,7 @@ const LineChartScreen: FC<Props> = function ({}) {
     setShowMultiple(false);
     const newGraph = (currentGraph.value + 1) % 3;
     currentGraph.value = newGraph;
+    setGraphIndex(newGraph);
     progress.value = withTiming(newGraph, { duration: 1000 });
   };
 
@@ -106,6 +134,7 @@ const LineChartScreen: FC<Props> = function ({}) {
     height: _height,
     isContinuous,
     points: dataPoints,
+    scrollable,
   });
 
   const gesture: GestureType = isContinuous ? panGesture : tapGesture;
@@ -117,28 +146,91 @@ const LineChartScreen: FC<Props> = function ({}) {
     { at: 5500, run: () => setShowMultiple(true) },
   ]);
 
+  const graph = graphs[graphIndex]!;
+  const stops = useMemo(
+    () =>
+      getBandStops(
+        getBands(graph.minY, graph.maxY),
+        graph.minY,
+        graph.maxY,
+        Colors.primary
+      ),
+    [graph]
+  );
+
+  // Area fill needs a static path, so it shows the current graph without the morph
+  const linePaths: LinePath[] = showMultiple
+    ? paths.map((x) => ({
+        id: x.id,
+        path: x.path,
+        color: x.color,
+        fillOpacity: showFill ? 0.2 : undefined,
+      }))
+    : [
+        {
+          id: 'main',
+          path: showFill ? graph.skiaPath : path,
+          color: Colors.primary,
+          stops: showBands ? stops : undefined,
+          fillOpacity: showFill ? 0.3 : undefined,
+        },
+      ];
+
+  if (font === null) return <View style={styles.container} />;
+
   return (
-    <View style={styles.container}>
-      <View style={styles.btnsContainer}>
-        <Button label="Change Graph" onPress={_onChangeGraph} />
-        <Button
-          label="Show Multiple"
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
+      <Text style={styles.section}>Data</Text>
+      <View style={styles.chips}>
+        <Chip label="Change graph" onPress={_onChangeGraph} />
+        <Chip
+          label="Multiple"
+          active={showMultiple}
           onPress={() => setShowMultiple((old) => !old)}
         />
-        <Button
-          label={isContinuous ? 'Continous' : 'Discrete'}
+        <Chip
+          label={isContinuous ? 'Continuous' : 'Discrete'}
+          active
           onPress={() => setContinous((old) => !old)}
         />
-        <Button
-          label={showBackground ? 'Hide Background' : 'Show Background'}
+        <Chip
+          label="Background"
+          active={showBackground}
           onPress={() => setShowBackground((old) => !old)}
         />
       </View>
+      <Text style={styles.section}>Primitives</Text>
+      <View style={styles.chips}>
+        <Chip
+          label="Y axis (nice ticks)"
+          active={showAxis}
+          onPress={() => setShowAxis((old) => !old)}
+        />
+        <Chip
+          label="Area fill"
+          active={showFill}
+          onPress={() => setShowFill((old) => !old)}
+        />
+        <Chip
+          label="Band colours"
+          active={showBands}
+          onPress={() => setShowBands((old) => !old)}
+        />
+        <Chip
+          label="Scroll-friendly cursor"
+          active={scrollable}
+          onPress={() => setScrollable((old) => !old)}
+        />
+      </View>
+
       <View style={styles.textContainer}>
         {showMultiple ? (
           paths.map((_path, i) => (
             <View key={_path.id}>
-              <Text>{_path.id}</Text>
+              <Text style={{ color: _path.color }}>{_path.id}</Text>
               <ReTextInt key={i} style={styles.value} text={_path.value} />
             </View>
           ))
@@ -147,47 +239,73 @@ const LineChartScreen: FC<Props> = function ({}) {
         )}
       </View>
       <GestureDetector gesture={gesture}>
-        <LineChart
-          style={styles.chartContainer}
-          height={GRAPH_HEIGHT * 2}
-          offsetY={GRAPH_HEIGHT / 2}
-          offsetX={PADDING_HORIZONTAL}
-          width={width}
-          path={path}
-          paths={showMultiple ? paths : undefined}
-          color={Colors.primary}
-          background={
-            showBackground ? (
-              <Rect
-                width={width}
-                height={GRAPH_HEIGHT * 2}
-                color={Colors.secondary}
-              />
-            ) : null
-          }
+        <Canvas
+          style={[
+            styles.chartContainer,
+            { width, height: GRAPH_HEIGHT + TOP_PAD * 2 },
+          ]}
         >
-          {renderDots(dots)}
-          {showMultiple ? (
-            paths.map((_path) => (
-              <Cursor
-                key={_path.id}
-                commands={_path.commands}
-                positionX={xPosition}
-                currentValue={_path.value}
-                color={_path.color}
-              />
-            ))
-          ) : (
-            <Cursor
-              commands={commands}
-              positionX={xPosition}
-              currentValue={cursorY}
-              color="blue"
+          {showBackground ? (
+            <Rect
+              width={width}
+              height={GRAPH_HEIGHT + TOP_PAD * 2}
+              color={Colors.secondary}
+              opacity={0.15}
             />
-          )}
-        </LineChart>
+          ) : null}
+          <LinePlot
+            height={GRAPH_HEIGHT}
+            offsetX={PADDING_HORIZONTAL}
+            offsetY={TOP_PAD}
+            paths={linePaths}
+            background={
+              showAxis ? (
+                <YAxis
+                  width={_width}
+                  height={GRAPH_HEIGHT}
+                  font={font}
+                  minY={graph.minY}
+                  maxY={graph.maxY}
+                  values={graph.ticks}
+                  color="rgba(0,0,0,0.12)"
+                  labelColor="hsl(209, 13%, 44%)"
+                  labelAlign="left"
+                  formatLabel={formatTick}
+                />
+              ) : null
+            }
+          >
+            {showFill || showBands ? null : renderDots(dots)}
+            {showMultiple ? (
+              paths.map((_path) => (
+                <Cursor
+                  key={_path.id}
+                  commands={_path.commands}
+                  positionX={xPosition}
+                  currentValue={_path.value}
+                  color={_path.color}
+                />
+              ))
+            ) : (
+              <Cursor
+                commands={commands}
+                positionX={xPosition}
+                currentValue={cursorY}
+                color={Colors.primary}
+                strokeColor={Colors.white}
+              />
+            )}
+          </LinePlot>
+        </Canvas>
       </GestureDetector>
-    </View>
+      <Text style={styles.hint}>
+        {scrollable
+          ? 'Scroll-friendly: drag sideways to move the cursor, vertically to scroll the page.'
+          : 'Default: any drag on the chart moves the cursor, so the page cannot scroll from here.'}
+        {showFill ? '\nArea fill draws a static path, so changing graph jumps instead of morphing.' : ''}
+      </Text>
+      <View style={styles.spacer} />
+    </ScrollView>
   );
 };
 
@@ -206,21 +324,32 @@ export const renderDots = function (dots: AnimatedDot[]) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // justifyContent: 'center',
   },
-  btnsContainer: {
+  content: {
+    paddingTop: 12,
+  },
+  section: {
+    marginHorizontal: PADDING_HORIZONTAL,
+    marginTop: 4,
+    marginBottom: 6,
+    fontSize: 12,
+    fontWeight: '700',
+    color: 'hsl(209, 13%, 44%)',
+    textTransform: 'uppercase',
+  },
+  chips: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     flexWrap: 'wrap',
-    marginVertical: 20,
+    gap: 8,
+    marginHorizontal: PADDING_HORIZONTAL,
+    marginBottom: 12,
   },
   chartContainer: {
     backgroundColor: Colors.white,
-    // marginHorizontal: 20,
   },
   textContainer: {
     marginLeft: 20,
-    marginBottom: 20,
+    marginBottom: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginRight: 20,
@@ -228,6 +357,15 @@ const styles = StyleSheet.create({
   value: {
     color: Colors.secondary,
     fontSize: 18,
+  },
+  hint: {
+    marginHorizontal: PADDING_HORIZONTAL,
+    marginTop: 10,
+    fontSize: 12,
+    color: 'hsl(209, 13%, 44%)',
+  },
+  spacer: {
+    height: 600,
   },
 });
 

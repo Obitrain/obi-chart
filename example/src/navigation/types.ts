@@ -23,6 +23,8 @@ export type RootStackParamList = {
   TestScreen: undefined;
   DotsScreen: DemoParams;
   AdvancedChartScreen: DemoParams;
+  HeatStripScreen: DemoParams;
+  RingScreen: DemoParams;
 };
 
 export type RNFC<Screen extends keyof RootStackParamList> =
