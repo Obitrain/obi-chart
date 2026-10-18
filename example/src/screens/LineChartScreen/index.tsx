@@ -36,6 +36,7 @@ import {
   useDerivedValue,
   useSharedValue,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
 import { Chip, Colors } from '../../components';
 import { ReTextInt } from '../../components/AnimatedText';
@@ -169,40 +170,58 @@ const LineChartScreen: FC<Props> = function ({}) {
     [graph]
   );
 
-  // The other dataset, in other units, on a right-hand axis sharing the left one's gridlines
-  const secondAxis = useMemo(() => {
-    const other = graphs[graphIndex === 2 ? 0 : 2]!;
-    const values = other.data.map(([, y]) => y);
-    const ticks = getAlignedTicks(
-      Math.min(...values),
-      Math.max(...values),
-      graph.ticks.length
-    );
-    const { skiaPath } = buildGraph(other.data, _width, _height, {
-      minY: ticks[0],
-      maxY: ticks[ticks.length - 1],
-      curve: shape.curveNatural,
-    });
-    return { ticks, path: skiaPath };
-  }, [graphs, graphIndex, graph, _width, _height]);
-
-  // A range of ±BAND_SPREAD around the current graph
-  const rangeBand = useMemo(() => {
-    const spread = (graph.maxY - graph.minY) * BAND_SPREAD;
-    const xs = graph.data.map(([x]) => x);
-    return buildBandPath(
-      graph.data.map(([x, y]) => [x, y - spread, y + spread]),
-      _width,
-      _height,
-      {
-        minX: Math.min(...xs),
-        maxX: Math.max(...xs),
-        minY: graph.minY,
-        maxY: graph.maxY,
-        curve: shape.curveMonotoneX,
-      }
-    );
-  }, [graph, _width, _height]);
+  // Built once per graph: paths with the same number of points interpolate, so they morph with `progress`
+  const layers = useMemo(
+    () =>
+      graphs.map((g, i) => {
+        // The other dataset, in other units, on a right-hand axis sharing this graph's gridlines
+        const other = graphs[i === 2 ? 0 : 2]!;
+        const values = other.data.map(([, y]) => y);
+        const ticks = getAlignedTicks(
+          Math.min(...values),
+          Math.max(...values),
+          g.ticks.length
+        );
+        const second = buildGraph(other.data, _width, _height, {
+          minY: ticks[0],
+          maxY: ticks[ticks.length - 1],
+          curve: shape.curveNatural,
+        }).skiaPath;
+        // A range of ±BAND_SPREAD around the graph
+        const spread = (g.maxY - g.minY) * BAND_SPREAD;
+        const xs = g.data.map(([x]) => x);
+        const band = buildBandPath(
+          g.data.map(([x, y]) => [x, y - spread, y + spread]),
+          _width,
+          _height,
+          {
+            minX: Math.min(...xs),
+            maxX: Math.max(...xs),
+            minY: g.minY,
+            maxY: g.maxY,
+            curve: shape.curveMonotoneX,
+          }
+        );
+        return { ticks, second, band };
+      }),
+    [graphs, _width, _height]
+  );
+  const secondTicks = layers[graphIndex]!.ticks;
+  const secondPath = usePathInterpolation(
+    progress,
+    [0, 1, 2],
+    layers.map((x) => x.second)
+  );
+  const bandPath = usePathInterpolation(
+    progress,
+    [0, 1, 2],
+    layers.map((x) => x.band)
+  );
+  const secondOpacity = useSharedValue(0);
+  const bandOpacity = useSharedValue(0);
+  const toggle = (value: SharedValue<number>, on: boolean) => {
+    value.value = withTiming(on ? 1 : 0, { duration: 300 });
+  };
 
   // Area fill needs a static path, so it shows the current graph without the morph
   const linePaths: LinePath[] = showMultiple
@@ -220,9 +239,6 @@ const LineChartScreen: FC<Props> = function ({}) {
           stops: showBands ? stops : undefined,
           fillOpacity: showFill ? 0.3 : undefined,
         },
-        ...(showSecondAxis
-          ? [{ id: 'second', path: secondAxis.path, color: SECOND_AXIS_COLOR }]
-          : []),
       ];
 
   if (font === null) return <View style={styles.container} />;
@@ -276,12 +292,18 @@ const LineChartScreen: FC<Props> = function ({}) {
         <Chip
           label="Second axis"
           active={showSecondAxis}
-          onPress={() => setShowSecondAxis((old) => !old)}
+          onPress={() => {
+            toggle(secondOpacity, !showSecondAxis);
+            setShowSecondAxis((old) => !old);
+          }}
         />
         <Chip
           label="Range band"
           active={showRange}
-          onPress={() => setShowRange((old) => !old)}
+          onPress={() => {
+            toggle(bandOpacity, !showRange);
+            setShowRange((old) => !old);
+          }}
         />
       </View>
 
@@ -319,9 +341,17 @@ const LineChartScreen: FC<Props> = function ({}) {
             paths={linePaths}
             background={
               <>
-                {showRange ? (
-                  <Path path={rangeBand} color={Colors.secondary} opacity={0.18} />
-                ) : null}
+                <Group opacity={bandOpacity}>
+                  <Path path={bandPath} color={Colors.secondary} opacity={0.18} />
+                </Group>
+                <Group opacity={secondOpacity}>
+                  <Path
+                    path={secondPath}
+                    style="stroke"
+                    strokeWidth={2}
+                    color={SECOND_AXIS_COLOR}
+                  />
+                </Group>
                 {showAxis ? (
                 <YAxis
                   width={_width}
@@ -338,9 +368,9 @@ const LineChartScreen: FC<Props> = function ({}) {
                 ) : null}
                 {showAxis && showSecondAxis ? (
                   <AxisLabels
-                    values={secondAxis.ticks}
-                    minY={secondAxis.ticks[0]!}
-                    maxY={secondAxis.ticks[secondAxis.ticks.length - 1]!}
+                    values={secondTicks}
+                    minY={secondTicks[0]!}
+                    maxY={secondTicks[secondTicks.length - 1]!}
                     height={GRAPH_HEIGHT}
                     width={_width}
                     font={font}
