@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/Obitrain/obi-chart/compare/v0.14.0...v0.15.0) (2026-10-18)
+
+
+### Features
+
+* dual-axis ticks, side axis labels and range band path ([#51](https://github.com/Obitrain/obi-chart/issues/51)) ([d33add6](https://github.com/Obitrain/obi-chart/commit/d33add638cbbcb821f2ceabb273b041a586d880f))
+
 ## [0.14.0](https://github.com/Obitrain/obi-chart/compare/v0.13.0...v0.14.0) (2026-10-18)
 
 
