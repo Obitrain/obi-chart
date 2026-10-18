@@ -78,6 +78,26 @@ the same paths without a `Canvas`:
 </Canvas>
 ```
 
+A `LinePath` can also fill the area under a static path (`fillOpacity`, fading to transparent) and colour
+its stroke by value range with hard-stop `stops`, e.g. heart-rate zones. `LinePlot` needs the plot `height`
+for both:
+
+```tsx
+const stops = getBandStops(
+  [{ from: 100, to: 130, color: 'teal' }, { from: 130, color: 'orange' }],
+  graph.minY,
+  graph.maxY,
+  'grey'
+);
+<LinePlot height={height} paths={[{ path: graph.skiaPath, color: 'tomato', stops }]} />
+```
+
+`getNiceTicks(min, max, maxTicks)` returns round gridline values (steps of 1, 2, 2.5 or 5 × 10ⁿ) to bound
+the plot with, and `YAxis` takes `labelAlign="left"` to print labels above full-width gridlines.
+
+Inside a vertical `ScrollView`, pass `scrollable: true` to `useCursorGesture`: the cursor then only takes
+over on a horizontal drag, and `isActive` tells whether a finger is driving it.
+
 ### Zoomable line chart
 
 `useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan
@@ -115,15 +135,16 @@ export function MyZoomableChart() {
 
 ## What's inside
 
-**Components** — `BottomAxis`, `AxisLine`, `Tick`, `Cursor`, `LineChart`, `ZoomableLineChart`,
-`ScalablePath`.
+**Components** — `BottomAxis`, `AxisLine`, `Tick`, `Cursor`, `LineChart`, `LinePlot`, `YAxis`,
+`ZoomableLineChart`, `ScalablePath`, `HeatStrip` (one-row heatmap of a series over time), `Ring` (donut).
 
 **Hooks** — `useScalableGesture` (pinch/pan into a shared `scale`/`focalX`/`offsetX`),
 `useCursorGesture` (continuous or discrete cursor), `useUpdateAxis` (swap axis labels on scale
 thresholds), `useDotsTransition` (animate dots along a path), `useSharedNumberToStr`.
 
 **Graph helpers** — `buildGraph`, `scaleCommands`, `getClosestPoint`, `getPositionWl`,
-`defaultOpacityTransitionWl`, `defaultTranslateTransitionWl`.
+`defaultOpacityTransitionWl`, `defaultTranslateTransitionWl`, `getNiceTicks`, `getPaddedTicks`,
+`getBandStops`, `getHeatCells`, `getRingArcs`.
 
 **Math helpers** — `commandsToBezier`, `cubicBezierYForX`, `getYForX`, `magnitude`, `normalize`,
 `selectCurve`.

@@ -11,10 +11,16 @@ export { Dot } from './Dot';
 export type { DotProps } from './Dot';
 export { Dots } from './Dots';
 export type { DotShape, DotsProps } from './Dots';
-export { YAxis, getPaddedTicks } from './YAxis';
+export { YAxis, getNiceTicks, getPaddedTicks } from './YAxis';
 export type { YAxisProps } from './YAxis';
 export { LineChart, LinePlot } from './Linechart';
 export type { LineChartProps, LinePath, LinePlotProps } from './Linechart';
+export { getBandStops } from './Linechart/utils';
+export type { ColorStop, ValueBand } from './Linechart/utils';
+export { HeatStrip, getHeatCells } from './HeatStrip';
+export type { HeatStripProps } from './HeatStrip';
+export { Ring, getRingArcs } from './Ring';
+export type { RingArc, RingProps, RingSegment } from './Ring';
 export { ScalablePath, ZoomableLineChart } from './ZoomableLinechart';
 export type {
   ScalablePathProps,

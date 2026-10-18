@@ -232,7 +232,15 @@ export type UseCursorGestureProps = {
   points?: SharedValue<DataPoint[]>;
   closestDataPoint?: SharedValue<DataPoint>;
   isContinuous?: boolean;
+  /**
+   * Inside a vertical scroll view: the pan only starts on a horizontal drag and lets
+   * vertical drags scroll, and taps don't move the cursor. Defaults to false.
+   */
+  scrollable?: boolean;
 };
+
+// Horizontal travel before a scrollable pan takes over, vertical travel before it gives up
+const SCROLLABLE_OFFSET = 10;
 
 /**
  * Get the closest point for a given x value
@@ -269,6 +277,7 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
     points,
     closestDataPoint,
     isContinuous = true,
+    scrollable = false,
   } = props;
 
   if (!isContinuous && points === undefined)
@@ -276,6 +285,8 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
 
   const xPosition = useSharedValue(0);
   const yPosition = useSharedValue(height);
+  /** True while a finger drives the cursor. */
+  const isActive = useSharedValue(false);
 
   // Memoized: a new gesture instance on every render can reset an active pan
   const { panGesture, tapGesture } = useMemo(() => {
@@ -290,15 +301,32 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
       if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
       xPosition.value = _closestDot.x;
     };
+    const pan = Gesture.Pan()
+      .onUpdate((event) => setPosition(event.x, event.y))
+      .onFinalize(() => {
+        isActive.value = false;
+      });
+    if (scrollable)
+      pan
+        .activeOffsetX([-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET])
+        .failOffsetY([-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET])
+        // onBegin fires on any touch, even one that ends up scrolling
+        .onStart((event) => {
+          isActive.value = true;
+          setPosition(event.x, event.y);
+        });
+    else
+      pan.onBegin((event) => {
+        isActive.value = true;
+        setPosition(event.x, event.y);
+      });
     return {
-      panGesture: Gesture.Pan()
-        .onBegin((event) => setPosition(event.x, event.y))
-        .onUpdate((event) => setPosition(event.x, event.y)),
+      panGesture: pan,
       tapGesture: Gesture.Tap().onBegin((event) =>
         setPosition(event.x, event.y)
       ),
     };
-  }, [width, height, isContinuous, points, closestDataPoint, xPosition, yPosition]);
+  }, [width, height, isContinuous, scrollable, points, closestDataPoint, xPosition, yPosition, isActive]);
 
   // Re-snap the cursor when the data points change (e.g. switching graphs)
   useAnimatedReaction(
@@ -312,5 +340,5 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
     }
   );
 
-  return { panGesture, tapGesture, xPosition, yPosition };
+  return { panGesture, tapGesture, xPosition, yPosition, isActive };
 };

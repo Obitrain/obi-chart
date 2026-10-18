@@ -1,13 +1,26 @@
-import { Canvas, Group, Path, type SkPath } from 'react-native-skia';
+import {
+  Canvas,
+  Group,
+  LinearGradient,
+  Path,
+  vec,
+  type SkPath,
+} from 'react-native-skia';
 import type { FC } from 'react';
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
+
+import { closeToBottom, withAlpha, type ColorStop } from './utils';
 
 export type LinePath = {
   path: SkPath | SharedValue<SkPath>;
   color: string;
   id?: string;
+  /** Vertical hard-stop gradient for the stroke (offsets 0 = top, 1 = bottom), e.g. from `getBandStops`. */
+  stops?: ColorStop[];
+  /** Fills the area under a static path with `color`, fading from this opacity to 0. */
+  fillOpacity?: number;
 };
 
 export type LinePlotProps = {
@@ -15,6 +28,8 @@ export type LinePlotProps = {
   offsetY?: number;
   offsetX?: number;
   strokeWidth?: number;
+  /** Plot height: needed by `stops` and `fillOpacity`. */
+  height?: number;
   /** Drawn under the paths, in plot coordinates. */
   background?: React.ReactNode;
   /** Drawn over the paths, in plot coordinates (e.g. cursors). */
@@ -27,6 +42,7 @@ const LinePlot: FC<LinePlotProps> = function ({
   offsetX = 0,
   offsetY = 0,
   strokeWidth = 2,
+  height,
   background,
   children,
 }) {
@@ -34,17 +50,70 @@ const LinePlot: FC<LinePlotProps> = function ({
     <Group transform={[{ translateY: offsetY }, { translateX: offsetX }]}>
       {background}
       {paths.map((_path, i) => (
-        <Path
+        <LineSeries
           key={`${_path.id ?? i}`}
-          style="stroke"
-          {..._path}
+          line={_path}
+          height={height}
           strokeWidth={strokeWidth}
-          strokeJoin="round"
-          strokeCap="round"
         />
       ))}
       {children}
     </Group>
+  );
+};
+
+const LineSeries: FC<{
+  line: LinePath;
+  height: number | undefined;
+  strokeWidth: number;
+}> = function ({ line, height, strokeWidth }) {
+  const { path, color, stops, fillOpacity } = line;
+  const isStatic = !('value' in path);
+  const area = useMemo(
+    () =>
+      isStatic && fillOpacity !== undefined && height !== undefined
+        ? closeToBottom(path as SkPath, height)
+        : undefined,
+    [isStatic, path, fillOpacity, height]
+  );
+  const fillColors = useMemo(
+    () =>
+      fillOpacity === undefined
+        ? undefined
+        : [withAlpha(color, fillOpacity), withAlpha(color, 0)],
+    [color, fillOpacity]
+  );
+  const gradient =
+    stops !== undefined && stops.length > 1 && height !== undefined ? (
+      <LinearGradient
+        start={vec(0, 0)}
+        end={vec(0, height)}
+        colors={stops.map((x) => x.color)}
+        positions={stops.map((x) => x.offset)}
+      />
+    ) : null;
+  return (
+    <>
+      {area && fillColors && height !== undefined ? (
+        <Path path={area}>
+          <LinearGradient
+            start={vec(0, 0)}
+            end={vec(0, height)}
+            colors={fillColors}
+          />
+        </Path>
+      ) : null}
+      <Path
+        path={path}
+        color={color}
+        style="stroke"
+        strokeWidth={strokeWidth}
+        strokeJoin="round"
+        strokeCap="round"
+      >
+        {gradient}
+      </Path>
+    </>
   );
 };
 
@@ -110,6 +179,7 @@ const LineChart: FC<LineChartProps> = function (props) {
         offsetX={offsetX}
         offsetY={offsetY}
         strokeWidth={strokeWidth}
+        height={height}
         background={background}
       >
         {children}
