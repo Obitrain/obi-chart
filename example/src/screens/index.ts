@@ -1,7 +1,6 @@
 export { AdvancedChartScreen } from './AdvancedChartScreen';
 export { BottomAxisScreen } from './BottomAxisScreen';
 export { DotsScreen } from './DotsScreen';
-export { DualAxisScreen } from './DualAxisScreen';
 export { HeatStripScreen } from './HeatStripScreen';
 export { HomeScreen } from './Home';
 export { LineChartScreen } from './LineChartScreen';

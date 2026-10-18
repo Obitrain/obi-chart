@@ -74,7 +74,6 @@ const linking: LinkingOptions<RootStackParamList> = {
       DotsScreen: 'dots',
       AdvancedChartScreen: 'advanced-chart',
       HeatStripScreen: 'heat-strip',
-      DualAxisScreen: 'dual-axis',
       RingScreen: 'ring',
       TestScreen: 'test',
     },
@@ -153,13 +152,6 @@ const SCREENS: ScreenType[] = [
     component: Screens.AdvancedChartScreen,
     options: {
       title: 'Advanced Charts',
-    },
-  },
-  {
-    name: 'DualAxisScreen',
-    component: Screens.DualAxisScreen,
-    options: {
-      title: 'Two axes & band',
     },
   },
   {

@@ -1,7 +1,11 @@
 import {
+  AxisLabels,
   Cursor,
   LinePlot,
   YAxis,
+  buildBandPath,
+  buildGraph,
+  getAlignedTicks,
   getBandStops,
   useCursorGesture,
   useDotsTransition,
@@ -14,11 +18,13 @@ import {
   Circle,
   Group,
   Paint,
+  Path,
   Rect,
   matchFont,
   useFont,
   usePathInterpolation,
 } from 'react-native-skia';
+import * as shape from 'd3-shape';
 import { useMemo, useState, type FC } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
@@ -43,6 +49,9 @@ const PADDING_HORIZONTAL = 20;
 // Room above the plot for the top tick label
 const TOP_PAD = 16;
 const GRAPH_COLORS = [Colors.primary, Colors.secondary, Colors.warning];
+const SECOND_AXIS_COLOR = 'rgb(125, 130, 184)';
+// Half-width of the demo range band, as a share of the plot's value span
+const BAND_SPREAD = 0.15;
 
 /** Low / mid / high thirds of the plot, coloured by `getBandStops`. */
 const getBands = function (minY: number, maxY: number): ValueBand[] {
@@ -74,6 +83,8 @@ const LineChartScreen: FC<Props> = function ({}) {
   const [showFill, setShowFill] = useState(false);
   const [showBands, setShowBands] = useState(false);
   const [scrollable, setScrollable] = useState(true);
+  const [showSecondAxis, setShowSecondAxis] = useState(false);
+  const [showRange, setShowRange] = useState(false);
 
   const webFont = useFont(
     require('../../../assets/fonts/SpaceMono-Regular.ttf'),
@@ -158,6 +169,41 @@ const LineChartScreen: FC<Props> = function ({}) {
     [graph]
   );
 
+  // The other dataset, in other units, on a right-hand axis sharing the left one's gridlines
+  const secondAxis = useMemo(() => {
+    const other = graphs[graphIndex === 2 ? 0 : 2]!;
+    const values = other.data.map(([, y]) => y);
+    const ticks = getAlignedTicks(
+      Math.min(...values),
+      Math.max(...values),
+      graph.ticks.length
+    );
+    const { skiaPath } = buildGraph(other.data, _width, _height, {
+      minY: ticks[0],
+      maxY: ticks[ticks.length - 1],
+      curve: shape.curveNatural,
+    });
+    return { ticks, path: skiaPath };
+  }, [graphs, graphIndex, graph, _width, _height]);
+
+  // A range of ±BAND_SPREAD around the current graph
+  const rangeBand = useMemo(() => {
+    const spread = (graph.maxY - graph.minY) * BAND_SPREAD;
+    const xs = graph.data.map(([x]) => x);
+    return buildBandPath(
+      graph.data.map(([x, y]) => [x, y - spread, y + spread]),
+      _width,
+      _height,
+      {
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: graph.minY,
+        maxY: graph.maxY,
+        curve: shape.curveMonotoneX,
+      }
+    );
+  }, [graph, _width, _height]);
+
   // Area fill needs a static path, so it shows the current graph without the morph
   const linePaths: LinePath[] = showMultiple
     ? paths.map((x) => ({
@@ -174,6 +220,9 @@ const LineChartScreen: FC<Props> = function ({}) {
           stops: showBands ? stops : undefined,
           fillOpacity: showFill ? 0.3 : undefined,
         },
+        ...(showSecondAxis
+          ? [{ id: 'second', path: secondAxis.path, color: SECOND_AXIS_COLOR }]
+          : []),
       ];
 
   if (font === null) return <View style={styles.container} />;
@@ -224,6 +273,16 @@ const LineChartScreen: FC<Props> = function ({}) {
           active={scrollable}
           onPress={() => setScrollable((old) => !old)}
         />
+        <Chip
+          label="Second axis"
+          active={showSecondAxis}
+          onPress={() => setShowSecondAxis((old) => !old)}
+        />
+        <Chip
+          label="Range band"
+          active={showRange}
+          onPress={() => setShowRange((old) => !old)}
+        />
       </View>
 
       <View style={styles.textContainer}>
@@ -259,7 +318,11 @@ const LineChartScreen: FC<Props> = function ({}) {
             offsetY={TOP_PAD}
             paths={linePaths}
             background={
-              showAxis ? (
+              <>
+                {showRange ? (
+                  <Path path={rangeBand} color={Colors.secondary} opacity={0.18} />
+                ) : null}
+                {showAxis ? (
                 <YAxis
                   width={_width}
                   height={GRAPH_HEIGHT}
@@ -272,7 +335,21 @@ const LineChartScreen: FC<Props> = function ({}) {
                   labelAlign="left"
                   formatLabel={formatTick}
                 />
-              ) : null
+                ) : null}
+                {showAxis && showSecondAxis ? (
+                  <AxisLabels
+                    values={secondAxis.ticks}
+                    minY={secondAxis.ticks[0]!}
+                    maxY={secondAxis.ticks[secondAxis.ticks.length - 1]!}
+                    height={GRAPH_HEIGHT}
+                    width={_width}
+                    font={font}
+                    side="right"
+                    color={SECOND_AXIS_COLOR}
+                    formatLabel={formatTick}
+                  />
+                ) : null}
+              </>
             }
           >
             {showFill || showBands ? null : renderDots(dots)}
@@ -303,6 +380,8 @@ const LineChartScreen: FC<Props> = function ({}) {
           ? 'Scroll-friendly: drag sideways to move the cursor, vertically to scroll the page.'
           : 'Default: any drag on the chart moves the cursor, so the page cannot scroll from here.'}
         {showFill ? '\nArea fill draws a static path, so changing graph jumps instead of morphing.' : ''}
+        {showSecondAxis ? '\nSecond axis: getAlignedTicks gives the other dataset as many round ticks as the left axis, so both share the gridlines.' : ''}
+        {showRange ? '\nRange band: buildBandPath fills the area between a lower and an upper series.' : ''}
       </Text>
       <View style={styles.spacer} />
     </ScrollView>
