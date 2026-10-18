@@ -312,11 +312,13 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
         .failOffsetY([-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET])
         // onBegin fires on any touch, even one that ends up scrolling
         .onStart((event) => {
+          'worklet';
           isActive.value = true;
           setPosition(event.x, event.y);
         });
     else
       pan.onBegin((event) => {
+        'worklet';
         isActive.value = true;
         setPosition(event.x, event.y);
       });
