@@ -29,7 +29,6 @@ import { useMemo, useState, type FC } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   GestureDetector,
-  type GestureType,
 } from 'react-native-gesture-handler';
 import {
   makeMutable,
@@ -149,7 +148,6 @@ const LineChartScreen: FC<Props> = function ({}) {
     scrollable,
   });
 
-  const gesture: GestureType = isContinuous ? panGesture : tapGesture;
 
   useDemo([
     { at: 1000, run: _onChangeGraph },
@@ -243,6 +241,94 @@ const LineChartScreen: FC<Props> = function ({}) {
 
   if (font === null) return <View style={styles.container} />;
 
+  // A different gesture per mode: each needs its own detector
+  const chart = (
+    <Canvas
+      style={[
+        styles.chartContainer,
+        { width, height: GRAPH_HEIGHT + TOP_PAD * 2 },
+      ]}
+    >
+      {showBackground ? (
+        <Rect
+          width={width}
+          height={GRAPH_HEIGHT + TOP_PAD * 2}
+          color={Colors.secondary}
+          opacity={0.15}
+        />
+      ) : null}
+      <LinePlot
+        height={GRAPH_HEIGHT}
+        offsetX={PADDING_HORIZONTAL}
+        offsetY={TOP_PAD}
+        paths={linePaths}
+        background={
+          <>
+            <Group opacity={bandOpacity}>
+              <Path path={bandPath} color={Colors.secondary} opacity={0.18} />
+            </Group>
+            <Group opacity={secondOpacity}>
+              <Path
+                path={secondPath}
+                style="stroke"
+                strokeWidth={2}
+                color={SECOND_AXIS_COLOR}
+              />
+            </Group>
+            {showAxis ? (
+            <YAxis
+              width={_width}
+              height={GRAPH_HEIGHT}
+              font={font}
+              minY={graph.minY}
+              maxY={graph.maxY}
+              values={graph.ticks}
+              color="rgba(0,0,0,0.12)"
+              labelColor="hsl(209, 13%, 44%)"
+              labelAlign="left"
+              formatLabel={formatTick}
+            />
+            ) : null}
+            {showAxis && showSecondAxis ? (
+              <AxisLabels
+                values={secondTicks}
+                minY={secondTicks[0]!}
+                maxY={secondTicks[secondTicks.length - 1]!}
+                height={GRAPH_HEIGHT}
+                width={_width}
+                font={font}
+                side="right"
+                color={SECOND_AXIS_COLOR}
+                formatLabel={formatTick}
+              />
+            ) : null}
+          </>
+        }
+      >
+        {showFill || showBands ? null : renderDots(dots)}
+        {showMultiple ? (
+          paths.map((_path) => (
+            <Cursor
+              key={_path.id}
+              commands={_path.commands}
+              positionX={xPosition}
+              currentValue={_path.value}
+              color={_path.color}
+            />
+          ))
+        ) : (
+          <Cursor
+            commands={commands}
+            positionX={xPosition}
+            currentValue={cursorY}
+            color={Colors.primary}
+            strokeColor={Colors.white}
+          />
+        )}
+      </LinePlot>
+    </Canvas>
+  );
+
   return (
     <ScrollView
       style={styles.container}
@@ -319,92 +405,11 @@ const LineChartScreen: FC<Props> = function ({}) {
           <ReTextInt style={styles.value} text={cursorY} />
         )}
       </View>
-      <GestureDetector gesture={gesture}>
-        <Canvas
-          style={[
-            styles.chartContainer,
-            { width, height: GRAPH_HEIGHT + TOP_PAD * 2 },
-          ]}
-        >
-          {showBackground ? (
-            <Rect
-              width={width}
-              height={GRAPH_HEIGHT + TOP_PAD * 2}
-              color={Colors.secondary}
-              opacity={0.15}
-            />
-          ) : null}
-          <LinePlot
-            height={GRAPH_HEIGHT}
-            offsetX={PADDING_HORIZONTAL}
-            offsetY={TOP_PAD}
-            paths={linePaths}
-            background={
-              <>
-                <Group opacity={bandOpacity}>
-                  <Path path={bandPath} color={Colors.secondary} opacity={0.18} />
-                </Group>
-                <Group opacity={secondOpacity}>
-                  <Path
-                    path={secondPath}
-                    style="stroke"
-                    strokeWidth={2}
-                    color={SECOND_AXIS_COLOR}
-                  />
-                </Group>
-                {showAxis ? (
-                <YAxis
-                  width={_width}
-                  height={GRAPH_HEIGHT}
-                  font={font}
-                  minY={graph.minY}
-                  maxY={graph.maxY}
-                  values={graph.ticks}
-                  color="rgba(0,0,0,0.12)"
-                  labelColor="hsl(209, 13%, 44%)"
-                  labelAlign="left"
-                  formatLabel={formatTick}
-                />
-                ) : null}
-                {showAxis && showSecondAxis ? (
-                  <AxisLabels
-                    values={secondTicks}
-                    minY={secondTicks[0]!}
-                    maxY={secondTicks[secondTicks.length - 1]!}
-                    height={GRAPH_HEIGHT}
-                    width={_width}
-                    font={font}
-                    side="right"
-                    color={SECOND_AXIS_COLOR}
-                    formatLabel={formatTick}
-                  />
-                ) : null}
-              </>
-            }
-          >
-            {showFill || showBands ? null : renderDots(dots)}
-            {showMultiple ? (
-              paths.map((_path) => (
-                <Cursor
-                  key={_path.id}
-                  commands={_path.commands}
-                  positionX={xPosition}
-                  currentValue={_path.value}
-                  color={_path.color}
-                />
-              ))
-            ) : (
-              <Cursor
-                commands={commands}
-                positionX={xPosition}
-                currentValue={cursorY}
-                color={Colors.primary}
-                strokeColor={Colors.white}
-              />
-            )}
-          </LinePlot>
-        </Canvas>
-      </GestureDetector>
+      {isContinuous ? (
+        <GestureDetector gesture={panGesture}>{chart}</GestureDetector>
+      ) : (
+        <GestureDetector gesture={tapGesture}>{chart}</GestureDetector>
+      )}
       <Text style={styles.hint}>
         {scrollable
           ? 'Scroll-friendly: drag sideways to move the cursor, vertically to scroll the page.'

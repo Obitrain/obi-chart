@@ -7,7 +7,10 @@ import {
 import { Group, usePathInterpolation } from 'react-native-skia';
 import { useCallback, useRef, type FC } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  GestureDetector,
+  useSimultaneousGestures,
+} from 'react-native-gesture-handler';
 import {
     useSharedValue,
     withTiming,
@@ -99,7 +102,7 @@ const ZoomableLineChartScreen: FC<Props> = function ({}) {
   //     onScaleChange: (_newIndex) => _updateRange(_newIndex),
   //   });
 
-  const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
+  const gesture = useSimultaneousGestures(pinchGesture, panGesture);
 
   useDemo([
     { at: 1000, run: _onChangeGraph },

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {
   RectButton,
-  type RectButtonProperties,
+  type RectButtonProps,
 } from 'react-native-gesture-handler';
 import { Colors } from './theme';
 
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export type Props = RectButtonProperties & {
+export type Props = RectButtonProps & {
   label: string;
   style?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;

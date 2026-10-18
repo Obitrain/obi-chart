@@ -6,7 +6,10 @@ import {
 import { matchFont } from 'react-native-skia';
 import { useCallback, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  GestureDetector,
+  useSimultaneousGestures,
+} from 'react-native-gesture-handler';
 import { Button } from '../components';
 import { useDemo, useDimensions } from '../hooks';
 
@@ -63,7 +66,7 @@ export function BottomAxisScreen() {
     currentRangeShared.value = 0;
   };
 
-  const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
+  const gesture = useSimultaneousGestures(pinchGesture, panGesture);
 
   useDemo([
     { at: 1000, run: () => (scale.value = TEST_ZOOM) },

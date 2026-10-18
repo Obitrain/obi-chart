@@ -21,7 +21,7 @@ yarn add react-native-skia react-native-reanimated react-native-worklets react-n
 | `react-native-skia`          | `>=3.0.4` (Android minSdk 26)                          |
 | `react-native-reanimated`    | 3.x or 4.x                                             |
 | `react-native-worklets`      | `>=0.10.0` (optional, required with Reanimated 4)      |
-| `react-native-gesture-handler` | 2.x or 3.x                                           |
+| `react-native-gesture-handler` | 3.x (hook API)                                       |
 | `d3-scale`                   | `>=4.0.2 <5.0.0`                                       |
 | `d3-shape`                   | `>=3.2.0 <4.0.0`                                       |
 | `react`                      | 18.x or 19.x                                           |
@@ -120,7 +120,8 @@ const band = buildBandPath(range, width, height, { minX, maxX, minY: kg[0], maxY
 ### Zoomable line chart
 
 `useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan
-gestures to wire into a `GestureDetector`:
+gestures (Gesture Handler 3 hooks) to compose with `useSimultaneousGestures` and wire into a `GestureDetector`.
+Inside a vertical `ScrollView`, pass `scrollable: true` so the one-finger pan only takes over on a horizontal drag:
 
 ```tsx
 import {
@@ -128,7 +129,7 @@ import {
   useScalableGesture,
   ZoomableLineChart,
 } from '@obitrain/charts';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { GestureDetector, useSimultaneousGestures } from 'react-native-gesture-handler';
 import { useSharedValue } from 'react-native-reanimated';
 
 export function MyZoomableChart() {
@@ -138,7 +139,7 @@ export function MyZoomableChart() {
   const { scale, focalX, offsetX, pinchGesture, panGesture } =
     useScalableGesture({ width: WIDTH });
 
-  const gesture = Gesture.Simultaneous(pinchGesture, panGesture);
+  const gesture = useSimultaneousGestures(pinchGesture, panGesture);
 
   return (
     <GestureDetector gesture={gesture}>
