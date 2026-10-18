@@ -73,6 +73,8 @@ const linking: LinkingOptions<RootStackParamList> = {
       ZoomableLineChartScreen: 'zoomable-line-chart',
       DotsScreen: 'dots',
       AdvancedChartScreen: 'advanced-chart',
+      HeatStripScreen: 'heat-strip',
+      RingScreen: 'ring',
       TestScreen: 'test',
     },
   },
@@ -150,6 +152,20 @@ const SCREENS: ScreenType[] = [
     component: Screens.AdvancedChartScreen,
     options: {
       title: 'Advanced Charts',
+    },
+  },
+  {
+    name: 'HeatStripScreen',
+    component: Screens.HeatStripScreen,
+    options: {
+      title: 'Heat strip',
+    },
+  },
+  {
+    name: 'RingScreen',
+    component: Screens.RingScreen,
+    options: {
+      title: 'Ring',
     },
   },
 ];

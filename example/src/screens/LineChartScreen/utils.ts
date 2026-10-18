@@ -1,4 +1,4 @@
-import { buildGraph } from '@obitrain/charts';
+import { buildGraph, getNiceTicks } from '@obitrain/charts';
 import * as shape from 'd3-shape';
 import { useMemo } from 'react';
 import {
@@ -32,23 +32,29 @@ const DATASET_2 = MONTHLY_DATA_2.map(
   (x, i) => [i, x.value] as [number, number]
 );
 
+const yBounds = function (dataset: [number, number][]) {
+  const values = dataset.map(([, y]) => y);
+  const ticks = getNiceTicks(Math.min(...values), Math.max(...values), 5);
+  return { ticks, minY: ticks[0], maxY: ticks[ticks.length - 1] };
+};
+
 export const useData = function (width: number, height: number) {
-  // shape.curveBasis,
+  // Each graph spans round tick bounds so `YAxis` gridlines land on its labels
   const data = useMemo(
-    () => [
-      // DATASET_1
-      ...[shape.curveBumpX, shape.curveNatural].map((_curve) =>
-        buildGraph(DATASET_1, width, height, {
-          curve: _curve,
-        })
-      ),
-      // DATASET_2
-      ...[shape.curveNatural].map((_curve) =>
-        buildGraph(DATASET_2, width, height, {
-          curve: _curve,
-        })
-      ),
-    ],
+    () =>
+      (
+        [
+          [DATASET_1, shape.curveBumpX],
+          [DATASET_1, shape.curveNatural],
+          [DATASET_2, shape.curveNatural],
+        ] as const
+      ).map(([dataset, curve]) => {
+        const { ticks, minY, maxY } = yBounds([...dataset]);
+        return {
+          ...buildGraph([...dataset], width, height, { curve, minY, maxY }),
+          ticks,
+        };
+      }),
     [height, width]
   );
   const firstGraph = data[0];
