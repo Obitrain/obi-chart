@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/Obitrain/obi-chart/compare/v0.15.0...v0.15.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* align LineChart stops and fill with the plot when offsetY is set ([#53](https://github.com/Obitrain/obi-chart/issues/53)) ([4834e17](https://github.com/Obitrain/obi-chart/commit/4834e171ce7c37b16a8bd8eb910a0925516913eb))
+
 ## [0.15.0](https://github.com/Obitrain/obi-chart/compare/v0.14.0...v0.15.0) (2026-10-18)
 
 
