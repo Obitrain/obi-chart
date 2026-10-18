@@ -1,3 +1,5 @@
+export { AxisLabels } from './AxisLabels';
+export type { AxisLabelsProps } from './AxisLabels';
 export { AxisLine, BottomAxis, Tick } from './BottomAxis';
 export type {
   AxisLineProps,
@@ -11,6 +13,9 @@ export { Dot } from './Dot';
 export type { DotProps } from './Dot';
 export { Dots } from './Dots';
 export type { DotShape, DotsProps } from './Dots';
+export { buildBandPath } from './band';
+export type { BandDatum, BuildBandConfig } from './band';
+export { getAlignedTicks } from './ticks';
 export { YAxis, getNiceTicks, getPaddedTicks } from './YAxis';
 export type { YAxisProps } from './YAxis';
 export { LineChart, LinePlot } from './Linechart';

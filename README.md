@@ -98,6 +98,25 @@ the plot with, and `YAxis` takes `labelAlign="left"` to print labels above full-
 Inside a vertical `ScrollView`, pass `scrollable: true` to `useCursorGesture`: the cursor then only takes
 over on a horizontal drag, and `isActive` tells whether a finger is driving it.
 
+### Two axes and a range band
+
+Two series with different units can share one set of gridlines: `getAlignedTicks(min, max, count)` returns
+exactly `count` round ticks, so both axes built with the same `count` line up. Draw the gridlines once with a
+label-less `YAxis` and put each scale's labels on its side with `AxisLabels`. `buildBandPath` fills the area
+between a lower and an upper series, e.g. an expected range behind a line; pass it the line's domain:
+
+```tsx
+const kg = getAlignedTicks(minKg, maxKg, 4);
+const pct = getAlignedTicks(minPct, maxPct, 4);
+const band = buildBandPath(range, width, height, { minX, maxX, minY: kg[0], maxY: kg[3] });
+<Canvas style={{ width, height }}>
+  <YAxis width={width} height={height} font={font} minY={kg[0]} maxY={kg[3]} values={kg} showLabels={false} />
+  <AxisLabels values={kg} minY={kg[0]} maxY={kg[3]} height={height} width={width} font={font} side="left" />
+  <AxisLabels values={pct} minY={pct[0]} maxY={pct[3]} height={height} width={width} font={font} side="right" />
+  <Path path={band} color="teal" opacity={0.2} />
+</Canvas>
+```
+
 ### Zoomable line chart
 
 `useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan
@@ -136,14 +155,15 @@ export function MyZoomableChart() {
 ## What's inside
 
 **Components** — `BottomAxis`, `AxisLine`, `Tick`, `Cursor`, `LineChart`, `LinePlot`, `YAxis`,
-`ZoomableLineChart`, `ScalablePath`, `HeatStrip` (one-row heatmap of a series over time), `Ring` (donut).
+`ZoomableLineChart`, `ScalablePath`, `HeatStrip` (one-row heatmap of a series over time), `Ring` (donut),
+`AxisLabels` (tick labels on either side, for a second axis).
 
 **Hooks** — `useScalableGesture` (pinch/pan into a shared `scale`/`focalX`/`offsetX`),
 `useCursorGesture` (continuous or discrete cursor), `useUpdateAxis` (swap axis labels on scale
 thresholds), `useDotsTransition` (animate dots along a path), `useSharedNumberToStr`.
 
-**Graph helpers** — `buildGraph`, `scaleCommands`, `getClosestPoint`, `getPositionWl`,
-`defaultOpacityTransitionWl`, `defaultTranslateTransitionWl`, `getNiceTicks`, `getPaddedTicks`,
+**Graph helpers** — `buildGraph`, `buildBandPath`, `scaleCommands`, `getClosestPoint`, `getPositionWl`,
+`defaultOpacityTransitionWl`, `defaultTranslateTransitionWl`, `getNiceTicks`, `getAlignedTicks`, `getPaddedTicks`,
 `getBandStops`, `getHeatCells`, `getRingArcs`.
 
 **Math helpers** — `commandsToBezier`, `cubicBezierYForX`, `getYForX`, `magnitude`, `normalize`,
