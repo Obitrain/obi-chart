@@ -9,18 +9,18 @@ const PADDING = 20;
 const SIZE = 200;
 const ANIMATION_MS = 700;
 
-const ZONES = [
-  { label: 'Z1 Recovery', color: '#7e8fa0' },
-  { label: 'Z2 Endurance', color: Colors.primary },
-  { label: 'Z3 Tempo', color: Colors.secondary },
-  { label: 'Z4 Threshold', color: '#e3a33b' },
-  { label: 'Z5 VO2max', color: Colors.error },
+const CATEGORIES = [
+  { label: 'Category A', color: '#7e8fa0' },
+  { label: 'Category B', color: Colors.primary },
+  { label: 'Category C', color: Colors.secondary },
+  { label: 'Category D', color: '#e3a33b' },
+  { label: 'Category E', color: Colors.error },
 ];
 
 const PRESETS: { label: string; values: number[] }[] = [
-  { label: 'Endurance ride', values: [8, 42, 7, 2, 1] },
-  { label: 'Intervals', values: [10, 18, 9, 14, 9] },
-  { label: 'Race', values: [2, 6, 15, 24, 13] },
+  { label: 'Dominant', values: [8, 42, 7, 2, 1] },
+  { label: 'Balanced', values: [10, 18, 9, 14, 9] },
+  { label: 'Skewed', values: [2, 6, 15, 24, 13] },
   { label: 'Empty', values: [0, 0, 0, 0, 0] },
 ];
 
@@ -63,9 +63,9 @@ const RingScreen: FC = function () {
   const target = PRESETS[preset]!.values;
   const values = useTweenedValues(target);
   const total = target.reduce((a, b) => a + b, 0);
-  const segments: RingSegment[] = ZONES.map((zone, i) => ({
+  const segments: RingSegment[] = CATEGORIES.map((category, i) => ({
     value: values[i] ?? 0,
-    color: zone.color,
+    color: category.color,
   }));
 
   useDemo([
@@ -76,7 +76,7 @@ const RingScreen: FC = function () {
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
-      <Text style={styles.section}>Session</Text>
+      <Text style={styles.section}>Data</Text>
       <View style={styles.chips}>
         {PRESETS.map((x, i) => (
           <Chip
@@ -125,16 +125,16 @@ const RingScreen: FC = function () {
           </Canvas>
           <View style={styles.center} pointerEvents="none">
             <Text style={styles.total}>{total}</Text>
-            <Text style={styles.caption}>min</Text>
+            <Text style={styles.caption}>total</Text>
           </View>
         </View>
-        {ZONES.map((zone, i) => (
-          <View key={zone.label} style={styles.legendRow}>
+        {CATEGORIES.map((category, i) => (
+          <View key={category.label} style={styles.legendRow}>
             <View style={styles.row}>
-              <View style={[styles.swatch, { backgroundColor: zone.color }]} />
-              <Text style={styles.legend}>{zone.label}</Text>
+              <View style={[styles.swatch, { backgroundColor: category.color }]} />
+              <Text style={styles.legend}>{category.label}</Text>
             </View>
-            <Text style={styles.caption}>{Math.round(values[i] ?? 0)} min</Text>
+            <Text style={styles.caption}>{Math.round(values[i] ?? 0)}</Text>
           </View>
         ))}
       </View>

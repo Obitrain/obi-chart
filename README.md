@@ -79,7 +79,7 @@ the same paths without a `Canvas`:
 ```
 
 A `LinePath` can also fill the area under a static path (`fillOpacity`, fading to transparent) and colour
-its stroke by value range with hard-stop `stops`, e.g. heart-rate zones. `LinePlot` needs the plot `height`
+its stroke by value range with hard-stop `stops`, e.g. thresholds. `LinePlot` needs the plot `height`
 for both:
 
 ```tsx

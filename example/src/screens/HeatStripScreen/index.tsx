@@ -8,30 +8,30 @@ import { useDimensions } from '../../hooks';
 const PADDING = 20;
 const STRIP_HEIGHT = 28;
 
-// Deterministic 60-minute ride, one sample per 15 s: warm-up, 3 intervals, cool-down
+// Deterministic series, 240 samples: a ramp, 3 plateaus, a decline
 const SAMPLES = Array.from({ length: 240 }, (_, i) => {
   const t = i / 4;
-  const interval = t > 15 && t < 45 && (t - 15) % 10 < 5;
-  const hr =
+  const plateau = t > 15 && t < 45 && (t - 15) % 10 < 5;
+  const a =
     (t < 10 ? 105 + t * 3 : t > 50 ? 150 - (t - 50) * 3.5 : 138) +
-    (interval ? 26 : 0) +
+    (plateau ? 26 : 0) +
     Math.sin(i / 3) * 3;
-  const power =
+  const b =
     (t < 10 ? 120 + t * 8 : t > 50 ? 180 - (t - 50) * 8 : 190) +
-    (interval ? 110 : 0) +
+    (plateau ? 110 : 0) +
     Math.sin(i / 2) * 18;
-  // Cadence drops out (undefined) while coasting
-  const cadence = i % 37 < 4 ? undefined : 85 + (interval ? 10 : 0) + Math.sin(i) * 4;
-  return { hr, power, cadence };
+  // Drops out (undefined) every few samples
+  const c = i % 37 < 4 ? undefined : 85 + (plateau ? 10 : 0) + Math.sin(i) * 4;
+  return { a, b, c };
 });
 
 const SERIES = [
-  { label: 'Heart rate', color: Colors.error, values: SAMPLES.map((x) => x.hr) },
-  { label: 'Power', color: Colors.primary, values: SAMPLES.map((x) => x.power) },
+  { label: 'Series A', color: Colors.error, values: SAMPLES.map((x) => x.a) },
+  { label: 'Series B', color: Colors.primary, values: SAMPLES.map((x) => x.b) },
   {
-    label: 'Cadence (gaps while coasting)',
+    label: 'Series C (with gaps)',
     color: Colors.secondary,
-    values: SAMPLES.map((x) => x.cadence),
+    values: SAMPLES.map((x) => x.c),
   },
 ];
 
@@ -44,7 +44,7 @@ const HeatStripScreen: FC = function () {
   const [fixedRange, setFixedRange] = useState(false);
   const [rounded, setRounded] = useState(true);
 
-  // A fixed range compares sessions; the default stretches each strip to its own min/max
+  // A fixed range compares strips; the default stretches each strip to its own min/max
   const ranges = useMemo(
     () => [
       { minValue: 90, maxValue: 190 },
@@ -96,8 +96,8 @@ const HeatStripScreen: FC = function () {
             />
           </Canvas>
           <View style={styles.row}>
-            <Text style={styles.caption}>0 min</Text>
-            <Text style={styles.caption}>60 min</Text>
+            <Text style={styles.caption}>start</Text>
+            <Text style={styles.caption}>end</Text>
           </View>
         </View>
       ))}

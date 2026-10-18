@@ -12,7 +12,7 @@ export type ValueBand = {
 
 /**
  * Hard stops painting a vertical gradient band by band over a [minY, maxY] plot,
- * so a line takes the colour of the value range it crosses (e.g. heart-rate zones).
+ * so a line takes the colour of the value range it crosses (e.g. thresholds).
  * Values outside every band use `fallbackColor`.
  */
 export const getBandStops = function (

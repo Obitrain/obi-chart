@@ -45,7 +45,7 @@ const TOP_PAD = 16;
 const GRAPH_COLORS = [Colors.primary, Colors.secondary, Colors.warning];
 
 /** Low / mid / high thirds of the plot, coloured by `getBandStops`. */
-const getZones = function (minY: number, maxY: number): ValueBand[] {
+const getBands = function (minY: number, maxY: number): ValueBand[] {
   const span = maxY - minY;
   return [
     { to: minY + span * 0.4, color: Colors.primary },
@@ -72,7 +72,7 @@ const LineChartScreen: FC<Props> = function ({}) {
   const [showBackground, setShowBackground] = useState(false);
   const [showAxis, setShowAxis] = useState(true);
   const [showFill, setShowFill] = useState(false);
-  const [showZones, setShowZones] = useState(false);
+  const [showBands, setShowBands] = useState(false);
   const [scrollable, setScrollable] = useState(true);
 
   const webFont = useFont(
@@ -150,7 +150,7 @@ const LineChartScreen: FC<Props> = function ({}) {
   const stops = useMemo(
     () =>
       getBandStops(
-        getZones(graph.minY, graph.maxY),
+        getBands(graph.minY, graph.maxY),
         graph.minY,
         graph.maxY,
         Colors.primary
@@ -171,7 +171,7 @@ const LineChartScreen: FC<Props> = function ({}) {
           id: 'main',
           path: showFill ? graph.skiaPath : path,
           color: Colors.primary,
-          stops: showZones ? stops : undefined,
+          stops: showBands ? stops : undefined,
           fillOpacity: showFill ? 0.3 : undefined,
         },
       ];
@@ -215,9 +215,9 @@ const LineChartScreen: FC<Props> = function ({}) {
           onPress={() => setShowFill((old) => !old)}
         />
         <Chip
-          label="Zone colours"
-          active={showZones}
-          onPress={() => setShowZones((old) => !old)}
+          label="Band colours"
+          active={showBands}
+          onPress={() => setShowBands((old) => !old)}
         />
         <Chip
           label="Scroll-friendly cursor"
@@ -275,7 +275,7 @@ const LineChartScreen: FC<Props> = function ({}) {
               ) : null
             }
           >
-            {showFill || showZones ? null : renderDots(dots)}
+            {showFill || showBands ? null : renderDots(dots)}
             {showMultiple ? (
               paths.map((_path) => (
                 <Cursor

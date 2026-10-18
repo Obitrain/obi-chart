@@ -6,8 +6,8 @@ import { getRingArcs } from '../Charts/Ring';
 describe('getBandStops', () => {
   // 100 → 200 on the plot: 0.01 offset per unit, 200 at the top
   const BANDS = [
-    { from: 100, to: 150, color: 'z1' },
-    { from: 150, to: 180, color: 'z2' },
+    { from: 100, to: 150, color: 'a' },
+    { from: 150, to: 180, color: 'b' },
   ];
 
   it.each([
@@ -16,8 +16,8 @@ describe('getBandStops', () => {
       bands: BANDS,
       expected: [
         { offset: 0, color: 'none' }, { offset: 0.2, color: 'none' },
-        { offset: 0.2, color: 'z2' }, { offset: 0.5, color: 'z2' },
-        { offset: 0.5, color: 'z1' }, { offset: 1, color: 'z1' },
+        { offset: 0.2, color: 'b' }, { offset: 0.5, color: 'b' },
+        { offset: 0.5, color: 'a' }, { offset: 1, color: 'a' },
       ],
     },
     {

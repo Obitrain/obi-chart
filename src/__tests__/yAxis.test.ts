@@ -21,10 +21,10 @@ describe('getPaddedTicks', () => {
 
 describe('getNiceTicks', () => {
   it.each([
-    { name: 'heart rate', min: 94, max: 175, maxTicks: 5, expected: [75, 100, 125, 150, 175] },
-    { name: 'power from zero', min: 0, max: 323, maxTicks: 5, expected: [0, 100, 200, 300, 400] },
+    { name: 'offset range', min: 94, max: 175, maxTicks: 5, expected: [75, 100, 125, 150, 175] },
+    { name: 'range from zero', min: 0, max: 323, maxTicks: 5, expected: [0, 100, 200, 300, 400] },
     { name: 'widens the step when snapping adds a segment', min: 87, max: 184, maxTicks: 5, expected: [50, 100, 150, 200] },
-    { name: 'decimal speeds', min: 12.3, max: 31.4, maxTicks: 5, expected: [10, 20, 30, 40] },
+    { name: 'decimal range', min: 12.3, max: 31.4, maxTicks: 5, expected: [10, 20, 30, 40] },
     { name: 'small decimal range without float noise', min: 0.1, max: 0.7, maxTicks: 4, expected: [0, 0.25, 0.5, 0.75] },
     { name: 'flat series still spans one step', min: 100, max: 100, maxTicks: 5, expected: [100, 200] },
   ])('$name', ({ min, max, maxTicks, expected }) => {
