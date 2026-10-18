@@ -126,6 +126,8 @@ type LineChartBaseProps = {
   strokeWidth?: number;
   /** Forwarded to the Skia canvas: on Android an opaque canvas is a SurfaceView, the fastest path. */
   opaque?: boolean;
+  /** Height of the plot for `stops` and `fillOpacity`; defaults to the canvas height minus `offsetY`. */
+  plotHeight?: number;
   background?: React.ReactNode;
   children?: React.ReactNode;
 };
@@ -151,6 +153,7 @@ const LineChart: FC<LineChartProps> = function (props) {
     offsetY,
     strokeWidth,
     opaque,
+    plotHeight,
   } = props;
 
   const _paths: LinePath[] =
@@ -179,7 +182,7 @@ const LineChart: FC<LineChartProps> = function (props) {
         offsetX={offsetX}
         offsetY={offsetY}
         strokeWidth={strokeWidth}
-        height={height}
+        height={plotHeight ?? height - (offsetY ?? 0)}
         background={background}
       >
         {children}
