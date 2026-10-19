@@ -59,6 +59,8 @@ export type AxisGestureProps = {
    * and lets vertical drags scroll. Defaults to false.
    */
   scrollable?: boolean;
+  /** Called on the JS thread when a pinch or pan ends, e.g. to turn the zoom into a new data window. */
+  onEnd?: () => void;
 };
 
 export type ScalableGesture = {
@@ -108,11 +110,13 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
   ]);
 
   const scrollable = props.scrollable ?? false;
+  const onEnd = props.onEnd;
   const commit = () => {
     'worklet';
     lastScale.value = scale.value;
     lastFocalX.value = focalX.value;
     lastOffsetX.value = offsetX.value;
+    if (onEnd) scheduleOnRN(onEnd);
   };
 
   const panGesture = usePanGesture({

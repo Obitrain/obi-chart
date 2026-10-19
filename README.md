@@ -121,7 +121,8 @@ const band = buildBandPath(range, width, height, { minX, maxX, minY: kg[0], maxY
 
 `useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan
 gestures (Gesture Handler 3 hooks) to compose with `useSimultaneousGestures` and wire into a `GestureDetector`.
-Inside a vertical `ScrollView`, pass `scrollable: true` so the one-finger pan only takes over on a horizontal drag:
+Inside a vertical `ScrollView`, pass `scrollable: true` so the one-finger pan only takes over on a horizontal drag.
+`onEnd` runs on the JS thread when a pinch or pan ends, e.g. to load the visible range as a new window:
 
 ```tsx
 import {
