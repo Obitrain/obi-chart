@@ -1,6 +1,13 @@
 import { clamp } from 'react-native-skia';
-import { useCallback, useMemo, useRef } from 'react';
-import { Gesture, type PanGesture, type PinchGesture } from 'react-native-gesture-handler';
+import { useCallback, useRef } from 'react';
+import {
+  usePanGesture,
+  usePinchGesture,
+  useTapGesture,
+  type PanGesture,
+  type PinchGesture,
+  type TapGesture,
+} from 'react-native-gesture-handler';
 import {
     useAnimatedReaction,
     useSharedValue,
@@ -8,6 +15,9 @@ import {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import type { DataPoint } from './types';
+
+// Horizontal travel before a scrollable pan takes over, vertical travel before it gives up
+const SCROLLABLE_OFFSET = 10;
 
 /**
  * Get the position of a point on the axis,
@@ -44,6 +54,11 @@ export type AxisGestureProps = {
   width: number;
   startOffset?: number;
   startScale?: number;
+  /**
+   * Inside a vertical scroll view: the one-finger pan only takes over on a horizontal drag
+   * and lets vertical drags scroll. Defaults to false.
+   */
+  scrollable?: boolean;
 };
 
 export type ScalableGesture = {
@@ -92,85 +107,83 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
     startScale,
   ]);
 
-  // Memoized: handing a new gesture instance to GestureDetector mid-gesture
-  // resets the active pan and makes the chart jump
-  const panGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        // Single-finger only: two fingers belong to the pinch, whose focal
-        // rebase would otherwise fight the pan over offsetX
-        .maxPointers(1)
-        // Incremental deltas (changeX) with a live clamp keep the content
-        // edges pinned: no overscroll, no snap-back to interrupt
-        .onChange((event) => {
-          const [minOffset, maxOffset] = getOffsetBoundsWl(
-            width,
-            startOffset,
-            focalX.value,
-            scale.value
-          );
-          offsetX.value = clamp(
-            offsetX.value + event.changeX,
-            minOffset,
-            maxOffset
-          );
-        })
-        .onEnd(() => {
-          lastScale.value = scale.value;
-          lastFocalX.value = focalX.value;
-          lastOffsetX.value = offsetX.value;
-        }),
-    [focalX, lastFocalX, lastOffsetX, lastScale, offsetX, scale, startOffset, width]
-  );
+  const scrollable = props.scrollable ?? false;
+  const commit = () => {
+    'worklet';
+    lastScale.value = scale.value;
+    lastFocalX.value = focalX.value;
+    lastOffsetX.value = offsetX.value;
+  };
 
-  const pinchGesture = useMemo(
-    () =>
-      Gesture.Pinch()
-        .onStart(() => {
-          needsPivot.value = true;
-        })
-        .onUpdate((event) => {
-          // The pinch can keep firing in the single-finger tail of the
-          // gesture, tracking the remaining finger as its focal: ignore it
-          // (numberOfPointers is missing on web — let those through)
-          if ((event.numberOfPointers ?? 2) < 2) {
-            needsPivot.value = true;
-            return;
-          }
-          const prevScale = scale.value;
-          const newScale = clamp(lastScale.value * event.scale, 1, Infinity);
-          if (needsPivot.value) {
-            // New pivot: rebase offsetX so re-anchoring under the fingers
-            // doesn't shift the content
-            const rebased =
-              offsetX.value + (focalX.value - event.focalX) * (1 - prevScale);
-            offsetX.value = (rebased * newScale) / prevScale;
-            needsPivot.value = false;
-          } else {
-            // Keep the content glued to both fingers: the offset follows the
-            // focal translation and rescales with the zoom
-            offsetX.value =
-              (event.focalX - focalX.value + offsetX.value / prevScale) *
-              newScale;
-          }
-          focalX.value = event.focalX;
-          scale.value = newScale;
-          // Zooming moves the bounds: keep the content edges pinned
-          const [minOffset, maxOffset] = getOffsetBoundsWl(
-            width,
-            startOffset,
-            focalX.value,
-            scale.value
-          );
-          offsetX.value = clamp(offsetX.value, minOffset, maxOffset);
-        })
-        .onEnd(() => {
-          lastScale.value = scale.value;
-          lastFocalX.value = focalX.value;
-          lastOffsetX.value = offsetX.value;
-        }),
-    [focalX, lastFocalX, lastOffsetX, lastScale, needsPivot, offsetX, scale, startOffset, width]
-  );
+  const panGesture = usePanGesture({
+    // Single-finger only: two fingers belong to the pinch, whose focal
+    // rebase would otherwise fight the pan over offsetX
+    maxPointers: 1,
+    // No spread here: the worklets plugin can't workletize spread hook configs
+    activeOffsetX: scrollable ? [-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET] : undefined,
+    failOffsetY: scrollable ? [-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET] : undefined,
+    // Incremental deltas (changeX) with a live clamp keep the content
+    // edges pinned: no overscroll, no snap-back to interrupt
+    onUpdate: (event) => {
+      'worklet';
+      const [minOffset, maxOffset] = getOffsetBoundsWl(
+        width,
+        startOffset,
+        focalX.value,
+        scale.value
+      );
+      offsetX.value = clamp(
+        offsetX.value + event.changeX,
+        minOffset,
+        maxOffset
+      );
+    },
+    onDeactivate: commit,
+  });
+
+  const pinchGesture = usePinchGesture({
+    onActivate: () => {
+      'worklet';
+      needsPivot.value = true;
+    },
+    onUpdate: (event) => {
+      'worklet';
+      // The pinch can keep firing in the single-finger tail of the
+      // gesture, tracking the remaining finger as its focal: ignore it
+      // (numberOfPointers is missing on web — let those through)
+      if ((event.numberOfPointers ?? 2) < 2) {
+        needsPivot.value = true;
+        return;
+      }
+      const prevScale = scale.value;
+      const newScale = clamp(lastScale.value * event.scale, 1, Infinity);
+      if (needsPivot.value) {
+        // New pivot: rebase offsetX so re-anchoring under the fingers
+        // doesn't shift the content
+        const rebased =
+          offsetX.value + (focalX.value - event.focalX) * (1 - prevScale);
+        offsetX.value = (rebased * newScale) / prevScale;
+        needsPivot.value = false;
+      } else {
+        // Keep the content glued to both fingers: the offset follows the
+        // focal translation and rescales with the zoom
+        offsetX.value =
+          (event.focalX - focalX.value + offsetX.value / prevScale) *
+          newScale;
+      }
+      focalX.value = event.focalX;
+      scale.value = newScale;
+      // Zooming moves the bounds: keep the content edges pinned
+      const [minOffset, maxOffset] = getOffsetBoundsWl(
+        width,
+        startOffset,
+        focalX.value,
+        scale.value
+      );
+      offsetX.value = clamp(offsetX.value, minOffset, maxOffset);
+    },
+    onDeactivate: commit,
+  });
 
   return {
     scale,
@@ -239,8 +252,6 @@ export type UseCursorGestureProps = {
   scrollable?: boolean;
 };
 
-// Horizontal travel before a scrollable pan takes over, vertical travel before it gives up
-const SCROLLABLE_OFFSET = 10;
 
 /**
  * Get the closest point for a given x value
@@ -288,47 +299,44 @@ export const useCursorGesture = function (props: UseCursorGestureProps) {
   /** True while a finger drives the cursor. */
   const isActive = useSharedValue(false);
 
-  // Memoized: a new gesture instance on every render can reset an active pan
-  const { panGesture, tapGesture } = useMemo(() => {
-    const setPosition = (x: number, y: number) => {
+  const setPosition = (x: number, y: number) => {
+    'worklet';
+    yPosition.value = clamp(y, 0, height);
+    if (isContinuous || points === undefined) {
+      xPosition.value = clamp(x, 0, width);
+      return;
+    }
+    const _closestDot = getClosestPoint(clamp(x, 0, width), points.value);
+    if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
+    xPosition.value = _closestDot.x;
+  };
+  const start = (event: { x: number; y: number }) => {
+    'worklet';
+    isActive.value = true;
+    setPosition(event.x, event.y);
+  };
+
+  const panGesture: PanGesture = usePanGesture({
+    activeOffsetX: scrollable ? [-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET] : undefined,
+    failOffsetY: scrollable ? [-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET] : undefined,
+    // onBegin fires on any touch, even one that ends up scrolling
+    onBegin: scrollable ? undefined : start,
+    onActivate: scrollable ? start : undefined,
+    onUpdate: (event) => {
       'worklet';
-      yPosition.value = clamp(y, 0, height);
-      if (isContinuous || points === undefined) {
-        xPosition.value = clamp(x, 0, width);
-        return;
-      }
-      const _closestDot = getClosestPoint(clamp(x, 0, width), points.value);
-      if (closestDataPoint !== undefined) closestDataPoint.value = _closestDot;
-      xPosition.value = _closestDot.x;
-    };
-    const pan = Gesture.Pan()
-      .onUpdate((event) => setPosition(event.x, event.y))
-      .onFinalize(() => {
-        isActive.value = false;
-      });
-    if (scrollable)
-      pan
-        .activeOffsetX([-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET])
-        .failOffsetY([-SCROLLABLE_OFFSET, SCROLLABLE_OFFSET])
-        // onBegin fires on any touch, even one that ends up scrolling
-        .onStart((event) => {
-          'worklet';
-          isActive.value = true;
-          setPosition(event.x, event.y);
-        });
-    else
-      pan.onBegin((event) => {
-        'worklet';
-        isActive.value = true;
-        setPosition(event.x, event.y);
-      });
-    return {
-      panGesture: pan,
-      tapGesture: Gesture.Tap().onBegin((event) =>
-        setPosition(event.x, event.y)
-      ),
-    };
-  }, [width, height, isContinuous, scrollable, points, closestDataPoint, xPosition, yPosition, isActive]);
+      setPosition(event.x, event.y);
+    },
+    onFinalize: () => {
+      'worklet';
+      isActive.value = false;
+    },
+  });
+  const tapGesture: TapGesture = useTapGesture({
+    onBegin: (event) => {
+      'worklet';
+      setPosition(event.x, event.y);
+    },
+  });
 
   // Re-snap the cursor when the data points change (e.g. switching graphs)
   useAnimatedReaction(

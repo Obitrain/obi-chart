@@ -84,7 +84,7 @@ stateDiagram-v2
 
 Both branches end with the same bounds clamp as the pan, so zooming out at a data edge keeps the edge pinned. The invariant is locked by a step-by-step simulation test in [gesture.test.ts](../src/__tests__/gesture.test.ts) (`pinch focal math`) asserting both finger anchor points track exactly through a 20-step asymmetric pinch.
 
-The pan is restricted to `maxPointers(1)`: two fingers belong to the pinch, whose follow-rebase already provides two-finger panning. Letting both handlers write `offsetX` (the previous `Gesture.Simultaneous` behaviour) made the pan's absolute writes discard the pinch rebase.
+The pan is restricted to `maxPointers: 1`: two fingers belong to the pinch, whose follow-rebase already provides two-finger panning. Letting both handlers write `offsetX` (the previous `Gesture.Simultaneous` behaviour) made the pan's absolute writes discard the pinch rebase.
 
 ## Adaptive axis (zoom bands)
 

@@ -23,7 +23,10 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  GestureDetector,
+  useSimultaneousGestures,
+} from 'react-native-gesture-handler';
 import {
   useAnimatedReaction,
   useSharedValue,
@@ -306,10 +309,7 @@ const AdvancedChartScreen: FC<Props> = function ({}) {
     [scale, focalX, offsetX, graphWidth]
   );
 
-  const gesture = useMemo(
-    () => Gesture.Simultaneous(pinchGesture, panGesture),
-    [pinchGesture, panGesture]
-  );
+  const gesture = useSimultaneousGestures(pinchGesture, panGesture);
 
   useDemo([
     { at: 1000, run: () => applyPreset(365) },
