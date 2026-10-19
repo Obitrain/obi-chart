@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.0](https://github.com/Obitrain/obi-chart/compare/v0.15.1...v0.16.0) (2026-10-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* requires react-native-gesture-handler >= 3.1.0.
+
+### Features
+
+* migrate gestures to react-native-gesture-handler v3 ([#55](https://github.com/Obitrain/obi-chart/issues/55)) ([506164e](https://github.com/Obitrain/obi-chart/commit/506164eb2ff74df7374c7ead89fb97f8c6b0ad43))
+* useScalableGesture onEnd callback when a pinch or pan ends ([#57](https://github.com/Obitrain/obi-chart/issues/57)) ([21858d3](https://github.com/Obitrain/obi-chart/commit/21858d3ed732f2c3eae41300f9a03fdd7ebe869e))
+
 ## [0.15.1](https://github.com/Obitrain/obi-chart/compare/v0.15.0...v0.15.1) (2026-10-18)
 
 
