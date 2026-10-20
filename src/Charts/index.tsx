@@ -35,6 +35,7 @@ export {
   getClosestPoint,
   getOffsetBoundsWl,
   getPositionWl,
+  getRangeZoomWl,
   useCursorGesture,
   useScalableGesture,
   useUpdateAxis,
@@ -44,6 +45,7 @@ export type {
   ScalableGesture,
   UpdateAxisProps,
   UseCursorGestureProps,
+  Zoom,
 } from './gesture';
 export {
   buildGraph,

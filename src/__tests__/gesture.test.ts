@@ -3,6 +3,7 @@ import {
   getClosestPoint,
   getOffsetBoundsWl,
   getPositionWl,
+  getRangeZoomWl,
 } from '../Charts/gesture';
 import type { DataPoint } from '../Charts/types';
 
@@ -208,5 +209,53 @@ describe('getOffsetBoundsWl', () => {
     expect(getPositionWl(width, focalX, scale, min)).toBeCloseTo(
       width + startOffset
     );
+  });
+});
+
+describe('getRangeZoomWl', () => {
+  it.each([
+    {
+      name: 'fits a middle range to the width',
+      startOffset: 0,
+      from: 25,
+      to: 75,
+      output: { scale: 2, focalX: 0, offsetX: -50 },
+    },
+    {
+      name: 'keeps the start offset',
+      startOffset: 10,
+      from: 25,
+      to: 75,
+      output: { scale: 2, focalX: 0, offsetX: -40 },
+    },
+    {
+      name: 'is unzoomed for the whole content',
+      startOffset: 0,
+      from: 0,
+      to: 100,
+      output: { scale: 1, focalX: 0, offsetX: 0 },
+    },
+    {
+      name: 'pins the content edge for a range past the end',
+      startOffset: 0,
+      from: 80,
+      to: 130,
+      output: { scale: 2, focalX: 0, offsetX: -100 },
+    },
+    {
+      name: 'is unzoomed for an empty range',
+      startOffset: 0,
+      from: 40,
+      to: 40,
+      output: { scale: 1, focalX: 0, offsetX: 0 },
+    },
+  ])('$name', ({ startOffset, from, to, output }) => {
+    expect(getRangeZoomWl(100, startOffset, from, to)).toEqual(output);
+  });
+
+  it('maps the range onto the viewport', () => {
+    const { scale, focalX, offsetX } = getRangeZoomWl(300, 0, 60, 160);
+    expect(getPositionWl(60, focalX, scale, offsetX)).toBeCloseTo(0);
+    expect(getPositionWl(160, focalX, scale, offsetX)).toBeCloseTo(300);
   });
 });
