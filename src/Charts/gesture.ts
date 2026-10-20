@@ -50,6 +50,27 @@ export const getOffsetBoundsWl = function (
   return [minOffset, maxOffset];
 };
 
+export type Zoom = { scale: number; focalX: number; offsetX: number };
+
+/**
+ * Zoom showing positions `from`..`to` across the whole width, clamped to scale >= 1 and to the content.
+ */
+export const getRangeZoomWl = function (
+  width: number,
+  startOffset: number,
+  from: number,
+  to: number
+): Zoom {
+  'worklet';
+  const span = Math.min(Math.max(to - from, 0), width);
+  if (span <= 0 || width <= 0)
+    return { scale: 1, focalX: 0, offsetX: startOffset };
+  const scale = width / span;
+  const [minOffset, maxOffset] = getOffsetBoundsWl(width, startOffset, 0, scale);
+  const offsetX = clamp(startOffset - from * scale, minOffset, maxOffset);
+  return { scale, focalX: 0, offsetX };
+};
+
 export type AxisGestureProps = {
   width: number;
   startOffset?: number;
@@ -70,6 +91,8 @@ export type ScalableGesture = {
     panGesture: PanGesture;
     offsetX: SharedValue<number>;
     reset: () => void;
+    /** Applies a zoom as if a gesture had ended on it, so the next pinch or pan continues from it. */
+    setZoom: (zoom: Zoom) => void;
 };
 
 /**
@@ -108,6 +131,35 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
     startOffset,
     startScale,
   ]);
+
+  const setZoom = useCallback(
+    (zoom: Zoom) => {
+      const newScale = Math.max(zoom.scale, 1);
+      const [minOffset, maxOffset] = getOffsetBoundsWl(
+        width,
+        startOffset,
+        zoom.focalX,
+        newScale
+      );
+      const newOffset = clamp(zoom.offsetX, minOffset, maxOffset);
+      scale.value = newScale;
+      lastScale.value = newScale;
+      focalX.value = zoom.focalX;
+      lastFocalX.value = zoom.focalX;
+      offsetX.value = newOffset;
+      lastOffsetX.value = newOffset;
+    },
+    [
+      focalX,
+      lastFocalX,
+      lastOffsetX,
+      lastScale,
+      offsetX,
+      scale,
+      startOffset,
+      width,
+    ]
+  );
 
   const scrollable = props.scrollable ?? false;
   const onEnd = props.onEnd;
@@ -196,6 +248,7 @@ export const useScalableGesture = (props: AxisGestureProps): ScalableGesture => 
     panGesture,
     offsetX,
     reset,
+    setZoom,
   };
 };
 

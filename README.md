@@ -122,7 +122,9 @@ const band = buildBandPath(range, width, height, { minX, maxX, minY: kg[0], maxY
 `useScalableGesture` provides the `scale`, `focalX` and `offsetX` shared values plus the pinch/pan
 gestures (Gesture Handler 3 hooks) to compose with `useSimultaneousGestures` and wire into a `GestureDetector`.
 Inside a vertical `ScrollView`, pass `scrollable: true` so the one-finger pan only takes over on a horizontal drag.
-`onEnd` runs on the JS thread when a pinch or pan ends, e.g. to load the visible range as a new window:
+`onEnd` runs on the JS thread when a pinch or pan ends, e.g. to load the visible range as a new window.
+`setZoom` presets the zoom (e.g. restoring a saved view); `getRangeZoomWl(width, startOffset, from, to)` gives the
+zoom that fits positions `from`..`to` to the width:
 
 ```tsx
 import {
@@ -165,7 +167,7 @@ export function MyZoomableChart() {
 thresholds), `useDotsTransition` (animate dots along a path), `useSharedNumberToStr`.
 
 **Graph helpers** — `buildGraph`, `buildBandPath`, `scaleCommands`, `getClosestPoint`, `getPositionWl`,
-`defaultOpacityTransitionWl`, `defaultTranslateTransitionWl`, `getNiceTicks`, `getAlignedTicks`, `getPaddedTicks`,
+`getRangeZoomWl`, `defaultOpacityTransitionWl`, `defaultTranslateTransitionWl`, `getNiceTicks`, `getAlignedTicks`, `getPaddedTicks`,
 `getBandStops`, `getHeatCells`, `getRingArcs`.
 
 **Math helpers** — `commandsToBezier`, `cubicBezierYForX`, `getYForX`, `magnitude`, `normalize`,
