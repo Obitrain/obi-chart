@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/Obitrain/obi-chart/compare/v0.16.0...v0.17.0) (2026-10-20)
+
+
+### Features
+
+* useScalableGesture setZoom and getRangeZoomWl to preset the zoom ([#60](https://github.com/Obitrain/obi-chart/issues/60)) ([9b04829](https://github.com/Obitrain/obi-chart/commit/9b0482940e9cd17a66215b4d5721d689e676a04e))
+
 ## [0.16.0](https://github.com/Obitrain/obi-chart/compare/v0.15.1...v0.16.0) (2026-10-19)
 
 
