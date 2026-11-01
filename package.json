@@ -116,7 +116,7 @@
     "react-native": "^0.79.0 || ^0.80.0 || ^0.81.6 || ^0.82.0 || ^0.83.0 || ^0.84.0 || ^0.85.0 || ^0.86.0 || ^0.87.0",
     "react-native-gesture-handler": "^3.1.0",
     "react-native-reanimated": "^4.0.0 || ~4.5.1",
-    "react-native-skia": ">=3.0.4",
+    "react-native-skia": ">=3.7.0",
     "react-native-worklets": ">=0.5.0"
   },
   "workspaces": [
