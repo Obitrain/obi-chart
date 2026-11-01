@@ -168,7 +168,7 @@ const LineChart: FC<LineChartProps> = function (props) {
   }
   return (
     <Canvas
-      opaque={opaque}
+      android={opaque ? { backingView: 'SurfaceView' } : undefined}
       style={[
         {
           width,
