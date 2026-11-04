@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/Obitrain/obi-chart/compare/v0.17.0...v0.17.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* require react-native-skia &gt;=3.7.0 ([#66](https://github.com/Obitrain/obi-chart/issues/66)) ([087420b](https://github.com/Obitrain/obi-chart/commit/087420bc25b65b467b5169c2a7829fa557a48606))
+
 ## [0.17.0](https://github.com/Obitrain/obi-chart/compare/v0.16.0...v0.17.0) (2026-10-20)
 
 
